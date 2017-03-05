@@ -273,7 +273,7 @@ public:
 
 			_serverConnectionInfo = serverConnectionInfo;
 		}
-		catch(CORBA::SystemException &)
+		catch(CORBA::SystemException & ex)
 		{
 			auto err = ec.add(-1, "Caught CORBA::SystemException.");
 			SAS_LOG_ERROR(_interface->logger(), err);
@@ -288,13 +288,13 @@ public:
 			SAS_LOG_ERROR(_interface->logger(), err);
 			return false;
 		}
-		catch(omniORB::fatalException &)
+		catch(omniORB::fatalException & ex)
 		{
 			auto err = ec.add(-1, "Caught omniORB::fatalException");
 			SAS_LOG_ERROR(_interface->logger(), err);
-			SAS_LOG_VAR(_interface->logger(), fe.file());
-			SAS_LOG_VAR(_interface->logger(), fe.line());
-			SAS_LOG_VAR(_interface->logger(), fe.errmsg());
+			SAS_LOG_VAR(_interface->logger(), ex.file());
+			SAS_LOG_VAR(_interface->logger(), ex.line());
+			SAS_LOG_VAR(_interface->logger(), ex.errmsg());
 			return false;
 		}
 		catch(...)
@@ -336,7 +336,7 @@ public:
 			orb->run();
 
 		}
-		catch(CORBA::SystemException &)
+		catch(CORBA::SystemException & ex)
 		{
 			auto err = ec.add(-1, "Caught CORBA::SystemException.");
 			SAS_LOG_ERROR(_interface->logger(), err);
@@ -351,13 +351,13 @@ public:
 			SAS_LOG_ERROR(_interface->logger(), err);
 			return Interface::Status::Crashed;
 		}
-		catch(omniORB::fatalException &)
+		catch(omniORB::fatalException & ex)
 		{
 			auto err = ec.add(-1, "Caught omniORB::fatalException");
 			SAS_LOG_ERROR(_interface->logger(), err);
-			SAS_LOG_VAR(_interface->logger(), fe.file());
-			SAS_LOG_VAR(_interface->logger(), fe.line());
-			SAS_LOG_VAR(_interface->logger(), fe.errmsg());
+			SAS_LOG_VAR(_interface->logger(), ex.file());
+			SAS_LOG_VAR(_interface->logger(), ex.line());
+			SAS_LOG_VAR(_interface->logger(), ex.errmsg());
 			return Interface::Status::Crashed;
 		}
 		catch(...)

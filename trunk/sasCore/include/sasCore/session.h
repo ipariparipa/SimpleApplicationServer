@@ -52,12 +52,6 @@ namespace SAS {
 		Session_priv * priv;
 	};
 
-	namespace Logging {
-
-		std::string toString(SessionID v);
-
-	}
-
 }
 
 #endif /* INCLUDE_SASCORE_SESSION_H_ */
