@@ -34,4 +34,4 @@
 #endif
 
 
-#endif sasCorba__config_h
+#endif // sasCorba__config_h

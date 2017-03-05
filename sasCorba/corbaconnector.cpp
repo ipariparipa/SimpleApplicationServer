@@ -316,7 +316,7 @@ bool CorbaConnector::connect(ErrorCollector & ec)
 		auto err = ec.add(-1, "unable to connect");
 		SAS_LOG_ERROR(priv->logger, err);
 	}
-	catch(CORBA::SystemException &)
+	catch(CORBA::SystemException & ex)
 	{
 		auto err = ec.add(-1, "Caught CORBA::SystemException.");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -330,13 +330,13 @@ bool CorbaConnector::connect(ErrorCollector & ec)
 		auto err = ec.add(-1, "Caught CORBA::Exception.");
 		SAS_LOG_ERROR(priv->logger, err);
 	}
-	catch(omniORB::fatalException &)
+	catch(omniORB::fatalException & ex)
 	{
 		auto err = ec.add(-1, "Caught omniORB::fatalException");
 		SAS_LOG_ERROR(priv->logger, err);
-		SAS_LOG_VAR(priv->logger, fe.file());
-		SAS_LOG_VAR(priv->logger, fe.line());
-		SAS_LOG_VAR(priv->logger, fe.errmsg());
+		SAS_LOG_VAR(priv->logger, ex.file());
+		SAS_LOG_VAR(priv->logger, ex.line());
+		SAS_LOG_VAR(priv->logger, ex.errmsg());
 	}
 	catch(...)
 	{

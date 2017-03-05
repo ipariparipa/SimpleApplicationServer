@@ -67,19 +67,19 @@ public:
 		catch (CORBA::COMM_FAILURE &)
 		{
 			auto err = ec.add(-1, "Caught system exception COMM_FAILURE.");
-			SAS_LOG_ERROR(_logger, err);
+			SAS_LOG_ERROR(logger, err);
 			return false;
 		}
 		catch (CORBA::SystemException &)
 		{
 			auto err = ec.add(-1, "Caught a CORBA::SystemException.");
-			SAS_LOG_ERROR(_logger, err);
+			SAS_LOG_ERROR(logger, err);
 			return false;
 		}
 		catch (...)
 		{
 			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
-			SAS_LOG_ERROR(_logger, err);
+			SAS_LOG_ERROR(logger, err);
 			return false;
 		}
 

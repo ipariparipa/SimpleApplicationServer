@@ -69,7 +69,7 @@ struct MySQLStatement_priv
 
 		virtual SQLVariant getData() const final
 		{
-			return SQLVariant(data, is_null!=FALSE);
+			return SQLVariant(data, is_null!=0);
 		}
 	private:
 		unsigned long data_size;
@@ -183,7 +183,7 @@ struct MySQLStatement_priv
 				return SQLVariant(SQLDataType::DateTime, sub_type);
 
 			return SQLVariant(SQLDateTime(data.year, data.month, data.day,
-				data.hour, data.minute, data.second, data.second_part, false, data.neg!=FALSE), sub_type);
+				data.hour, data.minute, data.second, data.second_part, false, data.neg!=0), sub_type);
 		}
 
 	private:
