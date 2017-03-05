@@ -1,0 +1,68 @@
+/*
+    This file is part of sasMySQL.
+
+    sasMySQL is free software: you can redistribute it and/or modify
+    it under the terms of the Lesser GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sasMySQL is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with sasMySQL.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef MYSQLCONNECTOR_H_
+#define MYSQLCONNECTOR_H_
+
+#include <sasSQL/sqlconnector.h>
+#include <sasCore/logging.h>
+
+#include <mutex>
+
+namespace SAS {
+
+class Application;
+
+struct MySQLConnector_priv;
+
+struct MySQL_Settings
+{
+	inline MySQL_Settings() : max_buffer_size(0)
+	{ }
+
+	size_t max_buffer_size;
+};
+
+class MySQLConnector : public SQLConnector
+{
+public:
+	MySQLConnector(const std::string & name, Application * app);
+	virtual ~MySQLConnector();
+
+	bool init(const std::string & configPath, ErrorCollector & ec);
+
+	virtual bool connect(ErrorCollector & ec) final;
+
+	virtual SQLStatement * createStatement() final;
+
+	virtual std::string name() const final;
+
+	virtual bool exec(const std::string & statement, SQLResult *& res, ErrorCollector & ec) final;
+	virtual bool exec(const std::string & statement, ErrorCollector & ec) final;
+
+	Logging::LoggerPtr logger() const;
+
+	const MySQL_Settings & settings() const;
+
+	std::mutex & mutex();
+private:
+	MySQLConnector_priv * priv;
+};
+
+}
+
+#endif /* MYSQLCONNECTOR_H_ */
