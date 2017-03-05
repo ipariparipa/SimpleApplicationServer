@@ -1,0 +1,73 @@
+/*
+    This file is part of sasCorba.
+
+    sasCorba is free software: you can redistribute it and/or modify
+    it under the terms of the Lesser GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    sasCorba is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with sasCorba.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+module CorbaSAS
+{
+	module ErrorHandling
+	{
+		struct Error
+		{
+			long error_code;
+			string error_text;
+		};
+	
+		typedef sequence<Error> ErrorSequence;
+		
+		exception ErrorException
+		{
+			string sas_module;
+			string invoker;
+			ErrorSequence err;
+		};
+
+		exception FatalErrorException
+		{
+			string sas_module;
+			string invoker;
+			ErrorSequence err;
+		};
+
+		exception NotImplementedException
+		{
+			string sas_module;
+			string invoker;
+			ErrorSequence err;
+		};
+
+	};
+
+	interface SASModule
+	{
+		typedef long long SessionID;
+		typedef sequence<octet> OctetSequence;
+	
+		void invoke(inout SessionID session_id, in string module_name, in string invoker, 
+				in OctetSequence in_msg, out OctetSequence out_msg)
+			raises(::CorbaSAS::ErrorHandling::NotImplementedException,
+			       ::CorbaSAS::ErrorHandling::ErrorException,
+			       ::CorbaSAS::ErrorHandling::FatalErrorException);
+			       
+		void endSession(in string module_name, in SessionID session_id)
+			raises(::CorbaSAS::ErrorHandling::ErrorException,
+			       ::CorbaSAS::ErrorHandling::FatalErrorException);
+			       
+		void getModuleInfo(in string module_name, out string description, out string version)
+			raises(::CorbaSAS::ErrorHandling::ErrorException,
+			       ::CorbaSAS::ErrorHandling::FatalErrorException);
+	};
+	
+};
