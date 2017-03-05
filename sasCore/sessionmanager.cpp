@@ -132,7 +132,7 @@ namespace SAS {
 		if(sid)
 		{
 			SAS_LOG_TRACE(priv->logger, "session ID is already known");
-			SAS_LOG_VAR(priv->logger, sid)
+			SAS_LOG_VAR(priv->logger, sid);
 			if(priv->depot.data.count(sid))
 			{
 				SAS_LOG_TRACE(priv->logger, "session is found for ID: " + std::to_string(sid));
