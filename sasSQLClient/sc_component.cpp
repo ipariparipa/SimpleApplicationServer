@@ -15,6 +15,8 @@
     along with sasSQLClient.  If not, see <http://www.gnu.org/licenses/>
  */
 
+#include "config.h"
+
 #include <sasCore/component.h>
 #include <sasCore/logging.h>
 #include <sasCore/application.h>
@@ -91,13 +93,12 @@ private:
 
 }}
 
-extern "C" SAS::Component * __sas_attach_component()
+extern "C" SAS_SQLCLIENT__FUNCTION SAS::Component * __sas_attach_component()
 {
 	return new SAS::SQLClient::SC_Component;
 }
 
-extern "C" void __sas_detach_component(SAS::Component * c)
+extern "C" SAS_SQLCLIENT__FUNCTION void __sas_detach_component(SAS::Component * c)
 {
 	delete c;
 }
-

@@ -35,6 +35,7 @@ struct SQLDateTime_priv
 	int msecs;
 	bool daylightSaveTime;
 	bool negative;
+	short ms_precision;
 };
 
 
@@ -47,12 +48,18 @@ SQLDateTime::SQLDateTime() : priv(new SQLDateTime_priv)
 	priv->msecs = -1;
 	priv->negative = priv->daylightSaveTime = false;
 	priv->isNull = true;
+
+	priv->ms_precision = 0;
 }
 
 SQLDateTime::SQLDateTime(time_t t) : priv(new SQLDateTime_priv)
 {
 	tm tmp;
+#if SAS_OS == SAS_OS_LINUX
 	gmtime_r(&t, &tmp);
+#else
+	gmtime_s(&tmp, &t);
+#endif
 
 	priv->years = tmp.tm_year + 1900;
 	priv->months = tmp.tm_mon + 1;
@@ -61,10 +68,12 @@ SQLDateTime::SQLDateTime(time_t t) : priv(new SQLDateTime_priv)
 	priv->minutes = tmp.tm_min;
 	priv->seconds = tmp.tm_sec;
 	priv->msecs = -1;
-	priv->daylightSaveTime = tmp.tm_isdst;
+	priv->daylightSaveTime = tmp.tm_isdst != 0;
 
 	priv->negative = false;
 	priv->isNull = false;
+
+	priv->ms_precision = 0;
 }
 
 SQLDateTime::SQLDateTime(tm * t) : priv(new SQLDateTime_priv)
@@ -76,13 +85,15 @@ SQLDateTime::SQLDateTime(tm * t) : priv(new SQLDateTime_priv)
 	priv->minutes = t->tm_min;
 	priv->seconds = t->tm_sec;
 	priv->msecs = -1;
-	priv->daylightSaveTime = t->tm_isdst;
+	priv->daylightSaveTime = t->tm_isdst != 0;
 
 	priv->negative = false;
 	priv->isNull = false;
+
+	priv->ms_precision = 0;
 }
 
-SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, bool daylightSaveTime, bool negative)  : priv(new SQLDateTime_priv)
+SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, bool daylightSaveTime, bool negative, short ms_precision) : priv(new SQLDateTime_priv)
 {
 	priv->years = years;
 	priv->months = months;
@@ -94,6 +105,7 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
 	priv->daylightSaveTime = daylightSaveTime;
 	priv->negative = negative;
 	priv->isNull = false;
+	priv->ms_precision = ms_precision;
 }
 
 SQLDateTime::~SQLDateTime()
@@ -180,7 +192,7 @@ std::string SQLDateTime::toString() const
 		<< ':'
 		<< std::setw(2) << priv->seconds;
 	if(priv->msecs >=0)
-		ss << '.' << std::setw(3) << priv->msecs;
+		ss << '.' << std::setw(priv->ms_precision) << priv->msecs;
 	return ss.str();
 }
 
@@ -213,5 +225,3 @@ time_t SQLDateTime::to_time_t() const
 }
 
 }
-
-

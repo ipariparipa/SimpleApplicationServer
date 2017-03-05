@@ -28,6 +28,8 @@ struct MySQLResult_priv
 {
 	MySQLConnector * conn;
 	MYSQL_RES * res;
+
+	std::mutex mut;
 };
 
 MySQLResult::MySQLResult(MySQLConnector * conn, MYSQL_RES * res) : SQLResult(), priv(new MySQLResult_priv)
@@ -44,6 +46,7 @@ MySQLResult::~MySQLResult()
 
 bool MySQLResult::fieldNum(size_t & ret, ErrorCollector & ec)
 {
+	std::unique_lock<std::mutex> __locker(priv->mut);
 	SAS_LOG_NDC();
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_num_fields");
 	ret = mysql_num_fields(priv->res);
@@ -52,8 +55,8 @@ bool MySQLResult::fieldNum(size_t & ret, ErrorCollector & ec)
 
 bool MySQLResult::fields(std::vector<std::tuple<std::string, std::string, std::string, SQLDataType>> & ret, ErrorCollector & ec)
 {
+	std::unique_lock<std::mutex> __locker(priv->mut);
 	SAS_LOG_NDC();
-
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_num_fields");
 	unsigned long field_num = mysql_num_fields(priv->res);
 	SAS_LOG_VAR(priv->conn->logger(), field_num);
@@ -124,13 +127,14 @@ SQLDataType MySQLResult::toDataType(enum_field_types type)
 
 unsigned long long MySQLResult::rowNum()
 {
+	std::unique_lock<std::mutex> __locker(priv->mut);
 	return mysql_num_rows(priv->res);
 }
 
 bool MySQLResult::fetch(std::vector<SQLVariant> & ret, ErrorCollector & ec)
 {
+	std::unique_lock<std::mutex> __locker(priv->mut);
 	SAS_LOG_NDC();
-
 	MYSQL_ROW row;
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_fetch_row");
 	if(!(row = mysql_fetch_row(priv->res)))
@@ -152,6 +156,4 @@ bool MySQLResult::fetch(std::vector<SQLVariant> & ret, ErrorCollector & ec)
 	return true;
 }
 
-
 }
-

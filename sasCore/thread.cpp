@@ -18,7 +18,6 @@
 #include "include/sasCore/thread.h"
 
 #include <mutex>
-#include <semaphore.h>
 #include <thread>
 #include <condition_variable>
 

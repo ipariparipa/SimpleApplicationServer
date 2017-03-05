@@ -20,18 +20,28 @@
 
 namespace SAS {
 
-SimpleErrorCollector::SimpleErrorCollector(std::function<void(long errorCode, const std::string & errorText)> fnct) : _fnct(fnct)
-{ }
 
-std::string SimpleErrorCollector::add(long errorCode, const std::string & errorText)
-{
-	_fnct(errorCode, errorText);
-	std::stringstream ss;
-	ss << "[" << errorCode << "] " << errorText;
-	return ss.str();
+	struct SimpleErrorCollector_priv
+	{
+		std::function<void(long errorCode, const std::string & errorText)> fnct;
+	};
+
+	SimpleErrorCollector::SimpleErrorCollector(std::function<void(long errorCode, const std::string & errorText)> fnct) : priv(new SimpleErrorCollector_priv)
+	{
+		priv->fnct = fnct;
+	}
+
+	SimpleErrorCollector::~SimpleErrorCollector()
+	{
+		delete priv;
+	}
+
+	std::string SimpleErrorCollector::add(long errorCode, const std::string & errorText)
+	{
+		priv->fnct(errorCode, errorText);
+		std::stringstream ss;
+		ss << "[" << errorCode << "] " << errorText;
+		return ss.str();
+	}
+
 }
-
-}
-
-
-

@@ -32,19 +32,38 @@ namespace SAS {
 
 struct Application_priv
 {
-	Application_priv() : logger(Logging::getLogger("SAS.Application"))
+	Application_priv() : logger(Logging::getLogger("SAS.Application")), argc(0), argv(nullptr)
 	{ }
 
 	ObjectRegistry objectRegistry;
 	std::vector<ComponentLoader*> componentLoaders;
 	Logging::LoggerPtr logger;
+
+	int argc;
+	char ** argv;
 };
 
 Application::Application() : priv(new Application_priv)
 { }
 
+Application::Application(int argc, char **argv) : priv(new Application_priv)
+{
+	priv->argc = argc;
+	priv->argv = argv;
+}
+
 Application::~Application()
 { delete priv; }
+
+int Application::argc() const
+{
+	return priv->argc;
+}
+
+char ** Application::argv() const
+{
+	return priv->argv;
+}
 
 ObjectRegistry * Application::objectRegistry() const
 {
@@ -62,10 +81,7 @@ bool Application::init(ErrorCollector & ec)
 
 	SAS_LOG_INFO(logger(), "activating components");
 	std::vector<std::string> comp_paths;
-	if(!configreader()->getStringListEntry("SAS/COMPONENTS", comp_paths, ec))
-		return false;
-
-	if(!comp_paths.size())
+	if (!configreader()->getStringListEntry("SAS/COMPONENTS", comp_paths, ec) || !comp_paths.size())
 	{
 		auto err = ec.add(-1, "components are not set");
 		SAS_LOG_ERROR(logger(), err);
@@ -122,4 +138,3 @@ void Application::deinit()
 }
 
 }
-

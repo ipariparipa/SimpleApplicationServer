@@ -23,7 +23,7 @@
 namespace SAS {
 
 struct ControlledThread_priv;
-class ControlledThread : public Thread
+class SAS_CORE__CLASS ControlledThread : public Thread
 {
 	SAS_COPY_PROTECTOR(ControlledThread)
 public:
@@ -43,6 +43,5 @@ private:
 };
 
 }
-
 
 #endif /* INCLUDE_SASCORE_CONTROLLEDTHREAD_H_ */

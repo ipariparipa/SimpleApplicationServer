@@ -16,11 +16,12 @@
  */
 
 #include "include/sasBasics/envconfigreader.h"
-#include <stdlib.h>
 #include <assert.h>
 #include <sasCore/errorcollector.h>
 #include <sstream>
 #include <sasCore/logging.h>
+#include <sasCore/tools.h>
+
 
 namespace SAS {
 
@@ -75,15 +76,26 @@ bool EnvConfigReader::getEntryAsString(const std::string & path, std::string & r
 {
 	SAS_LOG_NDC();
 	assert(path.length());
-	char * tmp;
 	std::string env_name = to_env(path);
 	SAS_LOG_VAR(_logger, env_name);
-	if(!(tmp = getenv(env_name.c_str())))
+
+#if SAS_OS == SAS_OS_LINUX
+	char * tmp;
+	if (!(tmp = getenv(env_name.c_str())))
 	{
 		SAS_LOG_TRACE(_logger, "environment variable is not set");
 		return false;
 	}
 	ret = tmp;
+#elif SAS_OS == SAS_OS_WINDOWS
+	if (!win_getEnv(env_name, ret))
+	{
+		SAS_LOG_TRACE(_logger, "environment variable is not set");
+		return false;
+	}
+#else
+#  error to be implemented
+#endif
 	return true;
 }
 
@@ -91,10 +103,17 @@ bool EnvConfigReader::getEntryAsString(const std::string & path, std::string & r
 {
 	SAS_LOG_NDC();
 	assert(path.length());
-	char * tmp;
 	std::string env_name = to_env(path);
 	SAS_LOG_VAR(_logger, env_name);
+#if SAS_OS == SAS_OS_LINUX
+	char * tmp;
 	ret = (tmp = getenv(env_name.c_str())) ? tmp : defaultValue;
+#elif SAS_OS == SAS_OS_WINDOWS
+	if (!win_getEnv(env_name, ret))
+		ret = defaultValue;
+#else
+#  error to be implemented
+#endif
 	return true;
 }
 

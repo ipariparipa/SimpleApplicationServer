@@ -29,7 +29,7 @@ class ErrorCollector;
 class SQLStatement;
 class SQLResult;
 
-class SQLConnector : public Object
+class SAS_SQL__CLASS SQLConnector : public Object
 {
 protected:
 	inline SQLConnector() { }
@@ -48,6 +48,5 @@ public:
 };
 
 }
-
 
 #endif /* INCLUDE_SASSQL_SQLCONNECTOR_H_ */

@@ -32,7 +32,7 @@ namespace SAS {
 
 struct MySQLStatement_priv
 {
-	MySQLStatement_priv(MYSQL_STMT * stmt_, MySQLConnector * conn_) : conn(conn_), mut(conn_->mutex()), stmt(stmt_)
+	MySQLStatement_priv(MYSQL_STMT * stmt_, MySQLConnector * conn_) : conn(conn_), conn_mut(conn_->mutex()), stmt(stmt_)
 	{ }
 
 
@@ -69,7 +69,7 @@ struct MySQLStatement_priv
 
 		virtual SQLVariant getData() const final
 		{
-			return SQLVariant(data, is_null);
+			return SQLVariant(data, is_null!=FALSE);
 		}
 	private:
 		unsigned long data_size;
@@ -104,7 +104,7 @@ struct MySQLStatement_priv
 			if(is_null)
 				return SQLVariant(SQLDataType::Blob);
 
-			return SQLVariant(buffer, out_size);
+			return SQLVariant(buffer, (size_t)out_size);
 		}
 	private:
 		std::vector<unsigned char> buffer;
@@ -183,7 +183,7 @@ struct MySQLStatement_priv
 				return SQLVariant(SQLDataType::DateTime, sub_type);
 
 			return SQLVariant(SQLDateTime(data.year, data.month, data.day,
-				data.hour, data.minute, data.second, data.second_part, false, data.neg), sub_type);
+				data.hour, data.minute, data.second, data.second_part, false, data.neg!=FALSE), sub_type);
 		}
 
 	private:
@@ -195,7 +195,8 @@ struct MySQLStatement_priv
 	std::vector<MYSQL_BIND> res_binders;
 
 	MySQLConnector * conn;
-	std::mutex & mut;
+	std::mutex & conn_mut;
+	std::mutex mut;
 	MYSQL_STMT * stmt;
 
 	struct BaseParamHelper
@@ -231,7 +232,7 @@ MySQLStatement::MySQLStatement(MYSQL_STMT * stmt, MySQLConnector * conn) : priv(
 
 MySQLStatement::~MySQLStatement()
 {
-	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker(priv->conn_mut);
 	mysql_stmt_close(priv->stmt);
 	delete priv;
 }
@@ -239,7 +240,7 @@ MySQLStatement::~MySQLStatement()
 bool MySQLStatement::prepare(const std::string & statement, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker(priv->conn_mut);
 
 	SAS_LOG_VAR(priv->conn->logger(), statement);
 
@@ -266,7 +267,7 @@ bool MySQLStatement::prepare(const std::string & statement, ErrorCollector & ec)
 unsigned long MySQLStatement::paramNum()
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker(priv->conn_mut);
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_param_count");
 	return mysql_stmt_param_count(priv->stmt);
 }
@@ -274,7 +275,7 @@ unsigned long MySQLStatement::paramNum()
 bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker(priv->conn_mut);
 	size_t params_size = params.size();
 
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_param_count");
@@ -425,7 +426,9 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 			{
 				auto _v = new MySQLStatement_priv::ParamHelper<SQLVariant>(p);
 				v.reset(_v);
-				b.buffer = _v->data.asBlob(b.buffer_length);
+				size_t tmp_size;
+				b.buffer = _v->data.asBlob(tmp_size);
+				b.buffer_length = tmp_size;
 			}
 			else
 				b.is_null_value = 0;
@@ -455,7 +458,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 bool MySQLStatement::execDML(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker(priv->conn_mut);
 
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_execute");
 	if(mysql_stmt_execute(priv->stmt))
@@ -471,7 +474,7 @@ bool MySQLStatement::execDML(ErrorCollector & ec)
 bool MySQLStatement::exec(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker(priv->conn_mut);
 
 	MYSQL_RES * meta_res;
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_result_metadata");

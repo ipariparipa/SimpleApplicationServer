@@ -14,7 +14,6 @@
     You should have received a copy of the GNU Lesser General Public License
     along with sasCorba.  If not, see <http://www.gnu.org/licenses/>
  */
-
 #include <sasCore/component.h>
 #include <sasCore/application.h>
 #include <sasCore/interfacemanager.h>
@@ -43,25 +42,48 @@ public:
 
 		this->app = app;
 
-		std::vector<std::string> ops;
-		if(!app->configreader()->getStringListEntry("SAS/CORBA/OPTIONS", ops, ec))
+		try
 		{
-			SAS_LOG_INFO(logger, "no options are set");
+
+			std::vector<std::string> ops;
+			if (!app->configreader()->getStringListEntry("SAS/CORBA/OPTIONS", ops, ec))
+			{
+				SAS_LOG_INFO(logger, "no options are set in configureation, using commanf line arguments");
+				int argc = app->argc();
+				char ** argv = app->argv();
+				orb = CORBA::ORB_init(argc, argv);
+			}
+			else
+			{
+				SAS_LOG_VAR_NAME(logger, "options", Logging::toString(ops));
+				std::vector<const char *> ops_buff(ops.size());
+				for (size_t i(0), l(ops.size()); i < l; ++i)
+					ops_buff[i] = ops[i].c_str();
+				int argc = ops_buff.size();
+				char ** argv = (char **)ops_buff.data();
+				orb = CORBA::ORB_init(argc, argv);
+			}
 		}
-		else
+		catch (CORBA::COMM_FAILURE &)
 		{
-			SAS_LOG_VAR_NAME(logger, "options", std::accumulate(ops.begin(), ops.end(), std::string(),
-					[](const std::string& a, const std::string& b)
-					{ return a + (a.length()>0 ? ";" : std::string() + b); }));
+			auto err = ec.add(-1, "Caught system exception COMM_FAILURE.");
+			SAS_LOG_ERROR(_logger, err);
+			return false;
+		}
+		catch (CORBA::SystemException &)
+		{
+			auto err = ec.add(-1, "Caught a CORBA::SystemException.");
+			SAS_LOG_ERROR(_logger, err);
+			return false;
+		}
+		catch (...)
+		{
+			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
+			SAS_LOG_ERROR(_logger, err);
+			return false;
 		}
 
-		std::vector<const char *> ops_buff(ops.size());
-		for(size_t i(0), l(ops.size()); i < l; ++i)
-			ops_buff[i] = ops[i].c_str();
-
-		int argc = ops_buff.size();
-		char ** argv = (char **)ops_buff.data();
-		if(CORBA::is_nil(orb = CORBA::ORB_init(argc, argv)))
+		if(CORBA::is_nil(orb))
 		{
 			auto err = ec.add(-1, "could not initialize ORB");
 			SAS_LOG_ERROR(logger, err);
@@ -125,11 +147,6 @@ public:
 		return "0.1";
 	}
 
-	virtual std::vector<Module*> modules() const override
-	{
-		return std::vector<Module*>();
-	}
-
 private:
 	Application * app;
 	CORBA::ORB_var orb;
@@ -139,15 +156,12 @@ private:
 }
 
 
-extern "C" SAS::Component * __sas_attach_component()
+extern "C" SAS_CORBA__FUNCTION SAS::Component * __sas_attach_component()
 {
 	return new SAS::CorbaComponent;
 }
 
-extern "C" void __sas_detach_component(SAS::Component * c)
+extern "C" SAS_CORBA__FUNCTION void __sas_detach_component(SAS::Component * c)
 {
 	delete c;
 }
-
-
-

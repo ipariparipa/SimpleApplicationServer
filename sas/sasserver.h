@@ -31,7 +31,7 @@ class SASServer : public Application, public InterfaceManager, public Watchdog
 {
 
 public:
-	SASServer();
+	SASServer(int argc, char ** argv);
 	virtual ~SASServer();
 
 	virtual std::string version() const final;
@@ -51,6 +51,5 @@ private:
 };
 
 }
-
 
 #endif /* SASSERVER_H_ */

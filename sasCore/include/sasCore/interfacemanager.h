@@ -31,7 +31,7 @@ class Watchdog;
 
 struct InterfaceManager_priv;
 
-class InterfaceManager
+class SAS_CORE__CLASS InterfaceManager
 {
 	SAS_COPY_PROTECTOR(InterfaceManager)
 public:

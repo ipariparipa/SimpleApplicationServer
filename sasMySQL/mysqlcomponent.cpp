@@ -15,6 +15,8 @@
     along with sasMySQL.  If not, see <http://www.gnu.org/licenses/>
  */
 
+#include "config.h"
+
 #include <sasCore/component.h>
 #include <sasCore/application.h>
 #include <sasCore/objectregistry.h>
@@ -22,6 +24,8 @@
 #include <sasCore/logging.h>
 
 #include "mysqlconnector.h"
+
+#include <mysql/mysql.h>
 
 namespace SAS {
 
@@ -34,6 +38,8 @@ public:
 	virtual bool init(Application * app, ErrorCollector & ec) override
 	{
 		SAS_LOG_NDC();
+
+		Logging::LoggerPtr logger = Logging::getLogger("SAS.MySQLComponent");
 
 		this->app = app;
 
@@ -55,7 +61,15 @@ public:
 
 			return app->objectRegistry()->registerObjects(connectors, ec);
 		}
-		SAS_LOG_INFO(Logging::getLogger("SAS.MySQLComponent"), "no connectros are defined");
+		SAS_LOG_INFO(logger, "no connectros are defined");
+
+		if (mysql_library_init(app->argc(), app->argv(), nullptr))
+		{
+			auto err = ec.add(-1, "could not initialize MySQL library");
+			SAS_LOG_ERROR(logger, err);
+			return false;
+		}
+
 		return true;
 	}
 
@@ -69,29 +83,18 @@ public:
 		return "0.1";
 	}
 
-	virtual std::vector<Module*> modules() const override
-	{
-		return std::vector<Module*>();
-	}
-
 private:
 	Application * app;
 };
 
 }
 
-
-extern "C" SAS::Component * __sas_attach_component()
+extern "C" SAS_MYSQL__FUNCTION SAS::Component * __sas_attach_component()
 {
 	return new SAS::MySQLComponent;
 }
 
-extern "C" void __sas_detach_component(SAS::Component * c)
+extern "C" SAS_MYSQL__FUNCTION void __sas_detach_component(SAS::Component * c)
 {
 	delete c;
 }
-
-
-
-
-

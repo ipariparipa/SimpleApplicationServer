@@ -19,16 +19,20 @@
 
 #include <sasCore/errorcollector.h>
 
-#include <log4cxx/basicconfigurator.h>
-#include <log4cxx/xml/domconfigurator.h>
-#include <log4cxx/propertyconfigurator.h>
-#include <log4cxx/consoleappender.h>
+#ifdef SAS_LOG4CXX_ENABLED
+#  include <log4cxx/basicconfigurator.h>
+#  include <log4cxx/xml/domconfigurator.h>
+#  include <log4cxx/propertyconfigurator.h>
+#  include <log4cxx/consoleappender.h>
+#endif
 
 namespace SAS { namespace Logging {
 
-log4cxx::LoggerPtr _rootLogger;
+#ifdef SAS_LOG4CXX_ENABLED
+	log4cxx::LoggerPtr _rootLogger;
+#endif
 
-bool init(int argc, char *argv[], ErrorCollector & ec)
+extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & ec)
 {
 #ifdef SAS_LOG4CXX_ENABLED
 	enum State
@@ -78,7 +82,7 @@ bool init(int argc, char *argv[], ErrorCollector & ec)
 	return true;
 }
 
-void writeUsage(std::ostream & os)
+extern SAS_BASICS__FUNCTION void writeUsage(std::ostream & os)
 {
 #ifdef SAS_LOG4CXX_ENABLED
 	os << "Logging options:" << std::endl;

@@ -26,7 +26,7 @@ namespace SAS {
 class ErrorCollector;
 
 struct LibraryLoader_priv;
-class LibraryLoader
+class SAS_CORE__CLASS LibraryLoader
 {
 	SAS_COPY_PROTECTOR(LibraryLoader)
 public:
@@ -40,8 +40,6 @@ private:
 	LibraryLoader_priv * priv;
 };
 
-
 }
-
 
 #endif /* INCLUDE_SAS_CORE_MODULE_H_ */

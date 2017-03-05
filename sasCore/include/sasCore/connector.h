@@ -27,7 +27,7 @@ namespace SAS {
 
 class ErrorCollector;
 
-class Connection : public Invoker
+class SAS_CORE__CLASS Connection : public Invoker
 {
 	SAS_COPY_PROTECTOR(Connection)
 public:
@@ -51,7 +51,5 @@ public:
 };
 
 }
-
-
 
 #endif /* INCLUDE_SASCORE_CONNECTOR_H_ */

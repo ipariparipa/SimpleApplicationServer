@@ -19,36 +19,34 @@
 
 namespace SAS { namespace Logging {
 
-std::string toString(const std::vector<std::string> & strl)
-{
-	std::string ret;
-	for(size_t i = 0, l = strl.size(); i < l; ++i)
+	extern SAS_CORE__FUNCTION std::string toString(const std::vector<std::string> & strl)
 	{
-		ret += strl[i];
-		if(i+1 < l)
-			ret += "; ";
+		std::string ret;
+		for(size_t i = 0, l = strl.size(); i < l; ++i)
+		{
+			ret += strl[i];
+			if(i+1 < l)
+				ret += "; ";
+		}
+		return ret;
 	}
-	return ret;
-}
 
-LoggerPtr getLogger(const std::string & name)
-{
+	extern SAS_CORE__FUNCTION LoggerPtr getLogger(const std::string & name)
+	{
 #ifdef SAS_LOG4CXX_ENABLED
-	return log4cxx::Logger::getLogger(name);
+		return log4cxx::Logger::getLogger(name);
 #else
-	return 0;
+		return 0;
 #endif
-}
+	}
 
-LoggerPtr getRootLogger()
-{
+	extern SAS_CORE__FUNCTION LoggerPtr getRootLogger()
+	{
 #ifdef SAS_LOG4CXX_ENABLED
-	return log4cxx::Logger::getRootLogger();
+		return log4cxx::Logger::getRootLogger();
 #else
-	return 0;
+		return 0;
 #endif
-}
+	}
 
 }}
-
-

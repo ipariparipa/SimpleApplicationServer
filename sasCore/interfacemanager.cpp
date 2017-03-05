@@ -23,6 +23,7 @@
 
 #include <mutex>
 #include <map>
+#include <memory>
 
 namespace SAS {
 

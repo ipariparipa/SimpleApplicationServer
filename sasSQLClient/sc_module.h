@@ -50,6 +50,4 @@ private:
 
 }}
 
-
-
 #endif /* SC_MODULE_H_ */

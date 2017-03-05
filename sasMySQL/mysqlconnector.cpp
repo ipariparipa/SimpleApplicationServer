@@ -103,7 +103,7 @@ bool MySQLConnector::init(const std::string & configPath, ErrorCollector & ec)
 		has_error = true;
 	else
 	{
-		priv->settings.max_buffer_size = ll_tmp;
+		priv->settings.max_buffer_size = (size_t)ll_tmp;
 		long long max = 2147483648; //2G
 		if(ll_tmp < 0)
 		{
@@ -120,7 +120,7 @@ bool MySQLConnector::init(const std::string & configPath, ErrorCollector & ec)
 	}
 
 	if(cfg->getNumberEntry(configPath + "/PORT", ll_tmp, 0, ec))
-		priv->connectionData.port = ll_tmp;
+		priv->connectionData.port = (size_t)ll_tmp;
 	cfg->getStringEntry(configPath + "/UNIX_SOCKET", priv->connectionData.unix_socket, priv->connectionData.unix_socket, ec);
 
 	if(has_error)
@@ -234,7 +234,3 @@ std::mutex & MySQLConnector::mutex()
 }
 
 }
-
-
-
-

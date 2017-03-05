@@ -34,7 +34,7 @@ enum class SQLDataType
 };
 
 struct SQLVariant_priv;
-class SQLVariant
+class SAS_SQL__CLASS SQLVariant
 {
 public:
 	enum class DateTimeSubType

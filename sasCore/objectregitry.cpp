@@ -37,7 +37,7 @@ struct ObjectRegistry_priv
 	struct TypeReg
 	{
 		std::mutex mut;
-		std::map<std::string /*name*/, std::unique_ptr<Object>> reg;
+		std::map<std::string /*name*/, Object*> reg;
 	};
 
 	std::map<std::string /*type*/, TypeReg> reg;
@@ -70,7 +70,7 @@ struct ObjectRegistry_priv
 				{
 					SAS_LOG_VAR(logger, o->type());
 					SAS_LOG_VAR(logger, o->name());
-					if(tr->reg[o->name()].get() != o)
+					if(tr->reg[o->name()] != o)
 					{
 						auto err = ec.add(-1, "another object is already registered with the same identifier: '"+o->type()+"/"+o->name()+"'");
 						SAS_LOG_ERROR(logger, err);
@@ -81,7 +81,7 @@ struct ObjectRegistry_priv
 				}
 				else
 				{
-					tr->reg[o->name()].reset(o);
+					tr->reg[o->name()] = o;
 					SAS_LOG_DEBUG(logger, "object '"+o->type()+"/"+o->name()+"' has been registered");
 				}
 			}
@@ -108,7 +108,7 @@ bool ObjectRegistry::registerObject(Object * obj, ErrorCollector & ec)
 	{
 		SAS_LOG_VAR(priv->logger, obj->type());
 		SAS_LOG_VAR(priv->logger, obj->name());
-		if(tr->reg[obj->name()].get() != obj)
+		if(tr->reg[obj->name()] != obj)
 		{
 			auto err = ec.add(-1, "another object is already registered with the same identifier: '"+obj->type()+"/"+obj->name()+"'");
 			SAS_LOG_ERROR(priv->logger, err);
@@ -119,7 +119,7 @@ bool ObjectRegistry::registerObject(Object * obj, ErrorCollector & ec)
 	}
 	else
 	{
-		tr->reg[obj->name()].reset(obj);
+		tr->reg[obj->name()] = obj;
 		SAS_LOG_DEBUG(priv->logger, "object '"+obj->type()+"/"+obj->name()+"' has been registered");
 	}
 	return true;
@@ -152,7 +152,7 @@ Object * ObjectRegistry::getObject(const std::string & type, const std::string &
 		return nullptr;
 	}
 	SAS_LOG_TRACE(priv->logger, std::string("object is found in registry: '")+type+"/"+name+"'");
-	return tr->reg[name].get();
+	return tr->reg[name];
 }
 
 std::vector<Object *> ObjectRegistry::getObjects(const std::string & type, ErrorCollector & ec)
@@ -179,12 +179,8 @@ std::vector<Object *> ObjectRegistry::getObjects(const std::string & type, Error
 	ret.resize(tr->reg.size());
 	size_t i(0);
 	for(auto & o : tr->reg)
-		ret[i++] = o.second.get();
+		ret[i++] = o.second;
 	return ret;
 }
 
-
 }
-
-
-

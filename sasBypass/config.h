@@ -20,6 +20,17 @@
 
 #include <sasCore/config.h>
 
-
+#if SAS_OS == SAS_OS_LINUX 
+#  define SAS_BYPASS__CLASS 
+#  define SAS_BYPASS__FUNCTION 
+#elif SAS_OS == SAS_OS_WINDOWS 
+#  ifdef SAS_BYPASS__IMPL
+#    define SAS_BYPASS__CLASS __declspec(dllexport)
+#    define SAS_BYPASS__FUNCTION __declspec(dllexport)
+#  else
+#    define SAS_BYPASS__CLASS __declspec(dllimport)
+#    define SAS_BYPASS__FUNCTION __declspec(dllimport)
+#  endif
+#endif
 
 #endif /* CONFIG_H_ */

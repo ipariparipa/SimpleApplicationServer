@@ -26,7 +26,7 @@ namespace SAS {
 
 class ErrorCollector;
 
-class Interface
+class SAS_CORE__CLASS Interface
 {
 	SAS_COPY_PROTECTOR(Interface)
 protected:

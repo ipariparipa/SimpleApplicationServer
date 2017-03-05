@@ -25,6 +25,7 @@
 #include <sasCore/logging.h>
 
 #include <mutex>
+#include <condition_variable>
 #include <queue>
 #include <memory>
 
@@ -48,14 +49,16 @@ struct SASServer_priv
 
 		std::mutex intf_messages_mut;
 		std::queue<IntfMsg> intf_messages;
-		std::mutex suspender_mut;
+		std::condition_variable suspender_cv;
+		std::mutex suspender_cv_mut;
 
 	} watchdog;
 
 	Logging::LoggerPtr logger, wd_logger;
 };
 
-SASServer::SASServer() : Application(), InterfaceManager(), Watchdog(), priv(new SASServer_priv)
+SASServer::SASServer(int argc, char ** argv) : 
+	Application(argc, argv), InterfaceManager(), Watchdog(), priv(new SASServer_priv)
 { }
 
 SASServer::~SASServer()
@@ -78,18 +81,17 @@ Logging::LoggerPtr SASServer::logger()
 
 void SASServer::addInterfaceEvent(Interface::Status status, Interface * intf, const std::string & message)
 {
-	std::unique_lock<std::mutex> __locker(priv->watchdog.intf_messages_mut);
+	std::lock_guard<std::mutex> __susp_locker(priv->watchdog.suspender_cv_mut);
 	priv->watchdog.intf_messages.push({status, intf, message});
-	priv->watchdog.suspender_mut.unlock();
+	priv->watchdog.suspender_cv.notify_one();
 }
 
 void SASServer::run()
 {
 	while(true)
 	{
-		priv->watchdog.suspender_mut.lock();
-		priv->watchdog.suspender_mut.unlock();
-		std::unique_lock<std::mutex> __locker(priv->watchdog.intf_messages_mut);
+		std::unique_lock<std::mutex> __susp_locker(priv->watchdog.suspender_cv_mut);
+		priv->watchdog.suspender_cv.wait(__susp_locker);
 		while(priv->watchdog.intf_messages.size())
 		{
 			auto im = priv->watchdog.intf_messages.front();
@@ -110,10 +112,8 @@ void SASServer::run()
 				break;
 			}
 		}
-		priv->watchdog.suspender_mut.lock();
+		priv->watchdog.suspender_cv.notify_one();
 	}
 }
 
 }
-
-

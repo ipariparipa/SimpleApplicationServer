@@ -14,7 +14,6 @@
     You should have received a copy of the GNU Lesser General Public License
     along with sasCore.  If not, see <http://www.gnu.org/licenses/>
  */
-
 #include "include/sasCore/session.h"
 
 #include <map>
@@ -45,9 +44,6 @@ namespace SAS {
 		delete priv;
 	}
 
-//	Session::Context::~Context()
-//	{ }
-
 	Invoker::Status Session::invoke(const std::string & invoker_name, const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec)
 	{
 		std::unique_lock<std::mutex> __locker_(priv->active_mutex);
@@ -58,26 +54,8 @@ namespace SAS {
 		return inv->invoke(input, output, ec);
 	}
 
-//	Session::Context * Session::beginContext(const std::string & name, std::function<Context*()> alloc)
-//	{
-//		std::unique_lock<std::mutex> __locker_(priv->contexts_mutex);
-//		return priv->contexts.count(name) ? priv->contexts[name] : priv->contexts[name] = alloc();
-//	}
-
-//	void Session::endContext(const std::string & name)
-//	{
-//		std::unique_lock<std::mutex> __locker_(priv->contexts_mutex);
-//		if(priv->contexts.count(name))
-//		{
-//			delete priv->contexts[name];
-//			priv->contexts.erase(name);
-//		}
-//	}
-
 	bool Session::isActive()
 	{
-//		std::unique_lock<std::mutex> __locker_(priv->contexts_mutex);
-//		return priv->contexts.size();
 		if(!priv->active_mutex.try_lock())
 			return true;
 		priv->active_mutex.unlock();
@@ -87,18 +65,6 @@ namespace SAS {
 	SessionID Session::id() const
 	{
 		return priv->id;
-	}
-
-
-	namespace Logging {
-
-		std::string toString(SessionID v)
-		{
-			std::stringstream ss;
-			ss << v;
-			return ss.str();
-		}
-
 	}
 
 }

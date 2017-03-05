@@ -19,26 +19,33 @@
 #define INCLUDE_SASCORE_COMPONENT_H_
 
 #include "defines.h"
-#include "modulesource.h"
+
+#include <string>
 
 namespace SAS
 {
 	class Application;
 	class ErrorCollector;
 
-	class Component : public ModuleSource
+	class SAS_CORE__CLASS Component
 	{
 		SAS_COPY_PROTECTOR(Component)
 	public:
 		Component();
 		virtual ~Component();
 
+		virtual inline std::string name() const { return std::string(); }
+		virtual inline std::string description() const { return std::string(); }
+		virtual inline std::string version() const { return std::string(); }
+
 		virtual bool init(Application * app, ErrorCollector & ec) = 0;
 
 	};
 }
 
-extern "C" SAS::Component * __sas_attach_component();
-extern "C" void __sas_detach_component(SAS::Component * );
+/*
+extern "C" SAS_XXX__FUNCTION SAS::Component * __sas_attach_component();
+extern "C" SAS_XXX__FUNCTION void __sas_detach_component(SAS::Component * );
+*/
 
 #endif /* INCLUDE_SASCORE_COMPONENT_H_ */
