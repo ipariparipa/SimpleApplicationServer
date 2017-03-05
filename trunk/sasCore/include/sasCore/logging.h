@@ -81,8 +81,10 @@ namespace SAS { namespace Logging {
 
 #else
 
+#ifndef _M_CEE
 #include <map>
 #include <mutex>
+#endif
 
 namespace SAS { namespace Logging {
 
@@ -151,6 +153,7 @@ private:
 	Stream_T & stream;
 };
 
+#ifndef _M_CEE
 template<class Stream_T>
 class StreamLogging : public AbstractLogging
 {
@@ -182,6 +185,7 @@ private:
 	std::mutex mut;
 	std::map<std::string, LoggerPtr> logger_reg;
 };
+#endif
 
 extern SAS_CORE__FUNCTION void setLogging(AbstractLogging * logging);
 
