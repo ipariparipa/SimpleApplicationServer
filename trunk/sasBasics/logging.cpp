@@ -24,13 +24,12 @@
 #  include <log4cxx/xml/domconfigurator.h>
 #  include <log4cxx/propertyconfigurator.h>
 #  include <log4cxx/consoleappender.h>
+#else
+#  include <iostream>
+#  include <fstream>
 #endif
 
 namespace SAS { namespace Logging {
-
-#ifdef SAS_LOG4CXX_ENABLED
-	log4cxx::LoggerPtr _rootLogger;
-#endif
 
 extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & ec)
 {
@@ -39,22 +38,21 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
 	{
 		None,
 		XMLConfig,
-		PropertyConfig,
-		BaseConfig
+		PropertyConfig
 	} st(None), config_type(None);
 	for(int i = 0; i < argc ; ++i)
 	{
 		switch(st)
 		{
 		case None:
-			if(config_type == None)
+			if(st == None)
 			{
 				if(std::string(argv[i]) == "-log4cxx-xml-config")
 					st = XMLConfig;
 				else if(std::string(argv[i]) == "-log4cxx-property-config")
 					st = PropertyConfig;
 				else if(std::string(argv[i]) == "-log4cxx-basic-config")
-					st = PropertyConfig;
+					log4cxx::BasicConfigurator::configure(new log4cxx::ConsoleAppender());
 			}
 			break;
 		case XMLConfig:
@@ -67,15 +65,94 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
 			config_type = st;
 			st = None;
 			break;
-		case BaseConfig:
-			log4cxx::BasicConfigurator::configure(new log4cxx::ConsoleAppender());
-			config_type = st;
-			st = None;
-			break;
 		}
 	}
 	if(config_type == None)
 		log4cxx::BasicConfigurator::configure();
+#else // SAS_LOG4CXX_ENABLED
+
+	enum State
+	{
+		None,
+		File,
+		StdOut,
+		StdErr,
+		MinPrio
+	} st(None), config_type(None);
+	std::string filename;
+	AbstractLogger::Priority min_prio(AbstractLogger::Priority::Info);
+	for(int i = 0; i < argc ; ++i)
+	{
+		switch(st)
+		{
+		case None:
+			if(st == None)
+			{
+				if(std::string(argv[i]) == "-log-stdout")
+					config_type = StdOut;
+				else if(std::string(argv[i]) == "-log-stderr")
+					config_type = StdErr;
+				else if(std::string(argv[i]) == "-log-file")
+					st = File;
+				else if(std::string(argv[i]) == "-log-min-prio")
+					st = MinPrio;
+			}
+			break;
+		case StdOut:
+		case StdErr:
+			break;
+		case File:
+			filename = argv[i];
+			st = None;
+			config_type = File;
+			break;
+		case MinPrio:
+			if(std::string(argv[i]) == "trace")
+				min_prio = AbstractLogger::Priority::Trace;
+			else if(std::string(argv[i]) == "debug")
+				min_prio = AbstractLogger::Priority::Debug;
+			else if(std::string(argv[i]) == "info")
+				min_prio = AbstractLogger::Priority::Info;
+			else if(std::string(argv[i]) == "warn")
+				min_prio = AbstractLogger::Priority::Warn;
+			else if(std::string(argv[i]) == "error")
+				min_prio = AbstractLogger::Priority::Error;
+			else if(std::string(argv[i]) == "fatal")
+		min_prio = AbstractLogger::Priority::Fatal;
+			st = None;
+		}
+	}
+
+	switch(config_type)
+	{
+	case None:
+	case MinPrio:
+		break;
+	case StdOut:
+		setLogging(new StreamLogging<std::ostream>(std::cout, min_prio));
+		break;
+	case StdErr:
+		setLogging(new StreamLogging<std::ostream>(std::cerr, min_prio));
+		break;
+	case File:
+	{
+		struct FileLogging : public StreamLogging<std::ofstream>
+		{
+		public:
+			inline FileLogging(AbstractLogger::Priority min_prio) : StreamLogging<std::ofstream>(fs, min_prio)
+			{ }
+			std::ofstream fs;
+		};
+		auto logging = new FileLogging(min_prio);
+		logging->fs.open(filename, std::ios::out | std::ios_base::app);
+		if(logging->fs.fail())
+		{
+			ec.add(-1, "could not open log file.");
+			return false;
+		}
+		setLogging(logging);
+	}
+	}
 
 #endif // SAS_LOG4CXX_ENABLED
 
@@ -84,11 +161,16 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
 
 extern SAS_BASICS__FUNCTION void writeUsage(std::ostream & os)
 {
-#ifdef SAS_LOG4CXX_ENABLED
 	os << "Logging options:" << std::endl;
-	os << "\t-log4cxx-xml-config" << std::endl;
-	os << "\t-log4cxx-property-config" << std::endl;
+#ifdef SAS_LOG4CXX_ENABLED
+	os << "\t-log4cxx-xml-config <xml_file>" << std::endl;
+	os << "\t-log4cxx-property-config <property_file>" << std::endl;
 	os << "\t-log4cxx-basic-config" << std::endl;
+#else
+	os << "\t-log-stdout" << std::endl;
+	os << "\t-log-stderr" << std::endl;
+	os << "\t-log-file <log file>" << std::endl;
+	os << "\t-log-min_prio <trace|debug|info|warn|error|fatal>" << std::endl;
 #endif // SAS_LOG4CXX_ENABLED
 }
 

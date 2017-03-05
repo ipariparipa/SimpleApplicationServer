@@ -16,6 +16,11 @@
  */
 
 #include "include/sasCore/logging.h"
+#include "include/sasCore/thread.h"
+
+#include <iostream>
+#include <mutex>
+#include <sstream>
 
 namespace SAS { namespace Logging {
 
@@ -31,12 +36,76 @@ namespace SAS { namespace Logging {
 		return ret;
 	}
 
+#ifdef SAS_LOG4CXX_ENABLED
+#else
+
+	struct SimpleLogger_priv
+	{
+		SimpleLogger_priv(const std::string & name_, AbstractLogger::Priority min_prio_) :
+			name(name_), min_prio(min_prio_)
+		{ }
+
+		std::string name;
+		AbstractLogger::Priority min_prio;
+	};
+
+	SimpleLogger::SimpleLogger(const std::string & name, Priority min_prio) :
+			priv(new SimpleLogger_priv(name, min_prio))
+	{ }
+
+	SimpleLogger::~SimpleLogger()
+	{
+		delete priv;
+	}
+
+	bool SimpleLogger::isEnabled(Priority prio)
+	{
+		return prio >= priv->min_prio;
+	}
+
+	void SimpleLogger::add(Priority prio, const std::string & message, const char * file, long line)
+	{
+		if(!isEnabled(prio))
+			return;
+		std::stringstream ss;
+
+		ss << Thread::getThreadId() << " [";
+		switch(prio)
+		{
+		case Priority::Trace: ss << "TRACE"; break;
+		case Priority::Debug: ss << "DEBUG"; break;
+		case Priority::Info:  ss << "INFO"; break;
+		case Priority::Warn:  ss << "WARN"; break;
+		case Priority::Error: ss << "ERROR"; break;
+		case Priority::Fatal: ss << "FATAL"; break;
+		}
+		ss << "] - " << priv->name << " - " << message;
+		if(file)
+			ss << " {"<<file<<':'<<line<<"}";
+		ss << std::endl;
+
+		add(ss.str());
+	}
+
+	std::mutex logging_mut;
+	AbstractLogging * logging = nullptr;
+
+	extern SAS_CORE__FUNCTION void setLogging(AbstractLogging * logging_)
+	{
+		std::unique_lock<std::mutex> __locker(logging_mut);
+		logging = logging_;
+	}
+
+#endif
+
+
 	extern SAS_CORE__FUNCTION LoggerPtr getLogger(const std::string & name)
 	{
 #ifdef SAS_LOG4CXX_ENABLED
 		return log4cxx::Logger::getLogger(name);
 #else
-		return 0;
+		std::unique_lock<std::mutex> __locker(logging_mut);
+		return (logging ? logging : (logging = new StreamLogging<std::ostream>(std::cout, AbstractLogger::Priority::Fatal)))->getLogger(name);
 #endif
 	}
 
@@ -45,7 +114,8 @@ namespace SAS { namespace Logging {
 #ifdef SAS_LOG4CXX_ENABLED
 		return log4cxx::Logger::getRootLogger();
 #else
-		return 0;
+		std::unique_lock<std::mutex> __locker(logging_mut);
+		return (logging ? logging : (logging = new StreamLogging<std::ostream>(std::cout, AbstractLogger::Priority::Fatal)))->getRootLogger();
 #endif
 	}
 

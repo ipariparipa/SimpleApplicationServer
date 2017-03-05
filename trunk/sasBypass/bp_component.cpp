@@ -63,6 +63,10 @@ public:
 			if(!app->objectRegistry()->registerObjects(objs, ec))
 				return false;
 		}
+		else
+		{
+			SAS_LOG_INFO(logger, "no bypass connectors are set");
+		}
 
 		return true;
 	}
