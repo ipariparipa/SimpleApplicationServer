@@ -30,7 +30,7 @@ namespace SAS {
 
 class ErrorCollector;
 
-class SQLResult
+class SAS_SQL__CLASS SQLResult
 {
 protected:
 	inline SQLResult() { }

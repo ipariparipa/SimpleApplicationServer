@@ -32,7 +32,7 @@ namespace SAS {
 	class ErrorCollector;
 
 	struct Session_priv;
-	class Session
+	class SAS_CORE__CLASS Session
 	{
 		SAS_COPY_PROTECTOR(Session)
 	public:
@@ -40,16 +40,6 @@ namespace SAS {
 		virtual ~Session();
 
 		Invoker::Status invoke(const std::string & invoker_name, const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec);
-
-//		class Context
-//		{
-//			friend class Session;
-//		protected:
-//			virtual inline ~Context();
-//		};
-
-//		Context * beginContext(const std::string & name, std::function<Context*()> alloc);
-//		void endContext(const std::string & name);
 
 		bool isActive();
 
@@ -69,6 +59,5 @@ namespace SAS {
 	}
 
 }
-
 
 #endif /* INCLUDE_SASCORE_SESSION_H_ */

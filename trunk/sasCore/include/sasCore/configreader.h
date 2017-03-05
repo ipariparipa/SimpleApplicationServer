@@ -18,6 +18,7 @@
 #ifndef INCLUDE_SASCORE_CONFIGREADER_H_
 #define INCLUDE_SASCORE_CONFIGREADER_H_
 
+#include "defines.h"
 #include <string>
 #include <vector>
 
@@ -26,10 +27,11 @@ namespace SAS
 
 	class ErrorCollector;
 
-	class ConfigReader
+	class SAS_CORE__CLASS ConfigReader
 	{
-
+		SAS_COPY_PROTECTOR(ConfigReader)
 	public:
+		inline ConfigReader() { }
 		virtual ~ConfigReader();
 		virtual bool getEntryAsString(const std::string & path, std::string & ret, ErrorCollector & ec);
 		virtual bool getEntryAsString(const std::string & path, std::string & ret, const std::string & defaultValue, ErrorCollector & ec);

@@ -18,9 +18,31 @@
 #ifndef INCLUDE_SASCORE_CONFIG_H_
 #define INCLUDE_SASCORE_CONFIG_H_
 
+#define SAS_OS_LINUX 1
+#define SAS_OS_WINDOWS 2
+
+#ifdef _WINDOWS
+#  define SAS_OS SAS_OS_WINDOWS
+#else
+#  define SAS_OS SAS_OS_LINUX
+#endif
+
+#if SAS_OS == SAS_OS_LINUX 
+#  define SAS_CORE__CLASS 
+#  define SAS_CORE__FUNCTION 
+#elif SAS_OS == SAS_OS_WINDOWS 
+#  ifdef SAS_CORE__IMPL
+#    define SAS_CORE__CLASS __declspec(dllexport)
+#    define SAS_CORE__FUNCTION __declspec(dllexport)
+#  else
+#    define SAS_CORE__CLASS __declspec(dllimport)
+#    define SAS_CORE__FUNCTION __declspec(dllimport)
+#  endif
+#endif
+
 #define SAS_SESSION_CLEANER_INTERVAL 5000
 #define SAS_SESSION_MAX_COUNT 2000
 
-#define SAS_LOG4CXX_ENABLED
+//#define SAS_LOG4CXX_ENABLED
 
 #endif /* INCLUDE_SASCORE_CONFIG_H_ */

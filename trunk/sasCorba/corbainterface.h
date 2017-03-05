@@ -18,6 +18,8 @@
 #ifndef CORBAINTERFACE_H_
 #define CORBAINTERFACE_H_
 
+#include "config.h"
+
 #include <sasCore/interface.h>
 #include <sasCore/logging.h>
 

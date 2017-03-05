@@ -28,7 +28,7 @@ namespace SAS {
 
 	struct SessionManager_priv;
 
-	class SessionManager
+	class SAS_CORE__CLASS SessionManager
 	{
 		SAS_COPY_PROTECTOR(SessionManager)
 

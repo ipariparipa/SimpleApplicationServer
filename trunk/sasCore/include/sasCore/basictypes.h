@@ -25,6 +25,4 @@ namespace SAS
 
 }
 
-
-
 #endif /* INCLUDE_SASCORE_BASICTYPES_H_ */

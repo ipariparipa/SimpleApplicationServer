@@ -47,5 +47,4 @@ private:
 
 }
 
-
 #endif /* MYSQLRESULT_H_ */

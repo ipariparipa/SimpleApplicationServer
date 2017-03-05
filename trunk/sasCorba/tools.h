@@ -18,6 +18,8 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 
+#include "config.h"
+
 #include "corbasas.hh"
 #include <vector>
 

@@ -18,6 +18,7 @@
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
+#include "config.h"
 #include <sasCore/logging.h>
 
 namespace SAS {
@@ -26,9 +27,9 @@ class ErrorCollector;
 
 namespace Logging {
 
-	bool init(int argc, char *argv[], ErrorCollector & ec);
+	extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & ec);
 
-	void writeUsage(std::ostream & os);
+	extern SAS_BASICS__FUNCTION void writeUsage(std::ostream & os);
 
 }}
 

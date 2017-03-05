@@ -62,7 +62,7 @@ public:
 		}
 		catch(CorbaSAS::ErrorHandling::ErrorException & ex)
 		{
-			auto err= ec.add(-1, "Caught a sas::error_handling::invoker_error_exception.");
+			auto err= ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
 			SAS_LOG_DEBUG(_logger, err );
 			SAS_LOG_VAR(_logger, ex.invoker);
 			SAS_LOG_VAR(_logger, ex.sas_module);
@@ -75,7 +75,7 @@ public:
 		}
 		catch(CorbaSAS::ErrorHandling::FatalErrorException & ex)
 		{
-			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_error_exception.");
+			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
 			SAS_LOG_DEBUG(_logger, err);
 			SAS_LOG_VAR(_logger, ex.invoker);
 			SAS_LOG_VAR(_logger, ex.sas_module);
@@ -88,7 +88,7 @@ public:
 		}
 		catch(CorbaSAS::ErrorHandling::NotImplementedException & ex)
 		{
-			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_fatal_error_exception.");
+			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_fatal_error_exception while using the naming service.");
 			SAS_LOG_DEBUG(_logger, err);
 			SAS_LOG_VAR(_logger, ex.invoker);
 			SAS_LOG_VAR(_logger, ex.sas_module);
@@ -99,13 +99,13 @@ public:
 			}
 			return Status::NotImplemented;
 		}
-		catch(CORBA::COMM_FAILURE& ex)
+		catch(CORBA::COMM_FAILURE &)
 		{
 			auto err = ec.add(-1, "Caught system exception COMM_FAILURE.");
 			SAS_LOG_ERROR(_logger, err);
 			return Status::FatalError;
 		}
-		catch(CORBA::SystemException&)
+		catch(CORBA::SystemException &)
 		{
 			auto err = ec.add(-1, "Caught a CORBA::SystemException.");
 			SAS_LOG_ERROR(_logger, err);
@@ -185,7 +185,7 @@ CORBA::Object_ptr getObjectReference(const std::string & service_name, const std
 			return CORBA::Object::_nil();
 		}
 	}
-	catch(CORBA::ORB::InvalidName& ex)
+	catch(CORBA::ORB::InvalidName &)
 	{
 		// This should not happen!
 		auto err = ec.add(-1, "Service required is invalid [does not exist].");
@@ -210,19 +210,19 @@ CORBA::Object_ptr getObjectReference(const std::string & service_name, const std
 		// Resolve the name to an object reference.
 		return rootContext->resolve(name);
 	}
-	catch(CosNaming::NamingContext::NotFound& ex)
+	catch(CosNaming::NamingContext::NotFound &)
 	{
 		// This exception is thrown if any of the components of the
 		// path [contexts or the object] aren't found:
 		auto err = ec.add(-1, "Context not found.");
 		SAS_LOG_ERROR(logger, err);
 	}
-	catch(CORBA::COMM_FAILURE& ex)
+	catch(CORBA::COMM_FAILURE &)
 	{
 		auto err = ec.add(-1, "Caught system exception COMM_FAILURE -- unable to contact the naming service.");
 		SAS_LOG_ERROR(logger, err);
 	}
-	catch(CORBA::SystemException&)
+	catch(CORBA::SystemException &)
 	{
 		auto err = ec.add(-1, "Caught a CORBA::SystemException while using the naming service.");
 		SAS_LOG_ERROR(logger, err);
@@ -311,12 +311,12 @@ bool CorbaConnector::connect(ErrorCollector & ec)
 			return false;
 		}
 	}
-	catch(CORBA::COMM_FAILURE & ex)
+	catch(CORBA::COMM_FAILURE &)
 	{
 		auto err = ec.add(-1, "unable to connect");
 		SAS_LOG_ERROR(priv->logger, err);
 	}
-	catch(CORBA::SystemException & ex)
+	catch(CORBA::SystemException &)
 	{
 		auto err = ec.add(-1, "Caught CORBA::SystemException.");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -325,12 +325,12 @@ bool CorbaConnector::connect(ErrorCollector & ec)
 		SAS_LOG_VAR(priv->logger, ex.completed());
 		return false;
 	}
-	catch(CORBA::Exception&)
+	catch(CORBA::Exception &)
 	{
 		auto err = ec.add(-1, "Caught CORBA::Exception.");
 		SAS_LOG_ERROR(priv->logger, err);
 	}
-	catch(omniORB::fatalException & fe)
+	catch(omniORB::fatalException &)
 	{
 		auto err = ec.add(-1, "Caught omniORB::fatalException");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -352,6 +352,3 @@ Connection * CorbaConnector::createConnection(const std::string & module_name, c
 }
 
 }
-
-
-

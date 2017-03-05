@@ -92,6 +92,4 @@ namespace SAS {
 		return new LoopbackConnection(mod, invoker_name);
 	}
 
-
 }
-

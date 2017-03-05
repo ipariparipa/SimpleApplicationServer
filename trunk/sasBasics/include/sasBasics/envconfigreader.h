@@ -18,6 +18,7 @@
 #ifndef INCLUDE_SASBASICS_ENVCONFIGURATOR_H_
 #define INCLUDE_SASBASICS_ENVCONFIGURATOR_H_
 
+#include "config.h"
 #include <sasCore/defines.h>
 #include <sasCore/configreader.h>
 #include <sasCore/logging.h>
@@ -25,7 +26,7 @@
 namespace SAS
 {
 
-class EnvConfigReader : public ConfigReader
+class SAS_BASICS__CLASS EnvConfigReader : public ConfigReader
 {
 	SAS_COPY_PROTECTOR(EnvConfigReader)
 
@@ -44,7 +45,5 @@ private:
 };
 
 }
-
-
 
 #endif /* INCLUDE_SASBASICS_ENVCONFIGURATOR_H_ */

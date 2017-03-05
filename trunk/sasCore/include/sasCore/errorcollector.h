@@ -25,7 +25,7 @@
 namespace SAS
 {
 
-class ErrorCollector
+class SAS_CORE__CLASS ErrorCollector
 {
 public:
 	virtual inline ~ErrorCollector() { }
@@ -33,15 +33,17 @@ public:
 	virtual std::string add(long errorCode, const std::string & errorText) = 0;
 };
 
-class SimpleErrorCollector : public ErrorCollector
+struct SimpleErrorCollector_priv;
+
+class SAS_CORE__CLASS SimpleErrorCollector : public ErrorCollector
 {
 public:
 	SimpleErrorCollector(std::function<void(long errorCode, const std::string & errorText)> fnct);
-	virtual inline ~SimpleErrorCollector() { }
+	virtual ~SimpleErrorCollector();
 	virtual std::string add(long errorCode, const std::string & errorText) final;
 
 private:
-	std::function<void(long errorCode, const std::string & errorText)> _fnct;
+	SimpleErrorCollector_priv * priv;
 };
 
 }

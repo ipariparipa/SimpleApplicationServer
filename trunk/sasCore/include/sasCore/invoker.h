@@ -27,7 +27,7 @@ namespace SAS
 class ErrorCollector;
 
 struct Invoker_priv;
-class Invoker
+class SAS_CORE__CLASS Invoker
 {
 public:
 	Invoker();

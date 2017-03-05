@@ -24,7 +24,7 @@
 namespace SAS {
 
 	class ErrorCollector;
-	class Component;
+	class SAS_CORE__CLASS Component;
 
 	struct ComponentLoader_priv;
 

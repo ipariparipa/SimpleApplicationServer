@@ -18,6 +18,8 @@
 #ifndef CORBACONNECTOR_H_
 #define CORBACONNECTOR_H_
 
+#include "config.h"
+
 #include <sasCore/connector.h>
 #include <omniORB4/CORBA.h>
 

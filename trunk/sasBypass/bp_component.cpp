@@ -71,12 +71,12 @@ public:
 
 }
 
-extern "C" SAS::Component * __sas_attach_component()
+extern "C" SAS_BYPASS__FUNCTION SAS::Component * __sas_attach_component()
 {
 	return new SAS::BP_Component;
 }
 
-extern "C" void __sas_detach_component(SAS::Component * c)
+extern "C" SAS_BYPASS__FUNCTION void __sas_detach_component(SAS::Component * c)
 {
 	delete c;
 }

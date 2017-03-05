@@ -27,7 +27,7 @@ namespace SAS {
 
 class ErrorCollector;
 
-class Watchdog
+class SAS_CORE__CLASS Watchdog
 {
 public:
 
@@ -38,8 +38,6 @@ public:
 	virtual void run() = 0;
 };
 
-
 }
-
 
 #endif /* INCLUDE_SASCORE_WATCHDOG_H_ */

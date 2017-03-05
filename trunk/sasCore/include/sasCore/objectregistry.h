@@ -30,7 +30,7 @@ class ErrorCollector;
 
 struct ObjectRegistry_priv;
 
-class ObjectRegistry
+class SAS_CORE__CLASS ObjectRegistry
 {
 	SAS_COPY_PROTECTOR(ObjectRegistry)
 public:
@@ -52,9 +52,9 @@ public:
 	std::vector<Object *> getObjects(const std::string & type, ErrorCollector & ec);
 
 	template<class Object_T>
-	std::list<Object *> getObjects(const std::string & type, ErrorCollector & ec)
+	std::list<Object_T*> getObjects(const std::string & type, ErrorCollector & ec)
 	{
-		std::list<Object *> ret;
+		std::list<Object_T*> ret;
 		for(auto & o : getObjects(type, ec))
 		{
 			auto _o = dynamic_cast<Object_T*>(o);
@@ -68,6 +68,5 @@ private:
 };
 
 }
-
 
 #endif /* INCLUDE_SASCORE_OBJECTREGISTRY_H_ */

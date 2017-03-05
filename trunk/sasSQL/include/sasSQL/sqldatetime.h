@@ -26,14 +26,14 @@
 namespace SAS {
 
 struct SQLDateTime_priv;
-class SQLDateTime
+class SAS_SQL__CLASS SQLDateTime
 {
 public:
 	SQLDateTime(const SQLDateTime & o);
 	SQLDateTime();
 	SQLDateTime(time_t t);
 	SQLDateTime(tm * t);
-	SQLDateTime(unsigned int year, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs = -1, bool daylightSaveTime = false, bool negative = false);
+	SQLDateTime(unsigned int year, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs = -1, bool daylightSaveTime = false, bool negative = false, short ms_precision = 6);
 	virtual ~SQLDateTime();
 
 	SQLDateTime & operator = (const SQLDateTime & o);

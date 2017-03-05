@@ -24,7 +24,7 @@
 
 namespace SAS {
 
-class Object
+class SAS_CORE__CLASS Object
 {
 protected:
 	inline Object() { }

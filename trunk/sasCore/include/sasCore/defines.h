@@ -25,5 +25,4 @@
 		class_name(const class_name &); \
 		class_name & operator = (const class_name &);
 
-
 #endif /* INCLUDE_SASCORE_DEFINES_H_ */

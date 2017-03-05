@@ -20,5 +20,18 @@
 
 #include <sasCore/config.h>
 
+#if SAS_OS == SAS_OS_LINUX 
+#  define SAS_BASICS__CLASS 
+#  define SAS_BASICS__FUNCTION 
+#elif SAS_OS == SAS_OS_WINDOWS 
+#  ifdef SAS_BASICS__IMPL
+#    define SAS_BASICS__CLASS __declspec(dllexport)
+#    define SAS_BASICS__FUNCTION __declspec(dllexport)
+#  else
+#    define SAS_BASICS__CLASS __declspec(dllimport)
+#    define SAS_BASICS__FUNCTION __declspec(dllimport)
+#  endif
+#endif
+
 
 #endif /* INCLUDE_SASBASICS_CONFIG_H_ */

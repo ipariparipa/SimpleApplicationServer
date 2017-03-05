@@ -15,7 +15,6 @@
     along with sas.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <log4cxx/basicconfigurator.h>
 #include <sasBasics/logging.h>
 #include <sasCore/errorcollector.h>
 #include <sasBasics/streamerrorcollector.h>
@@ -45,7 +44,7 @@ int main(int argc, char * argv[])
 
 	SAS_ROOT_LOG_INFO("starting");
 
-	SAS::SASServer server;
+	SAS::SASServer server(argc, argv);
 
 	SAS_ROOT_LOG_TRACE("initializing SAS");
 	if(!server.init(ec))
@@ -63,8 +62,6 @@ int main(int argc, char * argv[])
 
 	SAS_ROOT_LOG_TRACE("start watchdog");
 	server.run();
-
-//	std::this_thread::sleep_for(std::chrono::seconds(10000));
 
 	return 0;
 }

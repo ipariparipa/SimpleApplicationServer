@@ -104,7 +104,9 @@ SC_Module::SC_Module(const std::string & name) : Module(), priv(new SC_Module_pr
 }
 
 SC_Module::~SC_Module()
-{ }
+{
+	delete priv;
+}
 
 std::string SC_Module::description() const
 {
@@ -129,7 +131,7 @@ bool SC_Module::init(Application * app, ErrorCollector & ec)
 	if(!app->configreader()->getNumberEntry(prefix + "/DEFAULT_SESSION_LIFETIME", default_session_lifetime, 10, ec))
 		return false;
 
-	if(!SessionManager::init(default_session_lifetime, ec))
+	if(!SessionManager::init((long)default_session_lifetime, ec))
 		return false;
 
 	std::string conn_name;
@@ -154,7 +156,4 @@ Session * SC_Module::createSession(SessionID id, ErrorCollector & ec)
 	return new SC_Session_Invoker(priv->conn, priv->name, id);
 }
 
-
 }}
-
-

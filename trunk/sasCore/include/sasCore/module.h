@@ -28,7 +28,7 @@
 namespace SAS
 {
 
-class Module : public SessionManager, public Object
+class SAS_CORE__CLASS Module : public SessionManager, public Object
 {
 public:
 	Module();

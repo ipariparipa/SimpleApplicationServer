@@ -31,7 +31,7 @@
 
 namespace SAS { namespace Logging {
 
-	struct _NDC
+	struct SAS_CORE__CLASS _NDC
 	{
 		_NDC(const char * msg)
 		{
@@ -119,18 +119,18 @@ typedef int LoggerPtr;
 
 namespace SAS { namespace Logging {
 
-LoggerPtr getLogger(const std::string & name);
-LoggerPtr getRootLogger();
+	extern SAS_CORE__FUNCTION LoggerPtr getLogger(const std::string & name);
+	extern SAS_CORE__FUNCTION LoggerPtr getRootLogger();
 
-std::string toString(const std::vector<std::string> & strl);
+	extern SAS_CORE__FUNCTION std::string toString(const std::vector<std::string> & strl);
 
-template <typename T>
-std::string toString(const T & v)
-{
-	std::stringstream ss;
-	ss << v;
-	return ss.str();
-}
+	template <typename T>
+	std::string toString(const T & v)
+	{
+		std::stringstream ss;
+		ss << v;
+		return ss.str();
+	}
 
 }}
 

@@ -23,12 +23,12 @@
 namespace SAS {
 
 	struct TimerThread_priv;
-	class TimerThread : public Thread
+	class SAS_CORE__CLASS TimerThread : public Thread
 	{
 		SAS_COPY_PROTECTOR(TimerThread)
 	public:
 		TimerThread();
-		~TimerThread();
+		virtual ~TimerThread();
 
 		bool start(long milliseconds);
 		virtual void stop() override;

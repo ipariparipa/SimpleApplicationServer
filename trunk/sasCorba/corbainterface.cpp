@@ -175,7 +175,7 @@ public:
 				return false;
 			}
 		}
-		catch(CORBA::ORB::InvalidName& ex)
+		catch(CORBA::ORB::InvalidName &)
 		{
 			// This should not happen!
 			auto err = ec.add(-1, "Service required is invalid [does not exist].");
@@ -201,7 +201,7 @@ public:
 				// Bind the context to root.
 				serviceContext = rootContext->bind_new_context(contextName);
 			}
-			catch(CosNaming::NamingContext::AlreadyBound& ex)
+			catch(CosNaming::NamingContext::AlreadyBound &)
 			{
 				// If the context already exists, this exception will be raised.
 				// In this case, just resolve the name and assign testContext
@@ -227,7 +227,7 @@ public:
 			{
 				serviceContext->bind(objectName, objref);
 			}
-			catch(CosNaming::NamingContext::AlreadyBound& ex)
+			catch(CosNaming::NamingContext::AlreadyBound &)
 			{
 				serviceContext->rebind(objectName, objref);
 			}
@@ -242,13 +242,13 @@ public:
 			// the Name has not already been bound. [This is incorrect behaviour -
 			// it should just bind].
 		}
-		catch(CORBA::COMM_FAILURE& ex)
+		catch(CORBA::COMM_FAILURE &)
 		{
 			auto err = ec.add(-1, "Caught system exception COMM_FAILURE -- unable to contact the naming service.");
 			SAS_LOG_ERROR(_interface->logger(), err);
 			return false;
 		}
-		catch(CORBA::SystemException&)
+		catch(CORBA::SystemException &)
 		{
 			auto err = ec.add(-1, "Caught a CORBA::SystemException while using the naming service.");
 			SAS_LOG_ERROR(_interface->logger(), err);
@@ -273,7 +273,7 @@ public:
 
 			_serverConnectionInfo = serverConnectionInfo;
 		}
-		catch(CORBA::SystemException & ex)
+		catch(CORBA::SystemException &)
 		{
 			auto err = ec.add(-1, "Caught CORBA::SystemException.");
 			SAS_LOG_ERROR(_interface->logger(), err);
@@ -282,13 +282,13 @@ public:
 			SAS_LOG_VAR(_interface->logger(), ex.completed());
 			return false;
 		}
-		catch(CORBA::Exception&)
+		catch(CORBA::Exception &)
 		{
 			auto err = ec.add(-1, "Caught CORBA::Exception.");
 			SAS_LOG_ERROR(_interface->logger(), err);
 			return false;
 		}
-		catch(omniORB::fatalException & fe)
+		catch(omniORB::fatalException &)
 		{
 			auto err = ec.add(-1, "Caught omniORB::fatalException");
 			SAS_LOG_ERROR(_interface->logger(), err);
@@ -336,7 +336,7 @@ public:
 			orb->run();
 
 		}
-		catch(CORBA::SystemException & ex)
+		catch(CORBA::SystemException &)
 		{
 			auto err = ec.add(-1, "Caught CORBA::SystemException.");
 			SAS_LOG_ERROR(_interface->logger(), err);
@@ -345,13 +345,13 @@ public:
 			SAS_LOG_VAR(_interface->logger(), ex.completed());
 			return Interface::Status::Crashed;
 		}
-		catch(CORBA::Exception&)
+		catch(CORBA::Exception &)
 		{
 			auto err = ec.add(-1, "Caught CORBA::Exception.");
 			SAS_LOG_ERROR(_interface->logger(), err);
 			return Interface::Status::Crashed;
 		}
-		catch(omniORB::fatalException & fe)
+		catch(omniORB::fatalException &)
 		{
 			auto err = ec.add(-1, "Caught omniORB::fatalException");
 			SAS_LOG_ERROR(_interface->logger(), err);
@@ -435,8 +435,4 @@ Logging::LoggerPtr CorbaInterface::logger() const
 	return _logger;
 }
 
-
 }
-
-
-

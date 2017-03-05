@@ -28,10 +28,10 @@ namespace SAS
 typedef std::thread::id ThreadId;
 
 struct Thread_priv;
-class Thread
+class SAS_CORE__CLASS Thread
 {
 	SAS_COPY_PROTECTOR(Thread)
-	friend class Thread_priv;
+	friend struct Thread_priv;
 public:
 	enum class Status
 	{

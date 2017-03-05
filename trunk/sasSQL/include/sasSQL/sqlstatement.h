@@ -22,7 +22,7 @@
 
 namespace SAS {
 
-class SQLStatement : public SQLResult
+	class SAS_SQL__CLASS SQLStatement : public SQLResult
 {
 protected:
 	inline SQLStatement() : SQLResult() { }

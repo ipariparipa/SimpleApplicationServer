@@ -32,12 +32,16 @@ class InterfaceManager;
 class ObjectRegistry;
 
 struct Application_priv;
-class Application
+class SAS_CORE__CLASS Application
 {
 SAS_COPY_PROTECTOR(Application);
 public:
 	Application();
+	Application(int argc, char **argv);
 	virtual ~Application();
+
+	int argc() const;
+	char ** argv() const;
 
 	ObjectRegistry * objectRegistry() const;
 
