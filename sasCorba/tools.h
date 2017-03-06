@@ -20,7 +20,7 @@
 
 #include "config.h"
 
-#include "corbasas.hh"
+#include "generated/corbasas.hh"
 #include <vector>
 
 namespace SAS { namespace CorbaTools {

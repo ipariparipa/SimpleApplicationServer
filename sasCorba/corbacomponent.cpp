@@ -46,14 +46,7 @@ public:
 		{
 
 			std::vector<std::string> ops;
-			if (!app->configreader()->getStringListEntry("SAS/CORBA/OPTIONS", ops, ec))
-			{
-				SAS_LOG_INFO(logger, "no options are set in configureation, using commanf line arguments");
-				int argc = app->argc();
-				char ** argv = app->argv();
-				orb = CORBA::ORB_init(argc, argv);
-			}
-			else
+			if (app->configReader()->getStringListEntry("SAS/CORBA/OPTIONS", ops, ec))
 			{
 				SAS_LOG_VAR_NAME(logger, "options", Logging::toString(ops));
 				std::vector<const char *> ops_buff(ops.size());
@@ -61,6 +54,13 @@ public:
 					ops_buff[i] = ops[i].c_str();
 				int argc = ops_buff.size();
 				char ** argv = (char **)ops_buff.data();
+				orb = CORBA::ORB_init(argc, argv);
+			}
+			else
+			{
+				SAS_LOG_INFO(logger, "no options are set in configureation, using commanf line arguments");
+				int argc = app->argc();
+				char ** argv = app->argv();
 				orb = CORBA::ORB_init(argc, argv);
 			}
 		}
@@ -83,7 +83,7 @@ public:
 			return false;
 		}
 
-		if(CORBA::is_nil(orb))
+		if (CORBA::is_nil(orb))
 		{
 			auto err = ec.add(-1, "could not initialize ORB");
 			SAS_LOG_ERROR(logger, err);
@@ -94,7 +94,7 @@ public:
 		if(im)
 		{
 			std::vector<std::string> interface_names;
-			if(app->configreader()->getStringListEntry("SAS/CORBA/INTERFACES", interface_names, ec))
+			if(app->configReader()->getStringListEntry("SAS/CORBA/INTERFACES", interface_names, ec))
 			{
 				bool has_error(false);
 				std::vector<SAS::Interface*> interfaces(interface_names.size());
@@ -115,7 +115,7 @@ public:
 		}
 
 		std::vector<std::string> connector_names;
-		if(app->configreader()->getStringListEntry("SAS/CORBA/CONNECTORS", connector_names, ec))
+		if(app->configReader()->getStringListEntry("SAS/CORBA/CONNECTORS", connector_names, ec))
 		{
 			bool has_error(false);
 			std::vector<Object*> connectors(connector_names.size());

@@ -33,7 +33,7 @@
 #include <numeric>
 #include <fstream>
 
-#include "corbasas.hh"
+#include "generated/corbasas.hh"
 
 namespace SAS {
 
@@ -158,6 +158,10 @@ public:
 	bool bindObjectToName(const std::string & service_name, const std::string & interface_name, CORBA::ORB_ptr orb, CORBA::Object_ptr objref, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
+
+		static std::mutex bind_mut;
+		std::unique_lock<std::mutex> __bind_mut_locker(bind_mut);
+
 		CosNaming::NamingContext_var rootContext;
 
 		try
@@ -167,6 +171,7 @@ public:
 			obj = orb->resolve_initial_references("NameService");
 
 			// Narrow the reference returned.
+			SAS_LOG_TRACE(_interface->logger(), "get root context");
 			rootContext = CosNaming::NamingContext::_narrow(obj);
 			if( CORBA::is_nil(rootContext) )
 			{
@@ -199,6 +204,7 @@ public:
 			try
 			{
 				// Bind the context to root.
+				SAS_LOG_TRACE(_interface->logger(), "bind service");
 				serviceContext = rootContext->bind_new_context(contextName);
 			}
 			catch(CosNaming::NamingContext::AlreadyBound &)
@@ -206,6 +212,7 @@ public:
 				// If the context already exists, this exception will be raised.
 				// In this case, just resolve the name and assign testContext
 				// to the object returned:
+				SAS_LOG_TRACE(_interface->logger(), "service had been already dound, use the existing context");
 				CORBA::Object_var obj;
 				obj = rootContext->resolve(contextName);
 				serviceContext = CosNaming::NamingContext::_narrow(obj);
@@ -225,10 +232,12 @@ public:
 
 			try
 			{
+				SAS_LOG_TRACE(_interface->logger(), "bind interface");
 				serviceContext->bind(objectName, objref);
 			}
 			catch(CosNaming::NamingContext::AlreadyBound &)
 			{
+				SAS_LOG_TRACE(_interface->logger(), "interface had been already bound, rebind it");
 				serviceContext->rebind(objectName, objref);
 			}
 			// Note: Using rebind() will overwrite any Object previously bound
@@ -242,15 +251,23 @@ public:
 			// the Name has not already been bound. [This is incorrect behaviour -
 			// it should just bind].
 		}
-		catch(CORBA::COMM_FAILURE &)
+		catch(CORBA::COMM_FAILURE & ex)
 		{
 			auto err = ec.add(-1, "Caught system exception COMM_FAILURE -- unable to contact the naming service.");
+			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
+			SAS_LOG_VAR(_interface->logger(), ex._name());
+			SAS_LOG_VAR(_interface->logger(), ex.minor());
+			SAS_LOG_VAR(_interface->logger(), ex.completed());
 			SAS_LOG_ERROR(_interface->logger(), err);
 			return false;
 		}
-		catch(CORBA::SystemException &)
+		catch(CORBA::SystemException & ex)
 		{
 			auto err = ec.add(-1, "Caught a CORBA::SystemException while using the naming service.");
+			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
+			SAS_LOG_VAR(_interface->logger(), ex._name());
+			SAS_LOG_VAR(_interface->logger(), ex.minor());
+			SAS_LOG_VAR(_interface->logger(), ex.completed());
 			SAS_LOG_ERROR(_interface->logger(), err);
 			return false;
 		}
@@ -278,12 +295,15 @@ public:
 			auto err = ec.add(-1, "Caught CORBA::SystemException.");
 			SAS_LOG_ERROR(_interface->logger(), err);
 			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
+			SAS_LOG_VAR(_interface->logger(), ex._name());
 			SAS_LOG_VAR(_interface->logger(), ex.minor());
 			SAS_LOG_VAR(_interface->logger(), ex.completed());
 			return false;
 		}
-		catch(CORBA::Exception &)
+		catch(CORBA::Exception & ex)
 		{
+			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
+			SAS_LOG_VAR(_interface->logger(), ex._name());
 			auto err = ec.add(-1, "Caught CORBA::Exception.");
 			SAS_LOG_ERROR(_interface->logger(), err);
 			return false;
@@ -322,6 +342,7 @@ public:
 
 			if(_serverConnectionInfo.ior_file.length())
 			{
+				SAS_LOG_INFO(_interface->logger(), "write ior file: '" + _serverConnectionInfo.ior_file + "'");
 				std::ofstream f(_serverConnectionInfo.ior_file);
 				CORBA::String_var sior(orb->object_to_string(obj));
 				f << sior;
@@ -333,8 +354,8 @@ public:
 			PortableServer::POAManager_var pman = poa->the_POAManager();
 			pman->activate();
 
+			SAS_LOG_INFO(_interface->logger(), "run corba server: '" + _serverConnectionInfo.service_name + "." + _serverConnectionInfo.interface_name +"'");
 			orb->run();
-
 		}
 		catch(CORBA::SystemException & ex)
 		{
@@ -407,16 +428,16 @@ bool CorbaInterface::init(const CORBA::ORB_var & orb, const std::string & config
 
 	CorbaServer::ServerConnectionInfo info;
 
-	if(!_app->configreader()->getBoolEntry(config_path + "/USE_NAME_SERVER", info.use_name_service, true, ec))
+	if(!_app->configReader()->getBoolEntry(config_path + "/USE_NAME_SERVER", info.use_name_service, true, ec))
 		return false;
 
 	if(info.use_name_service)
 	{
 		SAS_LOG_TRACE(_logger, "get name server binding information");
-		if(!_app->configreader()->getStringEntry(config_path + "/SERVICE_NAME", info.service_name, ec) || !info.service_name.length())
+		if(!_app->configReader()->getStringEntry(config_path + "/SERVICE_NAME", info.service_name, ec) || !info.service_name.length())
 		{
 			SAS_LOG_TRACE(_logger, "service name is not defined for interface, get default value");
-			if(!_app->configreader()->getStringEntry("SAS/CORBA/SERVICE_NAME", info.service_name, ec) || !info.service_name.length())
+			if(!_app->configReader()->getStringEntry("SAS/CORBA/SERVICE_NAME", info.service_name, ec) || !info.service_name.length())
 			{
 				SAS_LOG_DEBUG(_logger, "default service name is not set in configuration");
 				info.service_name = "SAS";
@@ -425,7 +446,7 @@ bool CorbaInterface::init(const CORBA::ORB_var & orb, const std::string & config
 		}
 	}
 
-	_app->configreader()->getStringEntry(config_path + "/IOR_FILE", info.ior_file, ec);
+	_app->configReader()->getStringEntry(config_path + "/IOR_FILE", info.ior_file, ec);
 
 	return _runner->init(orb, info, ec);
 }
