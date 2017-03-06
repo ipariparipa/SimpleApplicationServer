@@ -69,7 +69,7 @@ std::string SASServer::version() const
 	return SAS_SERVER_VERSION;
 }
 
-ConfigReader * SASServer::configreader()
+ConfigReader * SASServer::configReader()
 {
 	return priv->configreader.get();
 }
