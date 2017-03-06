@@ -41,10 +41,12 @@ public:
 
 	virtual bool connect(ErrorCollector & ec) = 0;
 
-	virtual SQLStatement * createStatement() = 0;
+	virtual SQLStatement * createStatement(ErrorCollector & ec) = 0;
 
 	virtual bool exec(const std::string & statement, SQLResult *& res, ErrorCollector & ec) = 0;
 	virtual bool exec(const std::string & statement, ErrorCollector & ec) = 0;
+
+	virtual void detach() = 0;
 };
 
 }
