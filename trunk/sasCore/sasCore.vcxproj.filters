@@ -155,5 +155,8 @@
     <ClInclude Include="include\sasCore\tools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sasCore\platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

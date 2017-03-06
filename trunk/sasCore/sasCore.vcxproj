@@ -47,7 +47,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_WINDOWS;SAS_CORE__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SAS_CORE__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -110,6 +110,7 @@
     <ClInclude Include="include\sasCore\module.h" />
     <ClInclude Include="include\sasCore\object.h" />
     <ClInclude Include="include\sasCore\objectregistry.h" />
+    <ClInclude Include="include\sasCore\platform.h" />
     <ClInclude Include="include\sasCore\session.h" />
     <ClInclude Include="include\sasCore\sessionmanager.h" />
     <ClInclude Include="include\sasCore\thread.h" />
