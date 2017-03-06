@@ -42,7 +42,7 @@ public:
 		SAS_LOG_NDC();
 
 		std::vector<std::string> module_names;
-		if(app->configreader()->getStringListEntry("SAS/SQL_CLIENT/MODULES", module_names, ec))
+		if(app->configReader()->getStringListEntry("SAS/SQL_CLIENT/MODULES", module_names, ec))
 		{
 			std::vector<Object*> objs(module_names.size());
 			_modules.resize(module_names.size());

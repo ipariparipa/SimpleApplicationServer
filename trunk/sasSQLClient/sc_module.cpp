@@ -45,11 +45,14 @@ public:
 
 	virtual Status invoke(const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec) final
 	{
+		SAS_LOG_NDC();
+		std::unique_ptr<SAS::SQLStatement> stmt(conn->createStatement(ec));
+		if (!stmt)
+			return Invoker::Status::Error;
+
 		std::string in_str;
 		in_str.append(input.data(), input.size());
-
-		std::unique_ptr<SAS::SQLStatement> stmt(conn->createStatement());
-		if(!stmt->prepare("select * from table_01", ec))
+		if (!stmt->prepare(in_str, ec))
 			return Invoker::Status::Error;
 
 		if(!stmt->exec(ec))
@@ -128,14 +131,14 @@ bool SC_Module::init(Application * app, ErrorCollector & ec)
 	SAS_LOG_NDC();
 	long long default_session_lifetime;
 	std::string prefix = "SAS/SQL_CLIENT/" + priv->name;
-	if(!app->configreader()->getNumberEntry(prefix + "/DEFAULT_SESSION_LIFETIME", default_session_lifetime, 10, ec))
+	if(!app->configReader()->getNumberEntry(prefix + "/DEFAULT_SESSION_LIFETIME", default_session_lifetime, 10, ec))
 		return false;
 
 	if(!SessionManager::init((long)default_session_lifetime, ec))
 		return false;
 
 	std::string conn_name;
-	if(!app->configreader()->getStringEntry(prefix + "/SQL_CONNECTOR", conn_name, ec))
+	if(!app->configReader()->getStringEntry(prefix + "/SQL_CONNECTOR", conn_name, ec))
 	{
 		auto err = ec.add(-1, "connector name is not configured");
 		SAS_LOG_ERROR(priv->logger, err);
