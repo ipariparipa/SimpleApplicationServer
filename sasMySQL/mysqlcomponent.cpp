@@ -44,7 +44,7 @@ public:
 		this->app = app;
 
 		std::vector<std::string> connector_names;
-		if(app->configreader()->getStringListEntry("SAS/MYSQL/CONNECTORS", connector_names, ec))
+		if(app->configReader()->getStringListEntry("SAS/MYSQL/CONNECTORS", connector_names, ec))
 		{
 			bool has_error(false);
 			std::vector<Object*> connectors(connector_names.size());
