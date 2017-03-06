@@ -45,7 +45,7 @@ namespace SAS {
 				virtual std::string version() const final
 				{ return std::string(); }
 
-				virtual ConfigReader * configreader() final
+				virtual ConfigReader * configReader() final
 				{
 					if (!cr.get())
 						cr.reset(new WConfigReader(mobj->ConfigReader));
