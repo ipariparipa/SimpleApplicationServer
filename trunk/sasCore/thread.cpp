@@ -51,6 +51,7 @@ namespace SAS
 
 	Thread::~Thread()
 	{
+		terminate();
 		delete priv;
 	}
 

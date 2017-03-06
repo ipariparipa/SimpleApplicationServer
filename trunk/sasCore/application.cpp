@@ -81,7 +81,7 @@ bool Application::init(ErrorCollector & ec)
 
 	SAS_LOG_INFO(logger(), "activating components");
 	std::vector<std::string> comp_paths;
-	if (!configreader()->getStringListEntry("SAS/COMPONENTS", comp_paths, ec) || !comp_paths.size())
+	if (!configReader()->getStringListEntry("SAS/COMPONENTS", comp_paths, ec) || !comp_paths.size())
 	{
 		auto err = ec.add(-1, "components are not set");
 		SAS_LOG_ERROR(logger(), err);

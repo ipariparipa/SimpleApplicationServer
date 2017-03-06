@@ -86,6 +86,10 @@ namespace SAS { namespace Logging {
 #include <mutex>
 #endif
 
+#include <assert.h>
+
+#include <sstream>
+
 namespace SAS { namespace Logging {
 
 class SAS_CORE__CLASS AbstractLogger
@@ -146,7 +150,9 @@ public:
 protected:
 	virtual void add(const std::string & text) override
 	{
-		stream << text << std::endl;
+		std::stringstream ss;
+		ss << text << std::endl;
+		stream << ss.str();
 	}
 
 private:
