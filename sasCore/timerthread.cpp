@@ -33,6 +33,7 @@ namespace SAS {
 
 	TimerThread::~TimerThread()
 	{
+		priv->timer_mutex.unlock();
 		delete priv;
 	}
 

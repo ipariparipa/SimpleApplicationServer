@@ -53,7 +53,7 @@ public:
 	virtual Logging::LoggerPtr logger();
 
 	virtual inline InterfaceManager * interfaceManager() { return nullptr; };
-	virtual ConfigReader * configreader() = 0;
+	virtual ConfigReader * configReader() = 0;
 private:
 	Application_priv * priv;
 };

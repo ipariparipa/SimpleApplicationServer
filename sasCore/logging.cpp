@@ -82,7 +82,6 @@ namespace SAS { namespace Logging {
 		ss << "] - " << priv->name << " - " << message;
 		if(file)
 			ss << " {"<<file<<':'<<line<<"}";
-		ss << std::endl;
 
 		add(ss.str());
 	}
