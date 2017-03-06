@@ -18,10 +18,12 @@
 #ifndef INCLUDE_SASCORE_CONFIG_H_
 #define INCLUDE_SASCORE_CONFIG_H_
 
+#include "platform.h"
+
 #define SAS_OS_LINUX 1
 #define SAS_OS_WINDOWS 2
 
-#ifdef _WINDOWS
+#ifdef SAS_WINDOWS
 #  define SAS_OS SAS_OS_WINDOWS
 #else
 #  define SAS_OS SAS_OS_LINUX
@@ -42,7 +44,5 @@
 
 #define SAS_SESSION_CLEANER_INTERVAL 5000
 #define SAS_SESSION_MAX_COUNT 2000
-
-#define SAS_LOG4CXX_ENABLED
 
 #endif /* INCLUDE_SASCORE_CONFIG_H_ */
