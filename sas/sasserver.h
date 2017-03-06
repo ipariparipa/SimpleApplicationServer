@@ -36,7 +36,7 @@ public:
 
 	virtual std::string version() const final;
 
-	virtual ConfigReader * configreader() final;
+	virtual ConfigReader * configReader() final;
 
 	virtual inline Watchdog * watchdog() final { return this; }
 	virtual inline InterfaceManager * interfaceManager() final { return this; }
