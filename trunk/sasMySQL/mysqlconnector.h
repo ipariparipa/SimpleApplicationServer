@@ -31,10 +31,11 @@ struct MySQLConnector_priv;
 
 struct MySQL_Settings
 {
-	inline MySQL_Settings() : max_buffer_size(0)
+	inline MySQL_Settings() : max_buffer_size(0), max_connections(0)
 	{ }
 
 	size_t max_buffer_size;
+	size_t max_connections;
 };
 
 class MySQLConnector : public SQLConnector
@@ -47,12 +48,14 @@ public:
 
 	virtual bool connect(ErrorCollector & ec) final;
 
-	virtual SQLStatement * createStatement() final;
+	virtual SQLStatement * createStatement(ErrorCollector & ec) final;
 
 	virtual std::string name() const final;
 
 	virtual bool exec(const std::string & statement, SQLResult *& res, ErrorCollector & ec) final;
 	virtual bool exec(const std::string & statement, ErrorCollector & ec) final;
+
+	virtual void detach() final;
 
 	Logging::LoggerPtr logger() const;
 

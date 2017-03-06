@@ -232,15 +232,21 @@ MySQLStatement::MySQLStatement(MYSQL_STMT * stmt, MySQLConnector * conn) : priv(
 
 MySQLStatement::~MySQLStatement()
 {
-	std::unique_lock<std::mutex> __locker(priv->conn_mut);
+	SAS_LOG_NDC();
+	priv->mut.lock();
+	priv->conn_mut.lock();
+	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_close");
 	mysql_stmt_close(priv->stmt);
+	priv->conn_mut.unlock();
+	priv->mut.unlock();
 	delete priv;
 }
 
 bool MySQLStatement::prepare(const std::string & statement, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->conn_mut);
+	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker_conn(priv->conn_mut);
 
 	SAS_LOG_VAR(priv->conn->logger(), statement);
 
@@ -267,7 +273,8 @@ bool MySQLStatement::prepare(const std::string & statement, ErrorCollector & ec)
 unsigned long MySQLStatement::paramNum()
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->conn_mut);
+	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker_conn(priv->conn_mut);
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_param_count");
 	return mysql_stmt_param_count(priv->stmt);
 }
@@ -275,7 +282,8 @@ unsigned long MySQLStatement::paramNum()
 bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->conn_mut);
+	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker_conn(priv->conn_mut);
 	size_t params_size = params.size();
 
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_param_count");
@@ -458,7 +466,8 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 bool MySQLStatement::execDML(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->conn_mut);
+	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker_conn(priv->conn_mut);
 
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_execute");
 	if(mysql_stmt_execute(priv->stmt))
@@ -474,7 +483,8 @@ bool MySQLStatement::execDML(ErrorCollector & ec)
 bool MySQLStatement::exec(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	std::unique_lock<std::mutex> __locker(priv->conn_mut);
+	std::unique_lock<std::mutex> __locker(priv->mut);
+	std::unique_lock<std::mutex> __locker_conn(priv->conn_mut);
 
 	MYSQL_RES * meta_res;
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_result_metadata");
