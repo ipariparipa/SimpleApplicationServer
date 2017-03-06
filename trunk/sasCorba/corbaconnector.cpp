@@ -26,7 +26,7 @@
 
 #include <numeric>
 #include "tools.h"
-#include "corbasas.hh"
+#include "generated/corbasas.hh"
 
 namespace SAS {
 
@@ -35,7 +35,7 @@ class CorbaConnection :public Connection
 public:
 	CorbaConnection(const std::string & module, const std::string & invoker, Application * app, const CorbaSAS::SASModule_ptr & corba_sas_module) :
 		_module(module), _invoker(invoker), _sessionId(0),
-		_corba_sas_module(corba_sas_module), _app(app), _logger(Logging::getLogger("SAS.CorbaConnection"))
+		_corba_sas_module(corba_sas_module), _app(app), _logger(Logging::getLogger("SAS.CorbaConnection." + module + "." + invoker))
 	{ }
 
 	virtual ~CorbaConnection()
@@ -62,7 +62,7 @@ public:
 		}
 		catch(CorbaSAS::ErrorHandling::ErrorException & ex)
 		{
-			auto err= ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
+			auto err= ec.add(-1, "Caught a CorbaSAS::ErrorHandling::ErrorException while using the naming service.");
 			SAS_LOG_DEBUG(_logger, err );
 			SAS_LOG_VAR(_logger, ex.invoker);
 			SAS_LOG_VAR(_logger, ex.sas_module);
@@ -75,7 +75,7 @@ public:
 		}
 		catch(CorbaSAS::ErrorHandling::FatalErrorException & ex)
 		{
-			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
+			auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::FatalErrorException while using the naming service.");
 			SAS_LOG_DEBUG(_logger, err);
 			SAS_LOG_VAR(_logger, ex.invoker);
 			SAS_LOG_VAR(_logger, ex.sas_module);
@@ -88,7 +88,7 @@ public:
 		}
 		catch(CorbaSAS::ErrorHandling::NotImplementedException & ex)
 		{
-			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_fatal_error_exception while using the naming service.");
+			auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::NotImplementedException.");
 			SAS_LOG_DEBUG(_logger, err);
 			SAS_LOG_VAR(_logger, ex.invoker);
 			SAS_LOG_VAR(_logger, ex.sas_module);
@@ -111,9 +111,15 @@ public:
 			SAS_LOG_ERROR(_logger, err);
 			return Status::FatalError;
 		}
-		catch(...)
+		catch (CORBA::Exception &)
 		{
-			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
+			auto err = ec.add(-1, "Caught a CORBA::Exception.");
+			SAS_LOG_ERROR(_logger, err);
+			return Status::FatalError;
+		}
+		catch (...)
+		{
+			auto err = ec.add(-1, "Caught an unknown exception.");
 			SAS_LOG_ERROR(_logger, err);
 			return Status::FatalError;
 		}
@@ -192,6 +198,12 @@ CORBA::Object_ptr getObjectReference(const std::string & service_name, const std
 		SAS_LOG_ERROR(logger, err);
 		return CORBA::Object::_nil();
 	}
+	catch (CORBA::SystemException &)
+	{
+		auto err = ec.add(-1, "Corba::SystemException");
+		SAS_LOG_ERROR(logger, err);
+		return CORBA::Object::_nil();
+	}
 
 	// Create a name object, containing the name test/context:
 	CosNaming::Name name;
@@ -238,22 +250,22 @@ bool CorbaConnector::init(const CORBA::ORB_var & orb, const std::string & config
 
 	SAS_LOG_VAR_NAME(priv->logger, "connector_name", priv->name);
 
-	if(!priv->app->configreader()->getBoolEntry(config_path + "/USE_NAME_SERVER", priv->connectionData.use_name_server, true, ec))
+	if(!priv->app->configReader()->getBoolEntry(config_path + "/USE_NAME_SERVER", priv->connectionData.use_name_server, true, ec))
 		return false;
 
 	if(priv->connectionData.use_name_server)
 	{
 		SAS_LOG_TRACE(priv->logger, "get name server connection info");
-		if(!priv->app->configreader()->getStringEntry(config_path + "/SERVICE_NAME", priv->connectionData.service_name, ec) || !priv->connectionData.service_name.length())
+		if(!priv->app->configReader()->getStringEntry(config_path + "/SERVICE_NAME", priv->connectionData.service_name, ec) || !priv->connectionData.service_name.length())
 		{
 			SAS_LOG_TRACE(priv->logger, "service name is not defined for, get default value");
-			if(!priv->app->configreader()->getStringEntry("SAS/CORBA/SERVICE_NAME", priv->connectionData.service_name, ec) || !priv->connectionData.service_name.length())
+			if(!priv->app->configReader()->getStringEntry("SAS/CORBA/SERVICE_NAME", priv->connectionData.service_name, ec) || !priv->connectionData.service_name.length())
 			{
 				SAS_LOG_DEBUG(priv->logger, "default service name is not set");
 				priv->connectionData.service_name = "SAS";
 			}
 		}
-		if(!priv->app->configreader()->getStringEntry(config_path + "/INTERFACE_NAME", priv->connectionData.interface_mame, ec) || !priv->connectionData.interface_mame.length())
+		if(!priv->app->configReader()->getStringEntry(config_path + "/INTERFACE_NAME", priv->connectionData.interface_mame, ec) || !priv->connectionData.interface_mame.length())
 		{
 			SAS_LOG_WARN(priv->logger, "interface name is not defined, use connector name instead");
 			priv->connectionData.interface_mame = priv->name;
@@ -262,7 +274,7 @@ bool CorbaConnector::init(const CORBA::ORB_var & orb, const std::string & config
 	else
 	{
 		SAS_LOG_TRACE(priv->logger, "name server is not used");
-		if(!priv->app->configreader()->getStringEntry(config_path + "/IOR", priv->connectionData.ior, ec) || !priv->connectionData.ior.length())
+		if(!priv->app->configReader()->getStringEntry(config_path + "/IOR", priv->connectionData.ior, ec) || !priv->connectionData.ior.length())
 		{
 			SAS_LOG_DEBUG(priv->logger, "IOR data is not defined");
 			auto err = ec.add(-1, "connector '"+priv->name+"' cannot be initializes because of the insufficient connection data");
