@@ -29,6 +29,7 @@
 #include <vector>
 #include <list>
 #include <mutex>
+#include <assert.h>
 
 namespace SAS {
 
@@ -109,7 +110,7 @@ struct MySQLConnector_priv
 			}
 			else
 			{
-				SAS_LOG_TRACE(logger, "create new mysql connection");
+				SAS_LOG_INFO(logger, "create new mysql connection (#"+std::to_string(connection_repo.size()+1)+")");
 				connection_repo[conn = new Connection] = 1;
 			}
 			connection_registry[Thread::getThreadId()] = conn;
@@ -282,7 +283,7 @@ SQLStatement * MySQLConnector::createStatement(ErrorCollector & ec)
 	SAS_LOG_NDC();
 	auto conn = priv->conn(ec);
 	if (!conn)
-		return false;
+		return nullptr;
 
 	std::unique_lock<std::mutex> __locker(conn->mut);
 
