@@ -32,6 +32,7 @@
 #include <iostream>
 #include <numeric>
 #include <fstream>
+#include <mutex>
 
 #include "generated/corbasas.hh"
 
@@ -212,7 +213,7 @@ public:
 				// If the context already exists, this exception will be raised.
 				// In this case, just resolve the name and assign testContext
 				// to the object returned:
-				SAS_LOG_TRACE(_interface->logger(), "service had been already dound, use the existing context");
+				SAS_LOG_TRACE(_interface->logger(), "service had been already bound, use the existing context");
 				CORBA::Object_var obj;
 				obj = rootContext->resolve(contextName);
 				serviceContext = CosNaming::NamingContext::_narrow(obj);
