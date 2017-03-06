@@ -23,6 +23,7 @@
 #include <sasCore/objectregistry.h>
 
 #include "loopbackconnector.h"
+#include "bypassmodule.h"
 
 namespace SAS {
 
@@ -53,19 +54,49 @@ public:
 		SAS_LOG_NDC();
 		Logging::LoggerPtr logger = Logging::getLogger("SAS.BP_Component");
 
-		std::vector<std::string> loopback_names;
-		if(app->configreader()->getStringListEntry("SAS/BYPASS/LOOPBACK_CONNECTORS", loopback_names, ec) && loopback_names.size())
 		{
-			std::vector<Object*> objs(loopback_names.size());
-			for(size_t i(0), l(loopback_names.size()); i < l; ++i)
-				objs[i] = new LoopbackConnector(app, loopback_names[i]);
+			std::vector<std::string> loopback_names;
+			if (app->configReader()->getStringListEntry("SAS/BYPASS/LOOPBACK_CONNECTORS", loopback_names, ec) && loopback_names.size())
+			{
+				std::vector<Object*> objs(loopback_names.size());
+				for (size_t i(0), l(loopback_names.size()); i < l; ++i)
+					objs[i] = new LoopbackConnector(app, loopback_names[i]);
 
-			if(!app->objectRegistry()->registerObjects(objs, ec))
-				return false;
+				if (!app->objectRegistry()->registerObjects(objs, ec))
+					return false;
+			}
+			else
+			{
+				SAS_LOG_INFO(logger, "no loopback connectors are set");
+			}
 		}
-		else
+
 		{
-			SAS_LOG_INFO(logger, "no bypass connectors are set");
+			std::vector<std::string> bypassmodule_names;
+			if (app->configReader()->getStringListEntry("SAS/BYPASS/MODULES", bypassmodule_names, ec) && bypassmodule_names.size())
+			{
+				std::vector<Object*> objs(bypassmodule_names.size());
+				bool has_error(false);
+				for (size_t i(0), l(bypassmodule_names.size()); i < l; ++i)
+				{
+					auto mod = new BypassModule(bypassmodule_names[i]);
+					std::string config_path = "SAS/BYPASS/" + bypassmodule_names[i];
+					if (!mod->init(config_path, app, ec))
+						has_error = true;
+					else
+						objs[i] = mod;
+				}
+				
+				if (has_error)
+					return false;
+
+				if (!app->objectRegistry()->registerObjects(objs, ec))
+					return false;
+			}
+			else
+			{
+				SAS_LOG_INFO(logger, "no bypass modules are set");
+			}
 		}
 
 		return true;

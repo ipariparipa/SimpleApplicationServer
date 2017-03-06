@@ -72,9 +72,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bp_component.cpp" />
+    <ClCompile Include="bypassmodule.cpp" />
     <ClCompile Include="loopbackconnector.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bypassmodule.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="loopbackconnector.h" />
   </ItemGroup>
