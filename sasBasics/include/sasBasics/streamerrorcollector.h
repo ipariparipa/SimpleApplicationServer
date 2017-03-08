@@ -33,12 +33,10 @@ public:
 
 	virtual ~StreamErrorCollector() { }
 
-	virtual std::string add(long errorCode, const std::string & errorText) override
+protected:
+	virtual void append(long errorCode, const std::string & errorText) override
 	{
-		std::stringstream ss;
-		ss << "[" << errorCode << "]" << " " << errorText << std::endl;
-		_os << ss.str();
-		return ss.str();
+		_os << toString(errorCode, errorText);
 	}
 
 private:
