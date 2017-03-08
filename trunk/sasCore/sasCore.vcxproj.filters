@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Platform Templates">
+      <UniqueIdentifier>{55d8946b-d60a-4080-bd2e-6aba8364a7ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="application.cpp">
@@ -158,5 +161,10 @@
     <ClInclude Include="include\sasCore\platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="include\sasCore\_platform_win.h_">
+      <Filter>Platform Templates</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

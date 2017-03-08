@@ -40,9 +40,9 @@ struct InterfaceManager_priv
 		{
 			struct StrErrorCollector : public ErrorCollector
 			{
-				virtual std::string add(long errorCode, const std::string & errorText)
+				virtual void append(long errorCode, const std::string & errorText)
 				{
-					return str = "["+std::to_string(errorCode)+"] "+errorText;
+					str = toString(errorCode, errorText);
 				}
 
 				std::string str;
