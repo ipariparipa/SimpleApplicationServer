@@ -17,6 +17,7 @@
 
 #include "SASConnector.h"
 #include "SASErrorCollector.h"
+#include "SASBinData.h"
 
 #include "macros.h"
 
@@ -42,22 +43,13 @@ namespace SAS {
 			delete priv;
 		}
 
-		ISASInvoker::Status SASConnectionObj::Invoke(array<System::Byte> ^ input, [System::Runtime::InteropServices::OutAttribute] array<System::Byte> ^% output, ISASErrorCollector ^ ec)
+		ISASInvoker::Status SASConnectionObj::Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec)
 		{
-			std::vector<char> tmp_in(input->Length);
-			for (int i(0), l(tmp_in.size()); i < l; ++i)
-				tmp_in[i] = input[i];
 
-			std::vector<char> tmp_out;
+			output = gcnew SASBinData();
 
-			auto tmp_ret = priv->obj->invoke(tmp_in, tmp_out, WErrorCollector(ec));
-			if (tmp_ret == Invoker::Status::OK)
-			{
-				output = gcnew array<System::Byte>(tmp_out.size());
-				for (int i(0), l(tmp_out.size()); i < l; ++i)
-					output[i] = tmp_out[i];
-			}
-			else
+			auto tmp_ret = priv->obj->invoke(input->data(), output->data(), WErrorCollector(ec));
+			if (tmp_ret != Invoker::Status::OK)
 				output = nullptr;
 			
 			return (ISASInvoker::Status)tmp_ret;

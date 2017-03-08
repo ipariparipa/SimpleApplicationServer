@@ -25,6 +25,8 @@
 namespace SAS {
 	namespace Client{
 
+		ref class SASBinData;
+
 		interface class ISASErrorCollector;
 
 		public interface class ISASInvoker
@@ -34,7 +36,7 @@ namespace SAS {
 				OK, Error, FatalError, NotImplemented
 			};
 
-			virtual Status Invoke(array<System::Byte> ^ input, [System::Runtime::InteropServices::OutAttribute] array<System::Byte> ^% output, ISASErrorCollector ^ ec) abstract;
+			virtual Status Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec) abstract;
 
 		};
 
@@ -50,7 +52,7 @@ namespace SAS {
 		public:
 			SASConnectionObj(Connection * obj);
 			!SASConnectionObj();
-			virtual ISASInvoker::Status Invoke(array<System::Byte> ^ input, [System::Runtime::InteropServices::OutAttribute] array<System::Byte> ^% output, ISASErrorCollector ^ ec);
+			virtual ISASInvoker::Status Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec);
 		private:
 			SASConnectionObj_priv * priv;
 		};

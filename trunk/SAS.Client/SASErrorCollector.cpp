@@ -42,9 +42,9 @@ namespace SAS {
 			delete priv;
 		}
 
-		System::String ^ SASErrorCollectorObj::Add(long errorCode, System::String ^ errorText)
+		void SASErrorCollectorObj::Add(long errorCode, System::String ^ errorText)
 		{
-			return TO_MSTR(priv->obj.add(errorCode, TO_STR(errorText)));
+			priv->obj.add(errorCode, TO_STR(errorText));
 		}
 
 	}
@@ -65,9 +65,8 @@ namespace SAS {
 		delete priv;
 	}
 
-	std::string WErrorCollector::add(long errorCode, const std::string & errorText)
+	void WErrorCollector::append(long errorCode, const std::string & errorText)
 	{
-		return TO_STR(priv->mobj->Add(errorCode, TO_MSTR(errorText)));
+		priv->mobj->Add(errorCode, TO_MSTR(errorText));
 	}
-
 }
