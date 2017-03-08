@@ -25,12 +25,134 @@
 #include <sasSQL/sqlconnector.h>
 #include <sasSQL/sqlstatement.h>
 #include <sasSQL/sqlvariant.h>
+#include <sasTCL/tclinvoker.h>
+#include <sasTCL/tclerrorcollector.h>
+#include <sasTCL/tcllist.h>
 
 #include <memory>
 #include <sstream>
 #include <string.h>
 
 namespace SAS { namespace SQLClient {
+
+	class SQLTCLInvoker : public TCLInvoker
+	{
+	public:
+		inline SQLTCLInvoker(SQLConnector * conn_, const std::string & name) : TCLInvoker(name), conn(conn_)
+		{ }
+	protected:
+
+		static int _sql_query(ClientData obj_, Tcl_Interp * interp,  int argc, const char *argv[])
+		{
+			auto obj = (SQLTCLInvoker*)obj_;
+
+			TCLErrorCollector ec(interp);
+
+			if (argc != 2)
+			{
+				ec.add(-1, "sql_run: invalid arguments");
+				Tcl_SetObjResult(interp, ec.errors().obj());
+				return TCL_ERROR;
+			}
+
+			SAS_LOG_NDC();
+			std::unique_ptr<SAS::SQLStatement> stmt(obj->conn->createStatement(ec));
+			if (!stmt)
+			{
+				Tcl_SetObjResult(interp, ec.errors().obj());
+				return TCL_ERROR;
+			}
+
+			if (!stmt->prepare(argv[1], ec))
+			{
+				Tcl_SetObjResult(interp, ec.errors().obj());
+				return TCL_ERROR;
+			}
+
+			if (!stmt->exec(ec))
+			{
+				Tcl_SetObjResult(interp, ec.errors().obj());
+				return TCL_ERROR;
+			}
+
+			TCLList ret(interp);
+			
+			std::unique_lock<TCLInvoker::BlobHandler> __blob_locker(*obj->blobHandler());
+			int blob_idx(0);
+			std::vector<SQLVariant> data;
+			while (stmt->fetch(data, ec))
+			{
+				TCLList row(interp);
+				for (auto & d : data)
+				{
+					TCLList field(interp);
+					switch (d.type())
+					{
+					case SQLDataType::None:
+						field.append("none");
+						break;
+					case SQLDataType::String:
+						field.append("string");
+						break;
+					case SQLDataType::Number:
+						field.append("number");
+						break;
+					case SQLDataType::Real:
+						field.append("real");
+						break;
+					case SQLDataType::DateTime:
+						field.append("datetime");
+						break;
+					case SQLDataType::Blob:
+						field.append("blob");
+						break;
+					}
+					if (d.isNull())
+						field.append("(null)");
+					else
+					{
+						switch (d.type())
+						{
+						case SQLDataType::None:
+							field.append("(none)");
+							break;
+						case SQLDataType::String:
+						case SQLDataType::Number:
+						case SQLDataType::Real:
+						case SQLDataType::DateTime:
+							field.append(d.toString());
+							break;
+						case SQLDataType::Blob:
+						{
+							std::string blob_name = "blob#" + std::to_string(blob_idx++);
+							field.append(blob_name);
+							std::vector<char> * blob;
+							obj->blobHandler()->setBlob(blob_name, blob);
+							size_t blob_size;
+							auto blob_data = d.asBlob(blob_size);
+							blob->resize(blob_size);
+							memcpy(blob->data(), blob_data, blob_size);
+							break;
+						}
+						}
+					}
+
+					row.append(field);
+				}
+				ret.append(row);
+			}
+
+			Tcl_SetObjResult(interp, ret.obj());
+			return TCL_OK;
+		}
+
+		virtual inline void init(Tcl_Interp *interp) override
+		{
+			Tcl_CreateCommand(interp, "sql_query", _sql_query, this, 0);
+		}
+	private:
+		SQLConnector * conn;
+	};
 
 class SC_Session_Invoker : public Session, public Invoker
 {
@@ -76,19 +198,32 @@ protected:
 	virtual Invoker * getInvoker(const std::string & name, ErrorCollector & ec) final
 	{
 		SAS_LOG_NDC();
-		if(name != "plain_text")
+		if (name == "plain_text")
+			return this;
+		else if (name == "tcl")
 		{
-			auto err = ec.add(-1, "unsupported invoker type: '" + name + "'");
-			SAS_LOG_ERROR(logger, err);
-			return nullptr;
+			if (!tclinv.get())
+			{
+				tclinv.reset(new SQLTCLInvoker(conn, mod_name));
+				if (!tclinv->init(ec))
+				{
+					tclinv.release();
+					return false;
+				}
+			}
+			return tclinv.get();
 		}
-		return this;
+
+		auto err = ec.add(-1, "unsupported invoker type: '" + name + "'");
+		SAS_LOG_ERROR(logger, err);
+		return nullptr;
 	}
 
 private:
 	std::string mod_name;
 	SQLConnector * conn;
 	Logging::LoggerPtr logger;
+	std::unique_ptr<TCLInvoker> tclinv;
 };
 
 struct SC_Module_priv
