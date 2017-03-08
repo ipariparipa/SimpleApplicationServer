@@ -30,7 +30,10 @@ class SAS_CORE__CLASS ErrorCollector
 public:
 	virtual inline ~ErrorCollector() { }
 
-	virtual std::string add(long errorCode, const std::string & errorText) = 0;
+	std::string add(long errorCode, const std::string & errorText);
+	static std::string toString(long errorCode, const std::string & errorText);
+protected:
+	virtual void append(long errorCode, const std::string & errorText) = 0;
 };
 
 struct SimpleErrorCollector_priv;
@@ -40,8 +43,9 @@ class SAS_CORE__CLASS SimpleErrorCollector : public ErrorCollector
 public:
 	SimpleErrorCollector(std::function<void(long errorCode, const std::string & errorText)> fnct);
 	virtual ~SimpleErrorCollector();
-	virtual std::string add(long errorCode, const std::string & errorText) final;
 
+protected:
+	virtual void append(long errorCode, const std::string & errorText) final;
 private:
 	SimpleErrorCollector_priv * priv;
 };

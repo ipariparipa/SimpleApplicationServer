@@ -20,6 +20,20 @@
 
 namespace SAS {
 
+	std::string ErrorCollector::add(long errorCode, const std::string & errorText)
+	{
+		append(errorCode, errorText);
+		return toString(errorCode, errorText);
+	}
+
+
+	//static 
+	std::string ErrorCollector::toString(long errorCode, const std::string & errorText)
+	{
+		std::stringstream ss;
+		ss << "[" << errorCode << "] " << errorText;
+		return ss.str();
+	}
 
 	struct SimpleErrorCollector_priv
 	{
@@ -36,12 +50,9 @@ namespace SAS {
 		delete priv;
 	}
 
-	std::string SimpleErrorCollector::add(long errorCode, const std::string & errorText)
+	void SimpleErrorCollector::append(long errorCode, const std::string & errorText)
 	{
 		priv->fnct(errorCode, errorText);
-		std::stringstream ss;
-		ss << "[" << errorCode << "] " << errorText;
-		return ss.str();
 	}
 
 }
