@@ -45,8 +45,6 @@ namespace SAS {
 			return true;
 		}
 
-		//virtual bool SASConfigReader::GetEntryAsStringList(System::String ^ path, [System::Runtime::InteropServices::OutAttribute] array<System::String^> ^% ret, ISASErrorCollector ^ ec) abstract;
-
 		//virtual 
 		bool SASConfigReader::GetEntryAsStringList(System::String ^ path, [System::Runtime::InteropServices::OutAttribute] array<System::String^> ^% ret, array<System::String^> ^ defaultValue, ISASErrorCollector ^ ec)
 		{
