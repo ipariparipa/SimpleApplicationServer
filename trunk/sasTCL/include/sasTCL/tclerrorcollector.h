@@ -24,7 +24,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 #include "tcllist.h"
 
-#include <tcl.h>
+#include SAS_TCL__TCL_H
 
 namespace SAS {
 

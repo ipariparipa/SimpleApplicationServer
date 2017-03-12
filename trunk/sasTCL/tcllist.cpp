@@ -84,10 +84,25 @@ namespace SAS {
 		return ret;
 	}
 
+	bool TCLList::fromString(const std::string & str)
+	{
+		auto lst_obj = Tcl_NewStringObj(str.c_str(), -1);
+		if(!lst_obj)
+			return false;
+		int objc;
+		Tcl_Obj **objv;
+		if(Tcl_ListObjGetElements(priv->interp, lst_obj, &objc, &objv) != TCL_OK)
+			return false;
+		for(int i = 0; i < objc; ++i)
+			if(Tcl_ListObjAppendElement(priv->interp, priv->obj, objv[i]) != TCL_OK)
+				return false;
+		return true;
+	}
+
 	std::string TCLList::operator [] (int idx) const
 	{
 		if (!priv->interp)
-			return false;
+			return std::string();
 		Tcl_Obj * tmp;
 		if (Tcl_ListObjIndex(priv->interp, priv->obj, idx, &tmp) != TCL_OK)
 			return std::string();
@@ -97,7 +112,7 @@ namespace SAS {
 	std::string TCLList::getString(int idx) const
 	{
 		if (!priv->interp)
-			return false;
+			return std::string();
 		Tcl_Obj * tmp;
 		if (Tcl_ListObjIndex(priv->interp, priv->obj, idx, &tmp) != TCL_OK)
 			return std::string();
@@ -107,7 +122,7 @@ namespace SAS {
 	TCLList TCLList::getList(int idx) const
 	{
 		if (!priv->interp)
-			return false;
+			return TCLList();
 		Tcl_Obj * tmp;
 		if (Tcl_ListObjIndex(priv->interp, priv->obj, idx, &tmp) != TCL_OK)
 			return TCLList();

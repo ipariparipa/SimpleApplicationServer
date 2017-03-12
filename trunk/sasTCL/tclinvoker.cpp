@@ -28,6 +28,7 @@ along with sasTCLClient.  If not, see <http://www.gnu.org/licenses/>
 #include <algorithm>
 #include <condition_variable>
 #include <queue>
+#include <cstring>
 
 namespace SAS {
 
@@ -38,6 +39,10 @@ namespace SAS {
 			obj(obj_), name(name_), exec(interp_, this), 
 			logger(Logging::getLogger("SAS.TCLInvoker."+name_))
 		{ }
+
+
+		TCLInvoker * obj;
+		const std::string & name;
 
 		struct Executor_thread : public Thread
 		{
@@ -153,8 +158,6 @@ namespace SAS {
 			TCLInvoker_priv * priv;
 		} exec;
 
-		TCLInvoker * obj;
-		const std::string & name;
 		std::mutex mut;
 		Logging::LoggerPtr logger;
 
@@ -197,7 +200,7 @@ namespace SAS {
 				auto & b = blobs[name];
 				b.resize(size);
 				if (size)
-					memcpy(b.data(), data, size);
+					std::memcpy(b.data(), data, size);
 			}
 
 			virtual bool getBlob(const std::string & name, std::vector<char> *& ret, ErrorCollector & ec) final

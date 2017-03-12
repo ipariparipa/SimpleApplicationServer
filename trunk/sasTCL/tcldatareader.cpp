@@ -21,6 +21,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/logging.h>
 
 #include <stdint.h>
+#include <cstring>
 
 namespace SAS {
 
@@ -57,7 +58,7 @@ namespace SAS {
 		}
 		const char * out_data = out.data();
 		uint16_t version;
-		memcpy(&version, out_data, sizeof(uint16_t));
+		std::memcpy(&version, out_data, sizeof(uint16_t));
 		out_data += sizeof(uint16_t); out_size -= sizeof(uint16_t);
 
 		SAS_LOG_VAR(priv->logger, version);
@@ -79,7 +80,7 @@ namespace SAS {
 				out_data += 4; out_size -= 4;
 
 				uint32_t data_size;
-				memcpy(&data_size, out_data, sizeof(uint32_t));
+				std::memcpy(&data_size, out_data, sizeof(uint32_t));
 				out_data += sizeof(uint32_t); out_size -= sizeof(uint32_t);
 				if (out_size < data_size)
 				{
@@ -105,7 +106,7 @@ namespace SAS {
 					}
 
 					uint16_t name_size;
-					memcpy(&name_size, out_data, sizeof(uint16_t));
+					std::memcpy(&name_size, out_data, sizeof(uint16_t));
 					out_data += sizeof(uint16_t); out_size -= sizeof(uint16_t);  data_size -= sizeof(uint16_t);
 
 					if (data_size < name_size)
@@ -125,7 +126,7 @@ namespace SAS {
 						return false;
 					}
 					std::vector<char> blob(data_size);
-					memcpy(blob.data(), out_data, data_size);
+					std::memcpy(blob.data(), out_data, data_size);
 					out_data += data_size; out_size -= data_size;
 					priv->blobs[name] = blob;
 				}
