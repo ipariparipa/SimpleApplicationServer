@@ -21,6 +21,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/logging.h>
 
 #include <stdint.h>
+#include <string.h>
 
 namespace SAS {
 

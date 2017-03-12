@@ -22,7 +22,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/defines.h>
 
 #include <string>
-#include <tcl.h>
+#include SAS_TCL__TCL_H
 
 namespace SAS {
 
@@ -41,6 +41,8 @@ namespace SAS {
 		bool append(const std::string & str);
 		bool append(const TCLList & lst);
 		int length() const;
+
+		bool fromString(const std::string & str);
 
 		std::string operator [] (int idx) const;
 		std::string getString(int idx) const;

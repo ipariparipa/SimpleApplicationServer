@@ -21,9 +21,11 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/config.h>
 
 #if SAS_OS == SAS_OS_LINUX 
+#  define SAS_TCL__TCL_H <tcl/tcl.h>
 #  define SAS_TCL__CLASS 
 #  define SAS_TCL__FUNCTION 
 #elif SAS_OS == SAS_OS_WINDOWS 
+#  define SAS_TCL__TCL_H <tcl.h>
 #  ifdef SAS_TCL__IMPL
 #    define SAS_TCL__CLASS __declspec(dllexport)
 #    define SAS_TCL__FUNCTION __declspec(dllexport)
