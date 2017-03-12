@@ -36,7 +36,7 @@ public:
 protected:
 	virtual void append(long errorCode, const std::string & errorText) override
 	{
-		_os << toString(errorCode, errorText);
+		_os << ErrorCollector::toString(errorCode, errorText);
 	}
 
 private:
