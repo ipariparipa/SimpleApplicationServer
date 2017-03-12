@@ -31,7 +31,8 @@
 
 #include <memory>
 #include <sstream>
-#include <string.h>
+#include <cstring>
+#include <mutex>
 
 namespace SAS { namespace SQLClient {
 
@@ -190,7 +191,7 @@ public:
 		}
 		std::string out_str(ss.str());
 		output.resize(out_str.length());
-		memcpy(output.data(), out_str.data(), output.size());
+		std::memcpy(output.data(), out_str.data(), output.size());
 		return Invoker::Status::OK;
 	}
 
@@ -208,7 +209,7 @@ protected:
 				if (!tclinv->init(ec))
 				{
 					tclinv.release();
-					return false;
+					return nullptr;
 				}
 			}
 			return tclinv.get();
