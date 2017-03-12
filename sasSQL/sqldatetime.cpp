@@ -76,7 +76,7 @@ SQLDateTime::SQLDateTime(time_t t) : priv(new SQLDateTime_priv)
 	priv->ms_precision = 0;
 }
 
-SQLDateTime::SQLDateTime(tm * t) : priv(new SQLDateTime_priv)
+SQLDateTime::SQLDateTime(const tm * t) : priv(new SQLDateTime_priv)
 {
 	priv->years = t->tm_year + 1900;
 	priv->months = t->tm_mon + 1;

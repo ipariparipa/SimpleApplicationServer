@@ -18,6 +18,69 @@
 #include "include/sasSQL/sqlconnector.h"
 #include "include/sasSQL/sqlstatement.h"
 
+#include <sasCore/errorcollector.h>
+#include <sasCore/logging.h>
+
 namespace SAS {
+
+struct SQLTransactionProtector_priv
+{
+	SQLTransactionProtector_priv(SQLConnector * conn_, bool auto_commit_) :
+		conn(conn_),
+		auto_commit(auto_commit_),
+		ended(false)
+	{ }
+
+	SQLConnector * conn;
+	bool auto_commit;
+	bool ended;
+
+	struct SimpleEC : public ErrorCollector
+	{
+		virtual inline void append(long errorCode, const std::string & errorText) override { };
+	} s_ec;
+};
+
+SQLTransactionProtector::SQLTransactionProtector(SQLConnector * conn, bool auto_commit) :
+		priv(new SQLTransactionProtector_priv(conn, auto_commit))
+{
+	SAS_LOG_NDC();
+	priv->conn->lock();
+	priv->conn->startTransaction(priv->s_ec);
+}
+
+SQLTransactionProtector::~SQLTransactionProtector()
+{
+	SAS_LOG_NDC();
+	if(!priv->ended)
+	{
+		if(priv->auto_commit)
+			priv->conn->commit(priv->s_ec);
+		else
+			priv->conn->rollback(priv->s_ec);
+	}
+	priv->conn->unlock();
+	delete priv;
+}
+
+bool SQLTransactionProtector::commit(ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	if(!priv->conn->commit(ec))
+		return false;
+	priv->ended = true;
+	return true;
+
+}
+
+bool SQLTransactionProtector::rollback(ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	if(!priv->conn->rollback(ec))
+		return false;
+	priv->ended = true;
+	return true;
+}
+
 
 }
