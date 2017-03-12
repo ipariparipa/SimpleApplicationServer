@@ -365,4 +365,33 @@ std::mutex & MySQLConnector::mutex()
 	return conn->mut;
 }
 
+void MySQLConnector::lock()
+{
+	mutex().lock();
+}
+
+void MySQLConnector::unlock()
+{
+	mutex().unlock();
+}
+
+bool MySQLConnector::startTransaction(ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	return exec("start transaction", ec);
+}
+
+bool MySQLConnector::commit(ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	return exec("commit", ec);
+}
+
+bool MySQLConnector::rollback(ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	return exec("rollback", ec);
+}
+
+
 }

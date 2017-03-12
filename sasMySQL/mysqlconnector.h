@@ -62,6 +62,14 @@ public:
 	const MySQL_Settings & settings() const;
 
 	std::mutex & mutex();
+
+	virtual void lock() final;
+	virtual void unlock() final;
+
+	virtual bool startTransaction(ErrorCollector & ec) final;
+	virtual bool commit(ErrorCollector & ec) final;
+	virtual bool rollback(ErrorCollector & ec) final;
+
 private:
 	MySQLConnector_priv * priv;
 };
