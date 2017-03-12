@@ -47,6 +47,30 @@ public:
 	virtual bool exec(const std::string & statement, ErrorCollector & ec) = 0;
 
 	virtual void detach() = 0;
+
+	virtual void lock() = 0;
+	virtual void unlock() = 0;
+
+	virtual bool startTransaction(ErrorCollector & ec) = 0;
+	virtual bool commit(ErrorCollector & ec) = 0;
+	virtual bool rollback(ErrorCollector & ec) = 0;
+
+};
+
+
+struct SQLTransactionProtector_priv;
+class SAS_SQL__CLASS SQLTransactionProtector
+{
+	SAS_COPY_PROTECTOR(SQLTransactionProtector)
+public:
+	SQLTransactionProtector(SQLConnector * conn, bool auto_commit = false);
+	~SQLTransactionProtector();
+
+	bool commit(ErrorCollector & ec);
+	bool rollback(ErrorCollector & ec);
+
+private:
+	SQLTransactionProtector_priv * priv;
 };
 
 }

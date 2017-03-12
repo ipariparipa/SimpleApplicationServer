@@ -69,6 +69,7 @@ public:
 	const double & asReal() const;
 	const SQLDateTime & asDateTime() const;
 	unsigned char * asBlob(size_t & s) const;
+	unsigned char asBlobByte(size_t idx) const;
 
 	std::string toString() const;
 

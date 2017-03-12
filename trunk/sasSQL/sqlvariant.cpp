@@ -18,7 +18,7 @@
 #include "include/sasSQL/sqlvariant.h"
 #include "include/sasSQL/sqldatetime.h"
 
-#include <string.h>
+#include <cstring>
 
 namespace SAS {
 
@@ -128,7 +128,7 @@ SQLVariant::SQLVariant(const std::vector<unsigned char> & blob, size_t size, boo
 {
 	priv->type = SQLDataType::Blob;
 	priv->blob.resize(size);
-	memcpy(priv->blob.data(), blob.data(), size < blob.size() ? size : blob.size());
+	std::memcpy(priv->blob.data(), blob.data(), size < blob.size() ? size : blob.size());
 	priv->isNull = isNull;
 }
 
@@ -202,6 +202,15 @@ unsigned char * SQLVariant::asBlob(size_t & size) const
 	}
 	size = priv->blob.size();
 	return priv->blob.data();
+}
+
+unsigned char SQLVariant::asBlobByte(size_t idx) const
+{
+	size_t size;
+	auto bl = asBlob(size);
+	if(idx >= size)
+		return 0;
+	return bl[idx];
 }
 
 std::string SQLVariant::toString() const
