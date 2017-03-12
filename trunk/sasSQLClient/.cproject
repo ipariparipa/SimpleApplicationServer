@@ -33,6 +33,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.330024595" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasSQL/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasCore/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasTCL/include}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.dialect.flags.326260703" name="Other dialect flags" superClass="gnu.cpp.compiler.option.dialect.flags" value="-fPIC" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1594524450" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -55,6 +56,8 @@
 									<listOptionValue builtIn="false" value="sasCore"/>
 									<listOptionValue builtIn="false" value="sasSQL"/>
 									<listOptionValue builtIn="false" value="log4cxx"/>
+									<listOptionValue builtIn="false" value="sasTCL"/>
+									<listOptionValue builtIn="false" value="tcl8.6"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.810106752" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
