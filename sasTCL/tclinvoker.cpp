@@ -42,7 +42,7 @@ namespace SAS {
 
 
 		TCLInvoker * obj;
-		const std::string & name;
+		std::string name;
 
 		struct Executor_thread : public Thread
 		{
