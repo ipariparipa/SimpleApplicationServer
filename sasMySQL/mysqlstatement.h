@@ -18,8 +18,9 @@
 #ifndef MYSQLSTATEMENT_H_
 #define MYSQLSTATEMENT_H_
 
+#include "config.h"
 #include <sasSQL/sqlstatement.h>
-#include <mysql/mysql.h>
+#include SAS_MYSQL__MYSQL_H
 
 namespace SAS {
 
