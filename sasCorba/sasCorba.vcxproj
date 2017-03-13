@@ -93,18 +93,19 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="corbasas.idl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">set PYTHONHOME=c:\Python27
 set PYTHONPATH=c:\Python27\Lib
 set PATH=%PYTHONHOME%;%PATH%
+mkdir generated
 ..\windeps\omniORB\bin\x86_win32\omniidl.exe -bcxx  -Cgenerated %(Identity) </Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Identity) - Comiling IDL </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Identity) - Compiling IDL </Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">generated\%(Filename).hh;generated\%(Filename).cc;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">set PYTHONHOME=c:\Python27
 set PYTHONPATH=c:\Python27\Lib
 set PATH=%PYTHONHOME%;%PATH%
+mkdir generated
 ..\windeps\omniORB\bin\x86_win32\omniidl.exe -bcxx  -Cgenerated %(Identity) </Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Identity) - Comiling IDL </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Identity) - Compiling IDL </Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">generated\%(Filename).hh;generated\%(Filename).cc;%(Outputs)</Outputs>
     </CustomBuild>
   </ItemGroup>
