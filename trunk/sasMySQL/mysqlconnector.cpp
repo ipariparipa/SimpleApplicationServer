@@ -17,7 +17,7 @@
 
 #include "mysqlconnector.h"
 
-#include <mysql/mysql.h>
+#include SAS_MYSQL__MYSQL_H
 
 #include <sasCore/application.h>
 #include <sasCore/configreader.h>

@@ -18,6 +18,7 @@
 #ifndef MYSQLCONNECTOR_H_
 #define MYSQLCONNECTOR_H_
 
+#include "config.h"
 #include <sasSQL/sqlconnector.h>
 #include <sasCore/logging.h>
 

@@ -25,7 +25,7 @@
 #include <string.h>
 #include <memory>
 #include <utility>
-#include <mysql/mysql_time.h>
+#include SAS_MYSQL__MYSQL_H
 #include <assert.h>
 
 namespace SAS {
