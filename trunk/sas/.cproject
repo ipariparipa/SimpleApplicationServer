@@ -32,7 +32,6 @@
 								<option id="gnu.cpp.compiler.option.dialect.std.1087052924" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.574920420" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__cplusplus=201103L"/>
-									<listOptionValue builtIn="false" value="__GCC_EXPERIMENTAL_CXX0X_"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.include.paths.1848281281" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasCore/include}&quot;"/>
