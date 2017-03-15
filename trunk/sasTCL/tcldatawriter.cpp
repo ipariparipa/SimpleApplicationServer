@@ -20,6 +20,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
 
+#include <iterator>
 #include <stdint.h>
 #include <string.h>
 
@@ -27,7 +28,7 @@ namespace SAS {
 
 	struct TCLDataWriter_priv
 	{
-		TCLDataWriter_priv() : logger(Logging::getLogger("SAS.TCLDataWriter"))
+		TCLDataWriter_priv() : logger(Logging::getLogger("SAS.TCLDataWriter")), ver(0)
 		{ }
 
 		std::vector<char> data;
