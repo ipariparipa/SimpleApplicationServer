@@ -52,6 +52,7 @@ namespace SAS {
 		auto sess = priv->module->getSession(priv->session_id, ec);
 		if(!sess)
 			return Invoker::Status::Error;
+		priv->session_id = sess->id();
 		return sess->invoke(priv->invoker_name, input, output, ec);
 	}
 
