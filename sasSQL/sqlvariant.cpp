@@ -53,6 +53,7 @@ SQLVariant::SQLVariant() : priv(new SQLVariant_priv)
 SQLVariant::SQLVariant(SQLDataType type, DateTimeSubType dtSubType) : priv(new SQLVariant_priv)
 {
 	priv->type = type;
+	priv->dtSubType = dtSubType;
 	priv->isNull = true;
 }
 
