@@ -22,7 +22,7 @@
 #include <sasCore/errorcollector.h>
 #include <sasSQL/sqldatetime.h>
 
-#include <string.h>
+#include <cstring>
 #include <memory>
 #include <utility>
 #include SAS_MYSQL__MYSQL_H
@@ -54,7 +54,7 @@ struct MySQLStatement_priv
 		typedef N_Type Type;
 		inline N_ResultHelper() : BaseResultHelper()
 		{
-			memset(&data, 0, data_size = sizeof(N_Type));
+			std::memset(&data, 0, data_size = sizeof(N_Type));
 		}
 
 		virtual inline ~N_ResultHelper()
@@ -148,7 +148,7 @@ struct MySQLStatement_priv
 	{
 		inline DateTime_ResultHelper() : BaseResultHelper()
 		{
-			memset(&data, 0, data_size = sizeof(MYSQL_TIME));
+			std::memset(&data, 0, data_size = sizeof(MYSQL_TIME));
 		}
 
 		virtual inline ~DateTime_ResultHelper() { }
@@ -215,7 +215,7 @@ struct MySQLStatement_priv
 
 		inline ParamHelper()
 		{
-			memset(&data, 0, sizeof(Type));
+			std::memset(&data, 0, sizeof(Type));
 		}
 
 		virtual inline ~ParamHelper() { }
@@ -297,8 +297,8 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 		return false;
 	}
 
-	priv->param_helpers.resize(params_size);
-	priv->param_binders.resize(params_size);
+	priv->param_helpers.resize(stmt_params_size);
+	priv->param_binders.resize(stmt_params_size);
 
 	bool has_error(false);
 	for(size_t i = 0, l = stmt_params_size; i < l; ++i)
@@ -307,6 +307,11 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 		auto & v = priv->param_helpers[i];
 		auto & p = params[i];
 		b.buffer_type = MYSQL_TYPE_NULL;
+		if(p.isNull())
+		{
+			b.is_null_value = 1;
+			continue;
+		}
 		switch(p.type())
 		{
 		case SQLDataType::None:
@@ -326,7 +331,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 				b.buffer_length = _v->data.length();
 			}
 			else
-				b.is_null_value = 0;
+				b.is_null_value = 1;
 			break;
 		case SQLDataType::Number:
 			b.buffer_type = MYSQL_TYPE_LONGLONG;
@@ -335,10 +340,14 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 				auto _v = new MySQLStatement_priv::ParamHelper<long long>(p.asNumber());
 				v.reset(_v);
 				b.buffer = (void*)&_v->data;
-				b.buffer_length = sizeof(long long);
+//				b.buffer_length = sizeof(long long);
 			}
 			else
-				b.is_null_value = 0;
+			{
+				static long long null_value(0);
+				b.is_null_value = 1;
+				b.buffer = &null_value;
+			}
 			break;
 		case SQLDataType::Real:
 			b.buffer_type = MYSQL_TYPE_DOUBLE;
@@ -347,10 +356,14 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 				auto _v = new MySQLStatement_priv::ParamHelper<double>(p.asReal());
 				v.reset(_v);
 				b.buffer = (void*)&_v->data;
-				b.buffer_length = sizeof(double);
+//				b.buffer_length = sizeof(double);
 			}
 			else
-				b.is_null_value = 0;
+			{
+				static double null_value(0);
+				b.is_null_value = 1;
+				b.buffer = &null_value;
+			}
 			break;
 		case SQLDataType::DateTime:
 			b.buffer_type = MYSQL_TYPE_NULL;
@@ -423,10 +436,18 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 					break;
 				}
 				b.buffer = &_v->data;
-				b.buffer_length = sizeof(MYSQL_TIME);
+//				b.buffer_length = sizeof(MYSQL_TIME);
 			}
 			else
-				b.is_null_value = 0;
+			{
+				static struct Null_MYSQL_TIME
+				{
+					Null_MYSQL_TIME() { std::memset(&data, 0, sizeof(MYSQL_TIME)); }
+					MYSQL_TIME data;
+				} null_value;
+				b.is_null_value = 1;
+				b.buffer = &null_value.data;
+			}
 			break;
 		case SQLDataType::Blob:
 			b.buffer_type = MYSQL_TYPE_BLOB;
@@ -439,7 +460,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 				b.buffer_length = tmp_size;
 			}
 			else
-				b.is_null_value = 0;
+				b.is_null_value = 1;
 			break;
 		}
 		if(b.buffer_type == MYSQL_TYPE_NULL)

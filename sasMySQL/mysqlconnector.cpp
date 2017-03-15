@@ -73,6 +73,7 @@ struct MySQLConnector_priv
 
 		MYSQL * my;
 		std::mutex mut;
+		std::mutex external_mut;
 		bool connected;
 	} _conn;
 
@@ -367,12 +368,24 @@ std::mutex & MySQLConnector::mutex()
 
 void MySQLConnector::lock()
 {
-	mutex().lock();
+	auto conn = priv->conn();
+	if (!conn)
+	{
+		SAS_LOG_NDC();
+		SAS_LOG_ASSERT(priv->logger, conn, "connection is not yet activated");
+	}
+	conn->external_mut.lock();
 }
 
 void MySQLConnector::unlock()
 {
-	mutex().unlock();
+	auto conn = priv->conn();
+	if (!conn)
+	{
+		SAS_LOG_NDC();
+		SAS_LOG_ASSERT(priv->logger, conn, "connection is not yet activated");
+	}
+	conn->external_mut.unlock();
 }
 
 bool MySQLConnector::startTransaction(ErrorCollector & ec)
