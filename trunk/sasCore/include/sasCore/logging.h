@@ -29,6 +29,7 @@
 #include <log4cxx/log4cxx.h>
 #include <log4cxx/logger.h>
 #include <log4cxx/ndc.h>
+#include <assert.h>
 
 namespace SAS { namespace Logging {
 
@@ -70,7 +71,7 @@ namespace SAS { namespace Logging {
 #define SAS_LOG_FATAL(logger, msg) LOG4CXX_FATAL(logger, msg)
 #define SAS_ROOT_LOG_FATAL(msg) SAS_LOG_FATAL(log4cxx::Logger::getRootLogger(), msg)
 
-#define SAS_LOG_ASSERT(logger, condition, msg) LOG4CXX_ASSERT(logger, condition, msg)
+#define SAS_LOG_ASSERT(logger, condition, msg) LOG4CXX_ASSERT(logger, condition, msg); assert(condition)
 #define SAS_ROOT_LOG_ASSERT(condition, msg) SAS_LOG_ASSERT(log4cxx::Logger::getRootLogger(), conditnio, msg)
 
 #define SAS_LOG_VAR_NAME(logger, var_name, val) SAS_LOG_DEBUG(logger, (std::string)var_name + " = " + SAS::Logging::toString(val))
