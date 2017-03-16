@@ -68,6 +68,11 @@ module CorbaSAS
 		void getModuleInfo(in string module_name, out string description, out string version)
 			raises(::CorbaSAS::ErrorHandling::ErrorException,
 			       ::CorbaSAS::ErrorHandling::FatalErrorException);
+
+		void getSession(inout SessionID session_id, in string module_name)
+			raises(::CorbaSAS::ErrorHandling::ErrorException,
+			::CorbaSAS::ErrorHandling::FatalErrorException);
+
 	};
 	
 };

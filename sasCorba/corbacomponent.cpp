@@ -23,6 +23,7 @@
 
 #include "corbainterface.h"
 #include "corbaconnector.h"
+#include "tools.h"
 
 #include <omniORB4/CORBA.h>
 
@@ -64,22 +65,38 @@ public:
 				orb = CORBA::ORB_init(argc, argv);
 			}
 		}
-		catch (CORBA::COMM_FAILURE &)
+		catch (CORBA::COMM_FAILURE & ex)
 		{
 			auto err = ec.add(-1, "Caught system exception COMM_FAILURE.");
 			SAS_LOG_ERROR(logger, err);
+			CorbaTools::logException(logger, ex);
 			return false;
 		}
-		catch (CORBA::SystemException &)
+		catch (CORBA::SystemException & ex)
 		{
 			auto err = ec.add(-1, "Caught a CORBA::SystemException.");
 			SAS_LOG_ERROR(logger, err);
+			CorbaTools::logException(logger, ex);
+			return false;
+		}
+		catch (CORBA::Exception & ex)
+		{
+			auto err = ec.add(-1, "Caught a CORBA::Exception.");
+			SAS_LOG_ERROR(logger, err);
+			CorbaTools::logException(logger, ex);
+			return false;
+		}
+		catch (omniORB::fatalException & ex)
+		{
+			auto err = ec.add(-1, "Caught omniORB::fatalException");
+			SAS_LOG_FATAL(logger, err);
+			CorbaTools::logException(logger, ex);
 			return false;
 		}
 		catch (...)
 		{
 			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
-			SAS_LOG_ERROR(logger, err);
+			SAS_LOG_FATAL(logger, err);
 			return false;
 		}
 

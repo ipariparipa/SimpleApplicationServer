@@ -92,7 +92,7 @@ public:
 
     	std::vector<char> out;
     	std::vector<char> tmp = CorbaTools::toByteArray(in_msg);
-    	switch(session->invoke(invoker, tmp, out, ec))
+		switch(session->invoke(invoker, tmp, out, ec))
     	{
     	case Invoker::Status::FatalError:
     		throw CorbaSAS::ErrorHandling::FatalErrorException(module_name, invoker, toErrorSequence(errs));
@@ -120,7 +120,7 @@ public:
     	module->endSession(session_id);
 	}
 
-    virtual void getModuleInfo(const char* module_name, ::CORBA::String_out description, ::CORBA::String_out version) final
+	virtual void getModuleInfo(const char* module_name, ::CORBA::String_out description, ::CORBA::String_out version) final
 	{
     	SAS_LOG_NDC();
     	std::list<Err> errs;
@@ -133,6 +133,23 @@ public:
 
     	description = CORBA::string_dup(module->description().c_str());
     	version = CORBA::string_dup(module->version().c_str());
+	}
+
+	virtual void getSession(CorbaSAS::SASModule::SessionID& session_id, const char* module_name) final
+	{
+		std::list<Err> errs;
+		SimpleErrorCollector ec([&](long errorCode, const std::string & errorText)
+		{ errs.push_back({ errorCode, errorText }); });
+
+		Module * module;
+		if (!(module = _app->objectRegistry()->getObject<Module>(SAS_OBJECT_TYPE__MODULE, module_name, ec)))
+			throw CorbaSAS::ErrorHandling::ErrorException(module_name, CORBA::string_dup(""), toErrorSequence(errs));
+
+		SessionID sid = session_id;
+		Session * session;
+		if (!(session = module->getSession(sid, ec)))
+			throw CorbaSAS::ErrorHandling::ErrorException(module_name, CORBA::string_dup(""), toErrorSequence(errs));
+		session_id = session->id();
 	}
 
 private:
@@ -181,11 +198,12 @@ public:
 				return false;
 			}
 		}
-		catch(CORBA::ORB::InvalidName &)
+		catch(CORBA::ORB::InvalidName & ex)
 		{
 			// This should not happen!
 			auto err = ec.add(-1, "Service required is invalid [does not exist].");
 			SAS_LOG_ERROR(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
 			return false;
 		}
 
@@ -255,21 +273,35 @@ public:
 		catch(CORBA::COMM_FAILURE & ex)
 		{
 			auto err = ec.add(-1, "Caught system exception COMM_FAILURE -- unable to contact the naming service.");
-			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
-			SAS_LOG_VAR(_interface->logger(), ex._name());
-			SAS_LOG_VAR(_interface->logger(), ex.minor());
-			SAS_LOG_VAR(_interface->logger(), ex.completed());
 			SAS_LOG_ERROR(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
 			return false;
 		}
 		catch(CORBA::SystemException & ex)
 		{
 			auto err = ec.add(-1, "Caught a CORBA::SystemException while using the naming service.");
-			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
-			SAS_LOG_VAR(_interface->logger(), ex._name());
-			SAS_LOG_VAR(_interface->logger(), ex.minor());
-			SAS_LOG_VAR(_interface->logger(), ex.completed());
 			SAS_LOG_ERROR(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
+			return false;
+		}
+		catch (CORBA::Exception & ex)
+		{
+			auto err = ec.add(-1, "Caught a CORBA::Exception while using the naming service.");
+			SAS_LOG_ERROR(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
+			return false;
+		}
+		catch (omniORB::fatalException & ex)
+		{
+			auto err = ec.add(-1, "Caught omniORB::fatalException");
+			SAS_LOG_FATAL(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
+			return false;
+		}
+		catch (...)
+		{
+			auto err = ec.add(-1, "Caught an unknown while using the naming service.");
+			SAS_LOG_FATAL(_interface->logger(), err);
 			return false;
 		}
 
@@ -295,33 +327,27 @@ public:
 		{
 			auto err = ec.add(-1, "Caught CORBA::SystemException.");
 			SAS_LOG_ERROR(_interface->logger(), err);
-			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
-			SAS_LOG_VAR(_interface->logger(), ex._name());
-			SAS_LOG_VAR(_interface->logger(), ex.minor());
-			SAS_LOG_VAR(_interface->logger(), ex.completed());
+			CorbaTools::logException(_interface->logger(), ex);
 			return false;
 		}
 		catch(CORBA::Exception & ex)
 		{
-			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
-			SAS_LOG_VAR(_interface->logger(), ex._name());
 			auto err = ec.add(-1, "Caught CORBA::Exception.");
 			SAS_LOG_ERROR(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
 			return false;
 		}
 		catch(omniORB::fatalException & ex)
 		{
 			auto err = ec.add(-1, "Caught omniORB::fatalException");
-			SAS_LOG_ERROR(_interface->logger(), err);
-			SAS_LOG_VAR(_interface->logger(), ex.file());
-			SAS_LOG_VAR(_interface->logger(), ex.line());
-			SAS_LOG_VAR(_interface->logger(), ex.errmsg());
+			SAS_LOG_FATAL(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
 			return false;
 		}
 		catch(...)
 		{
-			auto err = ec.add(-1, "Caught unknown exception");
-			SAS_LOG_ERROR(_interface->logger(), err);
+			auto err = ec.add(-1, "Caught an unknown exception");
+			SAS_LOG_FATAL(_interface->logger(), err);
 			return false;
 		}
 
@@ -362,30 +388,27 @@ public:
 		{
 			auto err = ec.add(-1, "Caught CORBA::SystemException.");
 			SAS_LOG_ERROR(_interface->logger(), err);
-			SAS_LOG_VAR(_interface->logger(), ex._rep_id());
-			SAS_LOG_VAR(_interface->logger(), ex.minor());
-			SAS_LOG_VAR(_interface->logger(), ex.completed());
+			CorbaTools::logException(_interface->logger(), ex);
 			return Interface::Status::Crashed;
 		}
-		catch(CORBA::Exception &)
+		catch(CORBA::Exception & ex)
 		{
 			auto err = ec.add(-1, "Caught CORBA::Exception.");
 			SAS_LOG_ERROR(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
 			return Interface::Status::Crashed;
 		}
 		catch(omniORB::fatalException & ex)
 		{
 			auto err = ec.add(-1, "Caught omniORB::fatalException");
-			SAS_LOG_ERROR(_interface->logger(), err);
-			SAS_LOG_VAR(_interface->logger(), ex.file());
-			SAS_LOG_VAR(_interface->logger(), ex.line());
-			SAS_LOG_VAR(_interface->logger(), ex.errmsg());
+			SAS_LOG_FATAL(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
 			return Interface::Status::Crashed;
 		}
 		catch(...)
 		{
-			auto err = ec.add(-1, "Caught unknown exception");
-			SAS_LOG_ERROR(_interface->logger(), err);
+			auto err = ec.add(-1, "Caught an unknown exception");
+			SAS_LOG_FATAL(_interface->logger(), err);
 			return Interface::Status::Crashed;
 		}
 		SAS_LOG_INFO(_interface->logger(), "interface is stopped");

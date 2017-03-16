@@ -21,14 +21,28 @@
 #include "config.h"
 
 #include "generated/corbasas.hh"
+#include <sasCore/logging.h>
 #include <vector>
 
-namespace SAS { namespace CorbaTools {
+namespace SAS { 
+	
+	class ErrorCollector;
 
-extern std::vector<char> toByteArray(const CorbaSAS::SASModule::OctetSequence & data);
+	namespace CorbaTools {
 
-extern void toOctetSequence(const std::vector<char> & data, CorbaSAS::SASModule::OctetSequence_out & ret);
-extern CorbaSAS::SASModule::OctetSequence_var toOctetSequence_var(const std::vector<char> & data);
+	extern std::vector<char> toByteArray(const CorbaSAS::SASModule::OctetSequence & data);
+
+	extern void toOctetSequence(const std::vector<char> & data, CorbaSAS::SASModule::OctetSequence_out & ret);
+	extern CorbaSAS::SASModule::OctetSequence_var toOctetSequence_var(const std::vector<char> & data);
+
+	extern void logException(Logging::LoggerPtr logger, CORBA::COMM_FAILURE & ex);
+	extern void logException(Logging::LoggerPtr logger, CORBA::Exception & ex);
+	extern void logException(Logging::LoggerPtr logger, CORBA::SystemException & ex);
+	extern void logException(Logging::LoggerPtr logger, omniORB::fatalException & ex);
+
+	extern void logException(Logging::LoggerPtr logger, CorbaSAS::ErrorHandling::ErrorException & ex, ErrorCollector & ec);
+	extern void logException(Logging::LoggerPtr logger, CorbaSAS::ErrorHandling::FatalErrorException & ex, ErrorCollector & ec);
+	extern void logException(Logging::LoggerPtr logger, CorbaSAS::ErrorHandling::NotImplementedException & ex, ErrorCollector & ec);
 
 }}
 
