@@ -56,6 +56,11 @@ namespace SAS {
 		return sess->invoke(priv->invoker_name, input, output, ec);
 	}
 
+	bool LoopbackConnection::getSession(ErrorCollector & ec)
+	{
+		return priv->module->getSession(priv->session_id, ec);
+	}
+
 
 	struct LoopbackConnector_priv
 	{
@@ -82,6 +87,16 @@ namespace SAS {
 	bool LoopbackConnector::connect(ErrorCollector &)
 	{
 		//nothing to do
+		return true;
+	}
+
+	bool LoopbackConnector::getModuleInfo(const std::string & module_name, std::string & description, std::string & version, ErrorCollector & ec)
+	{
+		auto mod = priv->app->objectRegistry()->getObject<SAS::Module>(SAS_OBJECT_TYPE__MODULE, module_name, ec);
+		if(!mod)
+			return false;
+		description = mod->description();
+		version = mod->version();
 		return true;
 	}
 

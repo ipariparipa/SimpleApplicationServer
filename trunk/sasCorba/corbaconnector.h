@@ -46,8 +46,12 @@ public:
 
 	virtual Connection * createConnection(const std::string & module_name, const std::string & invoker_name, ErrorCollector & ec) final;
 
+	virtual bool getModuleInfo(const std::string & moduleName, std::string & description, std::string & version, ErrorCollector & ec) final;
+
 	CorbaConnector_internal & internal();
 private:
+	bool getModuleInfo_recursive(long & recursive_counter, const std::string & moduleName, std::string & description, std::string & version, ErrorCollector & ec);
+
 	CorbaConnector_priv * priv;
 };
 

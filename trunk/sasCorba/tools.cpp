@@ -17,6 +17,7 @@
 
 #include "tools.h"
 #include <sasCore/errorcollector.h>
+#include <sys/sysmacros.h>
 
 namespace SAS { namespace CorbaTools {
 
@@ -49,7 +50,6 @@ namespace SAS { namespace CorbaTools {
 	{
 		SAS_LOG_VAR(logger, ex._rep_id());
 		SAS_LOG_VAR(logger, ex._name());
-		SAS_LOG_VAR(logger, ex.minor());
 		SAS_LOG_VAR(logger, ex.completed());
 	}
 
@@ -63,7 +63,6 @@ namespace SAS { namespace CorbaTools {
 	{
 		SAS_LOG_VAR(logger, ex._rep_id());
 		SAS_LOG_VAR(logger, ex._name());
-		SAS_LOG_VAR(logger, ex.minor());
 		SAS_LOG_VAR(logger, ex.completed());
 	}
 

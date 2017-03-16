@@ -26,6 +26,7 @@
 #include <sasCore/thread.h>
 
 #include <numeric>
+#include <mutex>
 #include "tools.h"
 #include "generated/corbasas.hh"
 
@@ -65,13 +66,6 @@ namespace SAS {
 			}
 		}
 
-		virtual bool getModuleInfo(std::string & description, std::string & version, ErrorCollector & ec) final
-		{
-			SAS_LOG_NDC();
-			long recusiv_counter(0);
-			return getModuleInfo_recursive(recusiv_counter, description, version, ec);
-		}
-
 		virtual bool getSession(ErrorCollector & ec) final
 		{
 			SAS_LOG_NDC();
@@ -87,86 +81,6 @@ namespace SAS {
 		}
 
 	private:
-		bool getModuleInfo_recursive(long & recursive_counter, std::string & description, std::string & version, ErrorCollector & ec)
-		{
-			SAS_LOG_NDC();
-			if (recursive_counter >= maxReconnectRecursion)
-			{
-				SAS_LOG_INFO(_logger, "'recursive_counter' reached the maximum number '10'");
-				return false;
-			}
-
-			SAS_LOG_NDC();
-			try
-			{
-				CORBA::String_var _description, _version;
-				_corba_sas_module->getModuleInfo(CORBA::string_dup(_module.c_str()), _description, _version);
-				description = _description;
-				version = _version;
-			}
-			catch (CORBA::COMM_FAILURE & ex)
-			{
-				auto err = ec.add(-1, "Caught a CORBA::COMM_FAILURE while using the naming service.");
-				SAS_LOG_DEBUG(_logger, err);
-				CorbaTools::logException(_logger, ex);
-				return false;
-			}
-			catch (CorbaSAS::ErrorHandling::ErrorException & ex)
-			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::ErrorException while using the naming service.");
-				SAS_LOG_DEBUG(_logger, err);
-				CorbaTools::logException(_logger, ex, ec);
-				return false;
-			}
-			catch (CorbaSAS::ErrorHandling::FatalErrorException & ex)
-			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::FatalErrorException while using the naming service.");
-				SAS_LOG_DEBUG(_logger, err);
-				CorbaTools::logException(_logger, ex, ec);
-				return false;
-			}
-			catch (CorbaSAS::ErrorHandling::NotImplementedException & ex)
-			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::NotImplementedException.");
-				SAS_LOG_DEBUG(_logger, err);
-				CorbaTools::logException(_logger, ex, ec);
-				return false;
-			}
-			catch (CORBA::SystemException & ex)
-			{
-				auto err = ec.add(-1, "Caught a CORBA::SystemException.");
-				SAS_LOG_ERROR(_logger, err);
-				CorbaTools::logException(_logger, ex);
-
-				SAS_LOG_INFO(_logger, "client may lost the connection. try to reconnect");
-				if (conn->internal().reconnect(_corba_sas_module, ec))
-					return getModuleInfo_recursive(++recursive_counter, description, version, ec);
-
-				return false;
-			}
-			catch (CORBA::Exception & ex)
-			{
-				auto err = ec.add(-1, "Caught a CORBA::Exception.");
-				SAS_LOG_ERROR(_logger, err);
-				CorbaTools::logException(_logger, ex);
-				return false;
-			}
-			catch (omniORB::fatalException & ex)
-			{
-				auto err = ec.add(-1, "Caught omniORB::fatalException");
-				SAS_LOG_FATAL(_logger, err);
-				CorbaTools::logException(_logger, ex);
-				return false;
-			}
-			catch (...)
-			{
-				auto err = ec.add(-1, "Caught an unknown exception.");
-				SAS_LOG_FATAL(_logger, err);
-				return false;
-			}
-
-			return true;
-		}
 
 		bool getSession_recursive(long & recursive_counter, ErrorCollector & ec)
 		{
@@ -177,7 +91,6 @@ namespace SAS {
 				return false;
 			}
 
-			SAS_LOG_NDC();
 			try
 			{
 				_corba_sas_module->getSession(_sessionId, CORBA::string_dup(_module.c_str()));
@@ -255,7 +168,6 @@ namespace SAS {
 				return Status::FatalError;
 			}
 
-			SAS_LOG_NDC();
 			try
 			{
 				CorbaSAS::SASModule::OctetSequence_var out;
@@ -689,6 +601,93 @@ namespace SAS {
 			return false;
 		}
 		priv->connectionActive = true;
+		return true;
+	}
+
+	bool CorbaConnector::getModuleInfo(const std::string & moduleName, std::string & description, std::string & version, ErrorCollector & ec)
+	{
+		SAS_LOG_NDC();
+		long recusiv_counter(0);
+		return getModuleInfo_recursive(recusiv_counter, moduleName, description, version, ec);
+	}
+
+	bool CorbaConnector::getModuleInfo_recursive(long & recursive_counter, const std::string & moduleName, std::string & description, std::string & version, ErrorCollector & ec)
+	{
+		SAS_LOG_NDC();
+		if (recursive_counter >= priv->maxReconnectRecall)
+		{
+			SAS_LOG_INFO(priv->logger, "'recursive_counter' reached the maximum number '10'");
+			return false;
+		}
+
+		try
+		{
+			CORBA::String_var _description, _version;
+			priv->corba_sas_module->getModuleInfo(CORBA::string_dup(moduleName.c_str()), _description, _version);
+			description = _description;
+			version = _version;
+		}
+		catch (CORBA::COMM_FAILURE & ex)
+		{
+			auto err = ec.add(-1, "Caught a CORBA::COMM_FAILURE while using the naming service.");
+			SAS_LOG_DEBUG(priv->logger, err);
+			CorbaTools::logException(priv->logger, ex);
+			return false;
+		}
+		catch (CorbaSAS::ErrorHandling::ErrorException & ex)
+		{
+			auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::ErrorException while using the naming service.");
+			SAS_LOG_DEBUG(priv->logger, err);
+			CorbaTools::logException(priv->logger, ex, ec);
+			return false;
+		}
+		catch (CorbaSAS::ErrorHandling::FatalErrorException & ex)
+		{
+			auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::FatalErrorException while using the naming service.");
+			SAS_LOG_DEBUG(priv->logger, err);
+			CorbaTools::logException(priv->logger, ex, ec);
+			return false;
+		}
+		catch (CorbaSAS::ErrorHandling::NotImplementedException & ex)
+		{
+			auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::NotImplementedException.");
+			SAS_LOG_DEBUG(priv->logger, err);
+			CorbaTools::logException(priv->logger, ex, ec);
+			return false;
+		}
+		catch (CORBA::SystemException & ex)
+		{
+			auto err = ec.add(-1, "Caught a CORBA::SystemException.");
+			SAS_LOG_ERROR(priv->logger, err);
+			CorbaTools::logException(priv->logger, ex);
+
+			SAS_LOG_INFO(priv->logger, "client may lost the connection. try to reconnect");
+			if (priv->internal.reconnect(priv->corba_sas_module, ec))
+				return getModuleInfo_recursive(++recursive_counter, moduleName, description, version, ec);
+
+			return false;
+		}
+		catch (CORBA::Exception & ex)
+		{
+			auto err = ec.add(-1, "Caught a CORBA::Exception.");
+			SAS_LOG_ERROR(priv->logger, err);
+			CorbaTools::logException(priv->logger, ex);
+			return false;
+		}
+		catch (omniORB::fatalException & ex)
+		{
+			auto err = ec.add(-1, "Caught omniORB::fatalException");
+			SAS_LOG_FATAL(priv->logger, err);
+			CorbaTools::logException(priv->logger, ex);
+			return false;
+		}
+		catch (...)
+		{
+			auto err = ec.add(-1, "Caught an unknown exception.");
+			SAS_LOG_FATAL(priv->logger, err);
+			return false;
+		}
+
 		return true;
 	}
 
