@@ -54,16 +54,6 @@ namespace SAS {
 			return (ISASInvoker::Status)tmp_ret;
 		}
 
-		bool SASConnectionObj::GetModuleInfo([System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec)
-		{
-			std::string _description, _version;
-			if (!priv->obj->getModuleInfo(_description, _version, WErrorCollector(ec)))
-				return false;
-			description = TO_MSTR(_description);
-			version = TO_MSTR(_version);
-			return true;
-		}
-
 		bool SASConnectionObj::GetSession(ISASErrorCollector ^ ec)
 		{
 			return priv->obj->getSession(WErrorCollector(ec));
@@ -100,6 +90,16 @@ namespace SAS {
 		bool SASConnectorObj::Connect(ISASErrorCollector ^ ec)
 		{
 			return priv->obj->connect(WErrorCollector(ec));
+		}
+
+		bool SASConnectorObj::GetModuleInfo(System::String ^ module_name, [System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec)
+		{
+			std::string _description, _version;
+			if (!priv->obj->getModuleInfo(TO_STR(module_name), _description, _version, WErrorCollector(ec)))
+				return false;
+			description = TO_MSTR(_description);
+			version = TO_MSTR(_version);
+			return true;
 		}
 
 		ISASConnection ^ SASConnectorObj::CreateConnection(System::String ^ module_name, System::String ^ invoker_name, ISASErrorCollector ^ ec)
