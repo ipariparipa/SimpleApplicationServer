@@ -38,6 +38,9 @@ namespace SAS {
 
 			virtual Status Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec) abstract;
 
+			virtual bool GetModuleInfo([System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec) abstract;
+
+			virtual bool GetSession(ISASErrorCollector ^ ec) abstract;
 		};
 
 		public interface class ISASConnection : public ISASInvoker
@@ -53,6 +56,8 @@ namespace SAS {
 			SASConnectionObj(Connection * obj);
 			!SASConnectionObj();
 			virtual ISASInvoker::Status Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec);
+			virtual bool GetModuleInfo([System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec);
+			virtual bool GetSession(ISASErrorCollector ^ ec);
 		private:
 			SASConnectionObj_priv * priv;
 		};

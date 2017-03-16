@@ -45,7 +45,6 @@ namespace SAS {
 
 		ISASInvoker::Status SASConnectionObj::Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec)
 		{
-
 			output = gcnew SASBinData();
 
 			auto tmp_ret = priv->obj->invoke(input->data(), output->data(), WErrorCollector(ec));
@@ -55,6 +54,20 @@ namespace SAS {
 			return (ISASInvoker::Status)tmp_ret;
 		}
 
+		bool SASConnectionObj::GetModuleInfo([System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec)
+		{
+			std::string _description, _version;
+			if (!priv->obj->getModuleInfo(_description, _version, WErrorCollector(ec)))
+				return false;
+			description = TO_MSTR(_description);
+			version = TO_MSTR(_version);
+			return true;
+		}
+
+		bool SASConnectionObj::GetSession(ISASErrorCollector ^ ec)
+		{
+			return priv->obj->getSession(WErrorCollector(ec));
+		}
 
 		struct SASConnectorObj_priv
 		{
