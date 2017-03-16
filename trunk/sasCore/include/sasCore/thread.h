@@ -54,6 +54,8 @@ public:
 
 	static ThreadId getThreadId();
 
+	static void sleep(long milliseconds);
+
 protected:
 	inline virtual void begun() { }
 	inline virtual void ended() { }

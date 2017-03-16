@@ -33,7 +33,11 @@ class SAS_CORE__CLASS Connection : public Invoker
 public:
 	inline Connection() : Invoker() { }
 	virtual inline ~Connection() { }
+
+	virtual bool getModuleInfo(std::string & description, std::string & version, ErrorCollector & ec) = 0;
+	virtual bool getSession(ErrorCollector & ec) =  0;
 };
+
 
 class Connector : public Object
 {
