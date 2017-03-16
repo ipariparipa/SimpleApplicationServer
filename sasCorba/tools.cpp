@@ -17,7 +17,6 @@
 
 #include "tools.h"
 #include <sasCore/errorcollector.h>
-#include <sys/sysmacros.h>
 
 namespace SAS { namespace CorbaTools {
 
