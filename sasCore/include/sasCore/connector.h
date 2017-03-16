@@ -34,7 +34,6 @@ public:
 	inline Connection() : Invoker() { }
 	virtual inline ~Connection() { }
 
-	virtual bool getModuleInfo(std::string & description, std::string & version, ErrorCollector & ec) = 0;
 	virtual bool getSession(ErrorCollector & ec) =  0;
 };
 
@@ -50,6 +49,8 @@ public:
 			{ return SAS_OBJECT_TYPE__CONNECTOR; }
 
 	virtual bool connect(ErrorCollector & ec) = 0;
+
+	virtual bool getModuleInfo(const std::string & module_name, std::string & description, std::string & version, ErrorCollector & ec) = 0;
 
 	virtual Connection * createConnection(const std::string & module_name, const std::string & invoker_name, ErrorCollector & ec) = 0;
 };
