@@ -38,8 +38,6 @@ namespace SAS {
 
 			virtual Status Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec) abstract;
 
-			virtual bool GetModuleInfo([System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec) abstract;
-
 			virtual bool GetSession(ISASErrorCollector ^ ec) abstract;
 		};
 
@@ -56,7 +54,6 @@ namespace SAS {
 			SASConnectionObj(Connection * obj);
 			!SASConnectionObj();
 			virtual ISASInvoker::Status Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec);
-			virtual bool GetModuleInfo([System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec);
 			virtual bool GetSession(ISASErrorCollector ^ ec);
 		private:
 			SASConnectionObj_priv * priv;
@@ -66,6 +63,8 @@ namespace SAS {
 		public interface class ISASConnector : public ISASObject
 		{
 			virtual bool Connect(ISASErrorCollector ^ ec) abstract;
+
+			virtual bool GetModuleInfo(System::String ^ module_name, [System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec) abstract;
 
 			virtual ISASConnection ^ CreateConnection(System::String ^ module_name, System::String ^ invoker_name, ISASErrorCollector ^ ec) abstract;
 		};
@@ -82,6 +81,8 @@ namespace SAS {
 			property System::String ^ Name { virtual System::String ^ get(); }
 
 			virtual bool Connect(ISASErrorCollector ^ ec);
+
+			virtual bool GetModuleInfo(System::String ^ module_name, [System::Runtime::InteropServices::OutAttribute] System::String ^% description, [System::Runtime::InteropServices::OutAttribute] System::String ^% version, ISASErrorCollector ^ ec);
 
 			virtual ISASConnection ^ CreateConnection(System::String ^ module_name, System::String ^ invoker_name, ISASErrorCollector ^ ec);
 		private:
