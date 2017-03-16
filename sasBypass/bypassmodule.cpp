@@ -81,17 +81,17 @@ namespace SAS {
 			if (!conn)
 			{
 				invokers.erase(invoker_name);
-				return false;
+				return nullptr;
 			}
 
 			return inv = new BypassInvoker(conn);
 		}
 	private:
-		Logging::LoggerPtr logger;
 		std::mutex invokers_mut;
 		std::map<std::string, Invoker*> invokers;
 		std::string module_name;
 		Connector * connector;
+		Logging::LoggerPtr logger;
 	};
 
 	struct BypassModule_priv
@@ -101,6 +101,7 @@ namespace SAS {
 
 		std::string name;
 		std::string version;
+		std::string description;
 		Logging::LoggerPtr logger;
 
 		Connector * connector;
@@ -140,10 +141,19 @@ namespace SAS {
 			return false;
 		}
 
+		SAS_LOG_VAR(priv->logger, connector_name);
+
+		SAS_LOG_TRACE(priv->logger, "get connector object");
 		if (!(priv->connector = app->objectRegistry()->getObject<Connector>(SAS_OBJECT_TYPE__CONNECTOR, connector_name, ec)))
 			return false;
 		
-		return priv->connector->connect(ec);
+		SAS_LOG_TRACE(priv->logger, "activate connector");
+		if(!priv->connector->connect(ec))
+			return false;
+
+
+		SAS_LOG_TRACE(priv->logger, "get module information");
+		return priv->connector->getModuleInfo(priv->name, priv->description, priv->version, ec);
 	}
 
 	Session * BypassModule::createSession(SessionID id, ErrorCollector & ec)

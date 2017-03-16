@@ -35,6 +35,8 @@ namespace SAS {
 
 		virtual Status invoke(const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec) final;
 
+		virtual bool getSession(ErrorCollector & ec) final;
+
 	private:
 		LoopbackConnection_priv * priv;
 	};
@@ -51,6 +53,8 @@ namespace SAS {
 		virtual std::string name() const final;
 
 		virtual bool connect(ErrorCollector & ec) final;
+
+		virtual bool getModuleInfo(const std::string & module_name, std::string & description, std::string & version, ErrorCollector & ec) final;
 
 		virtual Connection * createConnection(const std::string & module_name, const std::string & invoker_name, ErrorCollector & ec) final;
 
