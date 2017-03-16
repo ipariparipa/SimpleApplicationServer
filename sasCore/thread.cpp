@@ -109,5 +109,13 @@ namespace SAS
 
 	//static
 	ThreadId Thread::getThreadId()
-	{ return std::this_thread::get_id(); }
+	{ 
+		return std::this_thread::get_id(); 
+	}
+
+	//static 
+	void Thread::sleep(long milliseconds)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+	}
 }
