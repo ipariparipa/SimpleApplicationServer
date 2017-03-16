@@ -27,10 +27,13 @@ namespace SAS {
 
 class Application;
 
+class CorbaConnector_internal;
+
 struct CorbaConnector_priv;
 
 class CorbaConnector : public Connector
 {
+	friend class CorbaConnector_internal;
 public:
 	CorbaConnector(const std::string & name, Application * app);
 	virtual ~CorbaConnector();
@@ -43,6 +46,7 @@ public:
 
 	virtual Connection * createConnection(const std::string & module_name, const std::string & invoker_name, ErrorCollector & ec) final;
 
+	CorbaConnector_internal & internal();
 private:
 	CorbaConnector_priv * priv;
 };
