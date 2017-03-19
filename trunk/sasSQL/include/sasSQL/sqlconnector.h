@@ -48,6 +48,8 @@ public:
 
 	virtual void detach() = 0;
 
+	virtual bool activate(ErrorCollector & ec) = 0;
+
 	virtual void lock() = 0;
 	virtual void unlock() = 0;
 
