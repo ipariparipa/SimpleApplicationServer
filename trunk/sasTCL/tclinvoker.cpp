@@ -129,6 +129,11 @@ namespace SAS {
 								auto err = lst.getList(i);
 								if (err.length() == 2)
 									current_run->ec->add(std::stol(err[0]), err[1]);
+								else
+								{
+									current_run->ec->add(-1, "could not run script: '"+lst.toString()+"'");
+									break;
+								}
 							}
 							current_run->isOK = false;
 						}
