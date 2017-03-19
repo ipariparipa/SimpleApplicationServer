@@ -40,6 +40,7 @@ namespace SAS {
 
 		bool append(const std::string & str);
 		bool append(const TCLList & lst);
+		bool append(Tcl_Obj * obj);
 		int length() const;
 
 		bool fromString(const std::string & str);
@@ -47,6 +48,8 @@ namespace SAS {
 		std::string operator [] (int idx) const;
 		std::string getString(int idx) const;
 		TCLList getList(int idx) const;
+
+		std::string toString() const;
 
 		Tcl_Obj * obj() const;
 

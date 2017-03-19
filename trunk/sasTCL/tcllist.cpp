@@ -74,6 +74,11 @@ namespace SAS {
 		return (Tcl_ListObjAppendElement(priv->interp, priv->obj, lst.priv->obj) == TCL_OK);
 	}
 
+	bool TCLList::append(Tcl_Obj * obj)
+	{
+		return (Tcl_ListObjAppendElement(priv->interp, priv->obj, obj) == TCL_OK);
+	}
+
 	int TCLList::length() const
 	{
 		if (!priv->interp)
@@ -127,6 +132,11 @@ namespace SAS {
 		if (Tcl_ListObjIndex(priv->interp, priv->obj, idx, &tmp) != TCL_OK)
 			return TCLList();
 		return TCLList(priv->interp, tmp);
+	}
+
+	std::string TCLList::toString() const
+	{
+		return Tcl_GetString(priv->obj);
 	}
 
 	Tcl_Obj * TCLList::obj() const
