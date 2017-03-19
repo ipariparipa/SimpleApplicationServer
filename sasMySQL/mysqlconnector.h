@@ -64,6 +64,8 @@ public:
 
 	std::mutex & mutex();
 
+	virtual bool activate(ErrorCollector & ec) final;
+
 	virtual void lock() final;
 	virtual void unlock() final;
 
