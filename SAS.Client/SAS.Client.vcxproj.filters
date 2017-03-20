@@ -48,6 +48,15 @@
     <ClInclude Include="SASTCLList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SASAppSettingsConfigReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SASBasicApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SASTextWriterErrorCollector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SASApplication.cpp">
@@ -78,6 +87,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SASTCLList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SASAppSettingsConfigReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SASBasicApplication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SASTextWriterErrorCollector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

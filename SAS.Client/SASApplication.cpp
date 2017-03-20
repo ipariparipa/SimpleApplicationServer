@@ -19,11 +19,13 @@
 #include "SASObjectRegistry.h"
 #include "SASErrorCollector.h"
 #include "SASConfigReader.h"
+#include "macros.h"
 
 #include <sasCore/application.h>
 
 #include <msclr/gcroot.h>
 
+#include <string>
 #include <memory>
 
 using namespace msclr;
@@ -34,11 +36,36 @@ namespace SAS {
 
 		struct SASApplication_priv
 		{
+			SASApplication_priv(SASApplication ^ mobj, array<System::String^> ^ args) : _args(args), obj(mobj, _args.argv.size(), (char**)_args.argv.data()), objectRegistry(gcnew SASObjectRegistry(obj.objectRegistry()))
+			{ }
+
 			SASApplication_priv(SASApplication ^ mobj) : obj(mobj), objectRegistry(gcnew SASObjectRegistry(obj.objectRegistry()))
 			{ }
 
+			struct ArgsHelper
+			{
+				ArgsHelper()
+				{ }
+
+				ArgsHelper(array<System::String^> ^ args) : _args(args->Length), argv(args->Length)
+				{
+					for (int i(0), l(args->Length); i < l; ++i)
+					{
+						System::String ^ s = args[i];
+						argv[i] = (_args[i] = TO_STR(s)).c_str();
+					}
+				}
+
+				std::vector<const char *> argv;
+			private:
+				std::vector<std::string> _args;
+			} _args;
+
 			struct WApplication : public Application
 			{
+				WApplication(SASApplication ^ mobj_, int argc, char ** argv) : Application(argc, argv), mobj(mobj_)
+				{ }
+
 				WApplication(SASApplication ^ mobj_) : Application(), mobj(mobj_)
 				{ }
 
@@ -58,6 +85,9 @@ namespace SAS {
 			} obj;
 			gcroot<SASObjectRegistry^> objectRegistry;
 		};
+
+		SASApplication::SASApplication(array<System::String^> ^ args) : priv(new SASApplication_priv(this, args))
+		{ }
 
 		SASApplication::SASApplication() : priv(new SASApplication_priv(this))
 		{ }
