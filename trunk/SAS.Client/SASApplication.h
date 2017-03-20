@@ -32,6 +32,7 @@ namespace SAS {
 		public ref class SASApplication abstract
 		{
 		public:
+			SASApplication(array<System::String^> ^ args);
 			SASApplication();
 			!SASApplication();
 
@@ -39,7 +40,7 @@ namespace SAS {
 
 			property System::String ^ Version { virtual System::String ^ get(); }
 
-			bool Init(ISASErrorCollector ^ ec);
+			virtual bool Init(ISASErrorCollector ^ ec);
 
 			void deinit();
 

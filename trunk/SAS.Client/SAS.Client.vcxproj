@@ -79,9 +79,12 @@
   <ItemGroup>
     <ClInclude Include="macros.h" />
     <ClInclude Include="SASApplication.h" />
+    <ClInclude Include="SASAppSettingsConfigReader.h" />
+    <ClInclude Include="SASBasicApplication.h" />
     <ClInclude Include="SASBinData.h" />
     <ClInclude Include="SASConfigReader.h" />
     <ClInclude Include="SASConnector.h" />
+    <ClInclude Include="SASTextWriterErrorCollector.h" />
     <ClInclude Include="SASErrorCollector.h" />
     <ClInclude Include="SASObject.h" />
     <ClInclude Include="SASObjectRegistry.h" />
@@ -90,16 +93,22 @@
     <ClInclude Include="SASTCLList.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="SASAppSettingsConfigReader.cpp" />
+    <ClCompile Include="SASBasicApplication.cpp" />
     <ClCompile Include="SASBinData.cpp" />
     <ClCompile Include="SASConfigReader.cpp" />
     <ClCompile Include="SASConnector.cpp" />
     <ClCompile Include="SASApplication.cpp" />
+    <ClCompile Include="SASTextWriterErrorCollector.cpp" />
     <ClCompile Include="SASErrorCollector.cpp" />
     <ClCompile Include="SASObject.cpp" />
     <ClCompile Include="SASObjectRegistry.cpp" />
     <ClCompile Include="SASTCLDataReader.cpp" />
     <ClCompile Include="SASTCLDataWriter.cpp" />
     <ClCompile Include="SASTCLList.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
