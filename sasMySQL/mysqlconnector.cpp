@@ -369,7 +369,7 @@ std::mutex & MySQLConnector::mutex()
 bool MySQLConnector::activate(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	return priv->conn(ec);
+	return priv->conn(ec) != nullptr;
 }
 
 void MySQLConnector::lock()
