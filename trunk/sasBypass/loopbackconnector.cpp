@@ -58,7 +58,7 @@ namespace SAS {
 
 	bool LoopbackConnection::getSession(ErrorCollector & ec)
 	{
-		return priv->module->getSession(priv->session_id, ec);
+		return priv->module->getSession(priv->session_id, ec) != nullptr;
 	}
 
 
