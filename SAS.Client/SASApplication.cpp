@@ -42,47 +42,9 @@ namespace SAS {
 			SASApplication_priv(SASApplication ^ mobj) : obj(mobj), objectRegistry(gcnew SASObjectRegistry(obj.objectRegistry()))
 			{ }
 
-			struct ArgsHelper
-			{
-				ArgsHelper()
-				{ }
+			ArgsHelper _args;
 
-				ArgsHelper(array<System::String^> ^ args) : _args(args->Length), argv(args->Length)
-				{
-					for (int i(0), l(args->Length); i < l; ++i)
-					{
-						System::String ^ s = args[i];
-						argv[i] = (_args[i] = TO_STR(s)).c_str();
-					}
-				}
-
-				std::vector<const char *> argv;
-			private:
-				std::vector<std::string> _args;
-			} _args;
-
-			struct WApplication : public Application
-			{
-				WApplication(SASApplication ^ mobj_, int argc, char ** argv) : Application(argc, argv), mobj(mobj_)
-				{ }
-
-				WApplication(SASApplication ^ mobj_) : Application(), mobj(mobj_)
-				{ }
-
-				virtual std::string version() const final
-				{ return std::string(); }
-
-				virtual ConfigReader * configReader() final
-				{
-					if (!cr.get())
-						cr.reset(new WConfigReader(mobj->ConfigReader));
-					return cr.get();
-				}
-
-			private:
-				gcroot<SASApplication^> mobj;
-				std::unique_ptr<ConfigReader> cr;
-			} obj;
+			WApplication obj;
 			gcroot<SASObjectRegistry^> objectRegistry;
 		};
 
@@ -114,9 +76,56 @@ namespace SAS {
 			return priv->obj.init(WErrorCollector(ec));
 		}
 
-		void SASApplication::deinit()
+		void SASApplication::Deinit()
 		{
 			priv->obj.deinit();
 		}
 	}
+
+	
+	ArgsHelper::ArgsHelper()
+	{ }
+
+	ArgsHelper::ArgsHelper(array<System::String^> ^ args) : _args(args->Length), argv(args->Length)
+	{
+		for (int i(0), l(args->Length); i < l; ++i)
+		{
+			System::String ^ s = args[i];
+			argv[i] = (_args[i] = TO_STR(s)).c_str();
+		}
+	}
+
+
+	struct WApplication_priv
+	{
+		WApplication_priv(Client::ISASApplication ^ mobj_) : mobj(mobj_)
+		{ }
+
+		gcroot<Client::ISASApplication^> mobj;
+		std::unique_ptr<ConfigReader> cr;
+	};
+
+	WApplication::WApplication(Client::ISASApplication ^ mobj, int argc, char ** argv) : Application(argc, argv), priv(new WApplication_priv(mobj))
+	{ }
+
+	WApplication::WApplication(Client::ISASApplication ^ mobj) : Application(), priv(new WApplication_priv(mobj))
+	{ }
+
+	WApplication::~WApplication()
+	{
+		delete priv;
+	}
+
+	std::string WApplication::version() const
+	{
+		return TO_STR(priv->mobj->Version);
+	}
+
+	ConfigReader * WApplication::configReader()
+	{
+		if (!priv->cr.get())
+			priv->cr.reset(new WConfigReader(priv->mobj->ConfigReader));
+		return priv->cr.get();
+	}
+
 }
