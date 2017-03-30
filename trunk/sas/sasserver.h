@@ -18,6 +18,7 @@
 #ifndef SASSERVER_H_
 #define SASSERVER_H_
 
+#include <sasBasics/server.h>
 #include <sasCore/application.h>
 #include <sasCore/watchdog.h>
 #include <sasCore/interfacemanager.h>
@@ -27,9 +28,9 @@ namespace SAS
 
 struct SASServer_priv;
 
-class SASServer : public Application, public InterfaceManager, public Watchdog
+class SASServer : public Server
 {
-
+	SAS_COPY_PROTECTOR(SASServer)
 public:
 	SASServer(int argc, char ** argv);
 	virtual ~SASServer();
@@ -37,15 +38,6 @@ public:
 	virtual std::string version() const final;
 
 	virtual ConfigReader * configReader() final;
-
-	virtual inline Watchdog * watchdog() final { return this; }
-	virtual inline InterfaceManager * interfaceManager() final { return this; }
-
-	virtual Logging::LoggerPtr logger() final;
-
-	virtual void addInterfaceEvent(Interface::Status status, Interface * intf, const std::string & message) final;
-	virtual void run() final;
-
 private:
 	SASServer_priv * priv;
 };
