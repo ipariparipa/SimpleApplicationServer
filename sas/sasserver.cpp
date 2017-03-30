@@ -40,7 +40,7 @@ struct SASServer_priv
 
 };
 
-SASServer::SASServer(int argc, char ** argv) : priv(new SASServer_priv), Server(argc, argv)
+SASServer::SASServer(int argc, char ** argv) : Server(argc, argv), priv(new SASServer_priv)
 { }
 
 SASServer::~SASServer()
