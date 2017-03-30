@@ -19,6 +19,8 @@
 #pragma warning( push )
 #pragma warning( disable: 4461 )
 
+#include <sasCore/application.h>
+
 namespace SAS {
 
 	namespace Client {
@@ -29,28 +31,72 @@ namespace SAS {
 
 		struct SASApplication_priv;
 
-		public ref class SASApplication abstract
+		public interface class ISASApplication
+		{
+		public:
+			property SASObjectRegistry ^ ObjectRegistry { virtual SASObjectRegistry ^ get() abstract; }
+
+			property System::String ^ Version { virtual System::String ^ get() abstract; }
+
+			virtual bool Init(ISASErrorCollector ^ ec) abstract;
+
+			virtual void Deinit() abstract;
+
+			property ISASConfigReader ^ ConfigReader { virtual ISASConfigReader ^ get() abstract; }
+
+		};
+
+		public ref class SASApplication abstract : public ISASApplication
 		{
 		public:
 			SASApplication(array<System::String^> ^ args);
 			SASApplication();
 			!SASApplication();
 
-			property SASObjectRegistry ^ ObjectRegistry { SASObjectRegistry ^ get(); }
+			property SASObjectRegistry ^ ObjectRegistry { virtual SASObjectRegistry ^ get(); }
 
 			property System::String ^ Version { virtual System::String ^ get(); }
 
 			virtual bool Init(ISASErrorCollector ^ ec);
 
-			void deinit();
+			virtual void Deinit();
 
 			property ISASConfigReader ^ ConfigReader { virtual ISASConfigReader ^ get() abstract; }
 		private:
 			SASApplication_priv * priv;
-
 		};
 
 	}
+
+	struct ArgsHelper
+	{
+		ArgsHelper();
+
+		ArgsHelper(array<System::String^> ^ args);
+
+		std::vector<const char *> argv;
+	private:
+		std::vector<std::string> _args;
+	};
+
+	struct WApplication_priv;
+	class WApplication : public Application
+	{
+	public:
+		WApplication(Client::ISASApplication ^ mobj, int argc, char ** argv);
+
+		WApplication(Client::ISASApplication ^ mobj);
+
+		~WApplication();
+
+		virtual std::string version() const final;
+
+		virtual ConfigReader * configReader() final;
+
+	private:
+		WApplication_priv * priv;
+	};
+
 }
 
 #pragma warning( pop ) 
