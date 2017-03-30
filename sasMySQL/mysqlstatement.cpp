@@ -576,14 +576,18 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 		case MYSQL_TYPE_NEWDATE:
 		case MYSQL_TYPE_DATE:
 		case MYSQL_TYPE_TIME:
-		case MYSQL_TYPE_TIME2:
 		case MYSQL_TYPE_TIMESTAMP:
-		case MYSQL_TYPE_TIMESTAMP2:
 		case MYSQL_TYPE_DATETIME:
+#if MYSQL_VERSION_ID >= 50700
+		case MYSQL_TYPE_TIME2:
+		case MYSQL_TYPE_TIMESTAMP2:
 		case MYSQL_TYPE_DATETIME2:
+#endif
 			h.reset(MySQLStatement_priv::DateTime_ResultHelper::init(b.buffer));
 			break;
+#if MYSQL_VERSION_ID >= 50700
 		case MYSQL_TYPE_JSON:
+#endif
 		case MYSQL_TYPE_ENUM:
 		case MYSQL_TYPE_SET:
 		case MYSQL_TYPE_GEOMETRY:
