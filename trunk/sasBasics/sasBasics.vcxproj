@@ -80,11 +80,13 @@
   <ItemGroup>
     <ClCompile Include="envconfigreader.cpp" />
     <ClCompile Include="logging.cpp" />
+    <ClCompile Include="server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sasBasics\config.h" />
     <ClInclude Include="include\sasBasics\envconfigreader.h" />
     <ClInclude Include="include\sasBasics\logging.h" />
+    <ClInclude Include="include\sasBasics\server.h" />
     <ClInclude Include="include\sasBasics\streamerrorcollector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
