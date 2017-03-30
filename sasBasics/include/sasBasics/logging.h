@@ -15,8 +15,8 @@
     along with sasBasics.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef LOGGING_H_
-#define LOGGING_H_
+#ifndef INCLUDE_SASBASICS_LOGGING_H_
+#define INCLUDE_SASBASICS_LOGGING_H_
 
 #include "config.h"
 #include <sasCore/logging.h>
@@ -33,4 +33,4 @@ namespace Logging {
 
 }}
 
-#endif /* LOGGING_H_ */
+#endif /* INCLUDE_SASBASICS_LOGGING_H_ */
