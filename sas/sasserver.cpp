@@ -33,32 +33,14 @@ namespace SAS {
 
 struct SASServer_priv
 {
-	SASServer_priv() : configreader(new EnvConfigReader()), logger(Logging::getLogger("SAS.Server")), wd_logger(Logging::getLogger("SAS.WatchDog"))
+	SASServer_priv() : configreader(new EnvConfigReader())
 	{ }
 
 	std::unique_ptr<ConfigReader> configreader;
 
-	struct Watchdog
-	{
-		struct IntfMsg
-		{
-			Interface::Status status;
-			Interface * obj;
-			std::string text;
-		};
-
-		std::mutex intf_messages_mut;
-		std::queue<IntfMsg> intf_messages;
-		std::condition_variable suspender_cv;
-		std::mutex suspender_cv_mut;
-
-	} watchdog;
-
-	Logging::LoggerPtr logger, wd_logger;
 };
 
-SASServer::SASServer(int argc, char ** argv) : 
-	Application(argc, argv), InterfaceManager(), Watchdog(), priv(new SASServer_priv)
+SASServer::SASServer(int argc, char ** argv) : priv(new SASServer_priv), Server(argc, argv)
 { }
 
 SASServer::~SASServer()
@@ -72,48 +54,6 @@ std::string SASServer::version() const
 ConfigReader * SASServer::configReader()
 {
 	return priv->configreader.get();
-}
-
-Logging::LoggerPtr SASServer::logger()
-{
-	return priv->logger;
-}
-
-void SASServer::addInterfaceEvent(Interface::Status status, Interface * intf, const std::string & message)
-{
-	std::lock_guard<std::mutex> __susp_locker(priv->watchdog.suspender_cv_mut);
-	priv->watchdog.intf_messages.push({status, intf, message});
-	priv->watchdog.suspender_cv.notify_one();
-}
-
-void SASServer::run()
-{
-	while(true)
-	{
-		std::unique_lock<std::mutex> __susp_locker(priv->watchdog.suspender_cv_mut);
-		priv->watchdog.suspender_cv.wait(__susp_locker);
-		while(priv->watchdog.intf_messages.size())
-		{
-			auto im = priv->watchdog.intf_messages.front();
-			priv->watchdog.intf_messages.pop();
-			switch(im.status)
-			{
-			case Interface::Status::CannotStart:
-				SAS_LOG_INFO(priv->wd_logger, std::string("interface '") + im.obj->name() + "' could not be started: '" + im.text + "'");
-				break;
-			case Interface::Status::Started:
-				SAS_LOG_INFO(priv->wd_logger, std::string("interface '") + im.obj->name() + "' is started: '" + im.text + "'");
-				break;
-			case Interface::Status::Stopped:
-				SAS_LOG_WARN(priv->wd_logger, std::string("interface '") + im.obj->name() + "' is stopped: '" + im.text + "'");
-				break;
-			case Interface::Status::Crashed:
-				SAS_LOG_ERROR(priv->wd_logger, std::string("interface '") + im.obj->name() + "' is crashed '" + im.text + "'");
-				break;
-			}
-		}
-		priv->watchdog.suspender_cv.notify_one();
-	}
 }
 
 }
