@@ -3,6 +3,8 @@
 	<name>sas</name>
 	<comment></comment>
 	<projects>
+		<project>sasBasics</project>
+		<project>sasCore</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

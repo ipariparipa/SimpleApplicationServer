@@ -3,6 +3,9 @@
 	<name>sasSQLClient</name>
 	<comment></comment>
 	<projects>
+		<project>sasCore</project>
+		<project>sasSQL</project>
+		<project>sasTCL</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

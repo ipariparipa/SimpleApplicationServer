@@ -3,6 +3,7 @@
 	<name>sasCorba</name>
 	<comment></comment>
 	<projects>
+		<project>sasCore</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
