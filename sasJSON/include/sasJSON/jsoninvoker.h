@@ -28,22 +28,22 @@ struct JSONFunction
 {
 	virtual inline ~JSONFunction() { }
 
-//	struct SAS_JSON__CLASS RetVal
-//	{
-//		inline RetVal(rapidjson::Document::AllocatorType & alloc_) : alloc(alloc_), value(rapidjson::kObjectType)
-//		{ }
-//
-//		rapidjson::Document::AllocatorType & alloc;
-//		rapidjson::Value value;
-//	};
-
 	struct SAS_JSON__CLASS RetVal
 	{
 		inline RetVal(rapidjson::Document & doc) : alloc(doc.GetAllocator()), value(doc)
 		{ }
 
+		inline RetVal(rapidjson::Document::AllocatorType & alloc_) : alloc(alloc_), _value(rapidjson::kObjectType), value(_value)
+		{ }
+
 		rapidjson::Document::AllocatorType & alloc;
+
+	private:
+		rapidjson::Value _value;
+
+	public:
 		rapidjson::Value & value;
+
 	};
 
 	virtual bool operator() (const rapidjson::Value & arguments, RetVal & ret, SAS::ErrorCollector & ec) = 0;
