@@ -3,6 +3,8 @@
 	<name>sasMySQL</name>
 	<comment></comment>
 	<projects>
+		<project>sasCore</project>
+		<project>sasSQL</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
