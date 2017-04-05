@@ -47,7 +47,7 @@ namespace SAS
 				priv->data[i] = data[i];
 		}
 
-		SASBinData::SASBinData(System::String ^ data)
+		SASBinData::SASBinData(System::String ^ data) : priv(new SASBinData_priv)
 		{
 			auto str = TO_STR(data);
 			priv->data.resize(str.size());
