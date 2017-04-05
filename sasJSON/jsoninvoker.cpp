@@ -38,10 +38,18 @@ namespace SAS {
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
-			auto & _name = function["name"];
+
+			if(!function.HasMember("function"))
+			{
+				auto err = ec.add(-1, "'function' is not specified");
+				SAS_LOG_ERROR(logger, err);
+				return false;
+			}
+
+			auto & _name = function["function"];
 			if(_name.IsNull() || !_name.IsString())
 			{
-				auto err = ec.add(-1, "function name is not specified");
+				auto err = ec.add(-1, "'function' is not string");
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
@@ -53,13 +61,15 @@ namespace SAS {
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
-			auto & _args = function["arguments"];
-			if(_args.IsNull())
+
+			if(!function.HasMember("arguments"))
 			{
-				auto err = ec.add(-1, "arguments for function '"+name+"' are not specified");
+				auto err = ec.add(-1, "'arguments' for function '"+name+"' are not specified");
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
+			auto & _args = function["arguments"];
+
 			return (*functions[name])(_args, ret, ec);
 		}
 
