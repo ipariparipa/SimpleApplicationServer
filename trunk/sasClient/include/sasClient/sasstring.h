@@ -19,6 +19,7 @@ along with sasClient.  If not, see <http://www.gnu.org/licenses/>
 #define sasClient__string_h
 
 #include "sasbasetypes.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

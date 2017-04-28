@@ -21,7 +21,7 @@ along with sasClient.  If not, see <http://www.gnu.org/licenses/>
 class WErrorCollector : public SAS::ErrorCollector
 {
 public:
-	WErrorCollector(sas_ErrorCollector_append_T append_function) : _append_function(append_function), SAS::ErrorCollector()
+	WErrorCollector(sas_ErrorCollector_append_T append_function) : SAS::ErrorCollector(), _append_function(append_function)
 	{ }
 
 protected:

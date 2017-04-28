@@ -6,7 +6,7 @@
 class WConfigReader : public SAS::ConfigReader
 {
 public:
-	WConfigReader(const sas_ConfigReader_Functions & functions) : _functions(functions), SAS::ConfigReader()
+	WConfigReader(const sas_ConfigReader_Functions & functions) : SAS::ConfigReader(), _functions(functions)
 	{ }
 
 	virtual bool getEntryAsString(const std::string & path, std::string & ret, SAS::ErrorCollector & ec) final
