@@ -123,6 +123,13 @@ namespace SAS {
 			memcpy(dst.data(), src.data, dst.size());
 		}
 
+		extern SAS_CLIENT__FUNCTION std::vector<char> binarydata_copy(const sas_BinaryData & src)
+		{
+			std::vector<char> ret;
+			binarydata_copy(ret, src);
+			return ret;
+		}
+
 		extern SAS_CLIENT__FUNCTION void binarydata_copy_ref(sas_BinaryData & dst, const std::vector<char> & src)
 		{
 			sas_BinaryData_deinit(&dst);
