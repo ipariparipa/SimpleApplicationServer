@@ -5,6 +5,7 @@
 	<projects>
 		<project>sasBasics</project>
 		<project>sasCore</project>
+		<project>sasTCLTools</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
