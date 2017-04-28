@@ -12,6 +12,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sasTCLTools\config.h" />
+    <ClInclude Include="include\sasTCLTools\tcldatareader.h" />
+    <ClInclude Include="include\sasTCLTools\tcldatawriter.h" />
+    <ClInclude Include="include\sasTCLTools\tcllist.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="tcldatareader.cpp" />
+    <ClCompile Include="tcldatawriter.cpp" />
+    <ClCompile Include="tcllist.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{14160758-4BC1-4F6D-B9F0-9FD30AB56851}</ProjectGuid>
@@ -43,6 +51,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>obj\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>obj\$(Configuration)\</IntDir>
@@ -53,7 +62,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\sasCore\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SAS_TCL__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SAS_TCL_TOOLS__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -69,7 +78,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\sasCore\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SAS_TCL__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SAS_TCL_TOOLS__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
