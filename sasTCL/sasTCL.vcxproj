@@ -79,18 +79,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\sasTCL\config.h" />
-    <ClInclude Include="include\sasTCL\tcldatareader.h" />
-    <ClInclude Include="include\sasTCL\tcldatawriter.h" />
     <ClInclude Include="include\sasTCL\tclerrorcollector.h" />
     <ClInclude Include="include\sasTCL\tclinvoker.h" />
-    <ClInclude Include="include\sasTCL\tcllist.h" />
+    <ClInclude Include="include\sasTCL\tcllisthandler.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="tcldatareader.cpp" />
-    <ClCompile Include="tcldatawriter.cpp" />
     <ClCompile Include="tclerrorcollector.cpp" />
     <ClCompile Include="tclinvoker.cpp" />
-    <ClCompile Include="tcllist.cpp" />
+    <ClCompile Include="tcllisthandler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

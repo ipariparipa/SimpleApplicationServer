@@ -15,71 +15,71 @@ You should have received a copy of the GNU Lesser General Public License
 along with sasTCLClient.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "include/sasTCL/tcllist.h"
+#include "include/sasTCL/tcllisthandler.h"
 
 namespace SAS {
 
-	struct TCLList_priv
+	struct TCLListHandler_priv
 	{
 		Tcl_Obj * obj;
 		Tcl_Interp * interp;
 	};
 
-	TCLList::TCLList() : priv(new TCLList_priv)
+	TCLListHandler::TCLListHandler() : priv(new TCLListHandler_priv)
 	{
 		priv->interp = nullptr;
 		priv->obj = nullptr;
 	}
 
-	TCLList::TCLList(Tcl_Interp * interp) : priv(new TCLList_priv)
+	TCLListHandler::TCLListHandler(Tcl_Interp * interp) : priv(new TCLListHandler_priv)
 	{
 		priv->obj = Tcl_NewListObj(0, NULL);
 		priv->interp = interp;
 	}
 
-	TCLList::TCLList(Tcl_Interp * interp, Tcl_Obj * obj) : priv(new TCLList_priv)
+	TCLListHandler::TCLListHandler(Tcl_Interp * interp, Tcl_Obj * obj) : priv(new TCLListHandler_priv)
 	{
 		priv->interp = interp;
 		priv->obj = obj;
 	}
 
-	TCLList::TCLList(const TCLList & o) : priv(new TCLList_priv(*o.priv))
+	TCLListHandler::TCLListHandler(const TCLListHandler & o) : priv(new TCLListHandler_priv(*o.priv))
 	{ }
 
-	TCLList::~TCLList()
+	TCLListHandler::~TCLListHandler()
 	{
 		delete priv;
 	}
 
-	TCLList & TCLList::operator = (const TCLList & o)
+	TCLListHandler & TCLListHandler::operator = (const TCLListHandler & o)
 	{
 		*priv = *o.priv;
 		return *this;
 	}
 
-	bool TCLList::isNull() const
+	bool TCLListHandler::isNull() const
 	{
 		return !priv->interp;
 	}
 
-	bool TCLList::append(const std::string & str)
+	bool TCLListHandler::append(const std::string & str)
 	{
 		if (!priv->interp)
 			return false;
 		return (Tcl_ListObjAppendElement(priv->interp, priv->obj, Tcl_NewStringObj(str.c_str(), -1)) == TCL_OK);
 	}
 
-	bool TCLList::append(const TCLList & lst)
+	bool TCLListHandler::append(const TCLListHandler & lst)
 	{
 		return (Tcl_ListObjAppendElement(priv->interp, priv->obj, lst.priv->obj) == TCL_OK);
 	}
 
-	bool TCLList::append(Tcl_Obj * obj)
+	bool TCLListHandler::append(Tcl_Obj * obj)
 	{
 		return (Tcl_ListObjAppendElement(priv->interp, priv->obj, obj) == TCL_OK);
 	}
 
-	int TCLList::length() const
+	int TCLListHandler::length() const
 	{
 		if (!priv->interp)
 			return false;
@@ -89,7 +89,7 @@ namespace SAS {
 		return ret;
 	}
 
-	bool TCLList::fromString(const std::string & str)
+	bool TCLListHandler::fromString(const std::string & str)
 	{
 		auto lst_obj = Tcl_NewStringObj(str.c_str(), -1);
 		if(!lst_obj)
@@ -104,7 +104,7 @@ namespace SAS {
 		return true;
 	}
 
-	std::string TCLList::operator [] (int idx) const
+	std::string TCLListHandler::operator [] (int idx) const
 	{
 		if (!priv->interp)
 			return std::string();
@@ -114,7 +114,7 @@ namespace SAS {
 		return Tcl_GetString(tmp);
 	}
 
-	std::string TCLList::getString(int idx) const
+	std::string TCLListHandler::getString(int idx) const
 	{
 		if (!priv->interp)
 			return std::string();
@@ -124,22 +124,22 @@ namespace SAS {
 		return Tcl_GetString(tmp);
 	}
 	
-	TCLList TCLList::getList(int idx) const
+	TCLListHandler TCLListHandler::getList(int idx) const
 	{
 		if (!priv->interp)
-			return TCLList();
+			return TCLListHandler();
 		Tcl_Obj * tmp;
 		if (Tcl_ListObjIndex(priv->interp, priv->obj, idx, &tmp) != TCL_OK)
-			return TCLList();
-		return TCLList(priv->interp, tmp);
+			return TCLListHandler();
+		return TCLListHandler(priv->interp, tmp);
 	}
 
-	std::string TCLList::toString() const
+	std::string TCLListHandler::toString() const
 	{
 		return Tcl_GetString(priv->obj);
 	}
 
-	Tcl_Obj * TCLList::obj() const
+	Tcl_Obj * TCLListHandler::obj() const
 	{
 		return priv->obj;
 	}

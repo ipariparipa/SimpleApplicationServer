@@ -20,7 +20,7 @@ along with sasTCLClient.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/logging.h>
 #include <sasCore/thread.h>
 
-#include "include/sasTCL/tcllist.h"
+#include "include/sasTCL/tcllisthandler.h"
 
 #include <memory>
 #include <mutex>
@@ -122,7 +122,7 @@ namespace SAS {
 
 						if (Tcl_GlobalEval(interp, current_run->script.c_str()) == TCL_ERROR)
 						{
-							TCLList lst(interp, Tcl_GetObjResult(interp));
+							TCLListHandler lst(interp, Tcl_GetObjResult(interp));
 
 							for (int i(0), l(lst.length()); i < l; ++i)
 							{

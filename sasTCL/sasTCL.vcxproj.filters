@@ -24,13 +24,7 @@
     <ClInclude Include="include\sasTCL\tclerrorcollector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\sasTCL\tcllist.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\sasTCL\tcldatareader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\sasTCL\tcldatawriter.h">
+    <ClInclude Include="include\sasTCL\tcllisthandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,13 +35,7 @@
     <ClCompile Include="tclerrorcollector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tcllist.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tcldatareader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tcldatawriter.cpp">
+    <ClCompile Include="tcllisthandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

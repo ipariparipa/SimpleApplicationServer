@@ -26,7 +26,7 @@ namespace SAS {
 		{ }
 
 		Tcl_Interp * interp;
-		TCLList lst;
+		TCLListHandler lst;
 	};
 
 	TCLErrorCollector::TCLErrorCollector(Tcl_Interp * interp) : ErrorCollector(), priv(new TCLErrorCollector_priv(interp))
@@ -39,13 +39,13 @@ namespace SAS {
 
 	void TCLErrorCollector::append(long errorCode, const std::string & errorText)
 	{
-		TCLList err(priv->interp);
+		TCLListHandler err(priv->interp);
 		err.append(std::to_string(errorCode));
 		err.append(errorText);
 		priv->lst.append(err);
 	}
 
-	TCLList TCLErrorCollector::errors() const
+	TCLListHandler TCLErrorCollector::errors() const
 	{
 		return priv->lst;
 	}

@@ -15,8 +15,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#ifndef sasTCL__tcllist_h
-#define sasTCL__tcllist_h
+#ifndef sasTCL__tcllisthandler_h
+#define sasTCL__tcllisthandler_h
 
 #include "config.h"
 #include <sasCore/defines.h>
@@ -26,20 +26,20 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
-	struct TCLList_priv;
-	class SAS_TCL__CLASS TCLList
+	struct TCLListHandler_priv;
+	class SAS_TCL__CLASS TCLListHandler
 	{
 	public:
-		TCLList();
-		TCLList(Tcl_Interp * interp);
-		TCLList(Tcl_Interp * interp, Tcl_Obj * ob);
-		TCLList(const TCLList & o);
-		~TCLList();
-		TCLList & operator = (const TCLList & o);
+		TCLListHandler();
+		TCLListHandler(Tcl_Interp * interp);
+		TCLListHandler(Tcl_Interp * interp, Tcl_Obj * ob);
+		TCLListHandler(const TCLListHandler & o);
+		~TCLListHandler();
+		TCLListHandler & operator = (const TCLListHandler & o);
 		bool isNull() const;
 
 		bool append(const std::string & str);
-		bool append(const TCLList & lst);
+		bool append(const TCLListHandler & lst);
 		bool append(Tcl_Obj * obj);
 		int length() const;
 
@@ -47,16 +47,16 @@ namespace SAS {
 
 		std::string operator [] (int idx) const;
 		std::string getString(int idx) const;
-		TCLList getList(int idx) const;
+		TCLListHandler getList(int idx) const;
 
 		std::string toString() const;
 
 		Tcl_Obj * obj() const;
 
 	private:
-		TCLList_priv * priv;
+		TCLListHandler_priv * priv;
 	};
 
 }
 
-#endif // sasTCL__tcllist_h
+#endif // sasTCL__tcllisthandler_h
