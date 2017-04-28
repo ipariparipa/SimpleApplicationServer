@@ -27,7 +27,7 @@
 #include <sasSQL/sqlvariant.h>
 #include <sasTCL/tclinvoker.h>
 #include <sasTCL/tclerrorcollector.h>
-#include <sasTCL/tcllist.h>
+#include <sasTCL/tcllisthandler.h>
 
 #include <memory>
 #include <sstream>
@@ -76,17 +76,17 @@ namespace SAS { namespace SQLClient {
 				return TCL_ERROR;
 			}
 
-			TCLList ret(interp);
+			TCLListHandler ret(interp);
 			
 			std::unique_lock<TCLInvoker::BlobHandler> __blob_locker(*obj->blobHandler());
 			int blob_idx(0);
 			std::vector<SQLVariant> data;
 			while (stmt->fetch(data, ec))
 			{
-				TCLList row(interp);
+				TCLListHandler row(interp);
 				for (auto & d : data)
 				{
-					TCLList field(interp);
+					TCLListHandler field(interp);
 					switch (d.type())
 					{
 					case SQLDataType::None:
