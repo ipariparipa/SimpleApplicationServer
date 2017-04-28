@@ -31,6 +31,7 @@ namespace SAS {
 
 		public interface class ISASInvoker
 		{
+		public:
 			enum class Status
 			{
 				OK, Error, FatalError, NotImplemented
@@ -38,12 +39,12 @@ namespace SAS {
 
 			virtual Status Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec) abstract;
 
-			virtual bool GetSession(ISASErrorCollector ^ ec) abstract;
 		};
 
 		public interface class ISASConnection : public ISASInvoker
 		{
-
+		public:
+			virtual bool GetSession(ISASErrorCollector ^ ec) abstract;
 		};
 
 
