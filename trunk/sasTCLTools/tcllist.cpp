@@ -78,7 +78,7 @@ namespace SAS {
 			return true;
 		};
 
-		for each(auto ch in str)
+		for(auto ch : str)
 		{
 			if (escape_active)
 				escape_active = false;
@@ -176,9 +176,9 @@ namespace SAS {
 		std::string ret;
 		int last_idx = priv->lst.size() - 1;
 		int idx(0);
-		for each(auto e in priv->lst)
+		for(auto e : priv->lst)
 		{
-			if (e.find(' ') == -1)
+			if (e.find(' ') == std::string::npos)
 				ret += e;
 			else
 				ret += "{" + e + "}";
