@@ -55,6 +55,7 @@ namespace SAS {
 
 		extern SAS_CLIENT__FUNCTION void binarydata_copy(sas_BinaryData & dst, const std::vector<char> & src);
 		extern SAS_CLIENT__FUNCTION void binarydata_copy(std::vector<char> & dst, const sas_BinaryData & src);
+		extern SAS_CLIENT__FUNCTION std::vector<char> binarydata_copy(const sas_BinaryData & src);
 		extern SAS_CLIENT__FUNCTION void binarydata_copy_ref(sas_BinaryData & dst, const std::vector<char> & src);
 		extern SAS_CLIENT__FUNCTION sas_BinaryData binarydata_set(const std::vector<char> & str);
 		extern SAS_CLIENT__FUNCTION sas_BinaryData binarydata_set_ref(const std::vector<char> & str);

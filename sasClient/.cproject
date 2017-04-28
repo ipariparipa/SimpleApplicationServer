@@ -34,6 +34,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.311121944" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasCore/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasBasics/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasTCLTools/include}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1105817581" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__cplusplus=201103L"/>
@@ -50,13 +51,14 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.so.debug.1470225479" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.debug">
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.2019823151" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" valueType="boolean"/>
-								<option id="gnu.cpp.link.option.paths.135983303" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+								<option id="gnu.cpp.link.option.paths.135983303" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${WorkspaceDirPath}/bin/${ConfigName}&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.libs.1456032456" superClass="gnu.cpp.link.option.libs" valueType="libs">
+								<option id="gnu.cpp.link.option.libs.1456032456" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="log4cxx"/>
 									<listOptionValue builtIn="false" value="sasCore"/>
 									<listOptionValue builtIn="false" value="sasBasics"/>
+									<listOptionValue builtIn="false" value="sasTCLTools"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1009154956" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -105,6 +107,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1921743378" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasCore/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasBasics/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sasTCLTools/include}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.906884122" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__cplusplus=201103L"/>
@@ -121,13 +124,14 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.so.release.390633857" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.release">
 								<option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.1304381159" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" valueType="boolean"/>
-								<option id="gnu.cpp.link.option.paths.1842785938" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+								<option id="gnu.cpp.link.option.paths.1842785938" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${WorkspaceDirPath}/bin/${ConfigName}&quot;"/>
 								</option>
-								<option id="gnu.cpp.link.option.libs.976459972" superClass="gnu.cpp.link.option.libs" valueType="libs">
+								<option id="gnu.cpp.link.option.libs.976459972" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="log4cxx"/>
 									<listOptionValue builtIn="false" value="sasCore"/>
 									<listOptionValue builtIn="false" value="sasBasics"/>
+									<listOptionValue builtIn="false" value="sasTCLTools"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.854434047" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
