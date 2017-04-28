@@ -18,6 +18,7 @@ along with sasClient.  If not, see <http://www.gnu.org/licenses/>
 #include "include/sasClient/sasbinarydata.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 
 extern "C" SAS_CLIENT__FUNCTION sas_BinaryData SAS_CLIENT__CALL_CONVENTION sas_BinaryData_init(size_t size)
