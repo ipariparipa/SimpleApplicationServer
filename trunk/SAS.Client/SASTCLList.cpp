@@ -32,6 +32,16 @@ namespace SAS {
 
 		SASTCLList::SASTCLList(System::String ^ str) : priv(new SASTCLList_priv)
 		{
+			fromString(str);
+		}
+
+		SASTCLList::!SASTCLList()
+		{
+			delete priv;
+		}
+
+		bool SASTCLList::fromString(System::String ^ str)
+		{
 			priv->elements = gcnew System::Collections::Generic::List<System::String ^>();
 			int cnt(0);
 			bool escape_active(false);
@@ -57,7 +67,7 @@ namespace SAS {
 					str_tmp = System::String::Empty;
 					continue;
 				}
-					
+
 				if (ch == '}' && --cnt == 0)
 				{
 					priv->elements->Add(str_tmp);
@@ -70,11 +80,8 @@ namespace SAS {
 			}
 			if (!System::String::IsNullOrEmpty(str_tmp))
 				priv->elements->Add(str_tmp);
-		}
 
-		SASTCLList::!SASTCLList()
-		{
-			delete priv;
+			return cnt == 0;
 		}
 
 		//property 

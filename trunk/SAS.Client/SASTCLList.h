@@ -29,6 +29,8 @@ namespace SAS {
 			SASTCLList(System::String ^ str);
 			!SASTCLList();
 
+			bool fromString(System::String ^ str);
+
 			property System::Collections::Generic::List<System::String ^> ^ Elements { System::Collections::Generic::List<System::String ^> ^ get(); }
 
 			virtual System::String ^ ToString() override;
