@@ -80,7 +80,7 @@ namespace SAS {
 		return true;
 	}
 
-	bool TCLDataWriter::addBlobSetter(const std::string & blob_name, std::vector<char> & data, ErrorCollector & ec)
+	bool TCLDataWriter::addBlobSetter(const std::string & blob_name, const std::vector<char> & data, ErrorCollector & ec)
 	{
 		auto & in = priv->data;
 		auto & blob = data;

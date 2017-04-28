@@ -166,6 +166,11 @@ namespace SAS {
 		return null_value;
 	}
 
+	bool TCLList::getList(size_t idx, TCLList & ret) const
+	{
+		return ret.fromString(at(idx));
+	}
+
 	TCLList TCLList::getList(size_t idx) const
 	{
 		return TCLList(at(idx));

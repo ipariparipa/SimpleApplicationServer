@@ -37,7 +37,7 @@ namespace SAS {
 		~TCLDataWriter();
 
 		bool addScript(const std::string & script, ErrorCollector & ec);
-		bool addBlobSetter(const std::string & blob_name, std::vector<char> & data, ErrorCollector & ec);
+		bool addBlobSetter(const std::string & blob_name, const std::vector<char> & data, ErrorCollector & ec);
 		bool addBlobGetter(const std::string & blob_name, ErrorCollector & ec);
 		bool addBlobGetter(ErrorCollector & ec);
 		bool addBlobRemover(const std::string & blob_name, ErrorCollector & ec);
