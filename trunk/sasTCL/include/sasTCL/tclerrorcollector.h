@@ -22,7 +22,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/defines.h>
 #include <sasCore/errorcollector.h>
 
-#include "tcllist.h"
+#include "tcllisthandler.h"
 
 #include SAS_TCL__TCL_H
 
@@ -36,7 +36,7 @@ namespace SAS {
 		TCLErrorCollector(Tcl_Interp * interp);
 		virtual ~TCLErrorCollector();
 
-		TCLList errors() const;
+		TCLListHandler errors() const;
 
 	protected:
 		void append(long errorCode, const std::string & errorText);
