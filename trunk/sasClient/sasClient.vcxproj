@@ -51,12 +51,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SAS_CLIENT__IMPL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\sasCore\include\;..\sasBasics\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sasCore\include\;..\sasBasics\include\;..\sasTCLTools\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sasCored.lib;sasBasicsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sasCored.lib;sasBasicsd.lib;sasTCLToolsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -67,14 +67,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SAS_CLIENT__IMPL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\sasCore\include\;..\sasBasics\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sasCore\include\;..\sasBasics\include\;..\sasTCLTools\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sasCore.lib;sasBasics.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sasCore.lib;sasBasics.lib;sasTCLTools.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -89,6 +89,9 @@
     <ClInclude Include="include\sasClient\sasobjectregistry.h" />
     <ClInclude Include="include\sasClient\sasserver.h" />
     <ClInclude Include="include\sasClient\sasstring.h" />
+    <ClInclude Include="include\sasClient\sastcldatareader.h" />
+    <ClInclude Include="include\sasClient\sastcldatawriter.h" />
+    <ClInclude Include="include\sasClient\sastcllist.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sasapplication.cpp" />
@@ -100,6 +103,9 @@
     <ClCompile Include="sasobjectregistry.cpp" />
     <ClCompile Include="sasserver.cpp" />
     <ClCompile Include="sasstring.cpp" />
+    <ClCompile Include="sastcldatawriter.cpp" />
+    <ClCompile Include="sastcllist.cpp" />
+    <ClCompile Include="sastclreader.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
