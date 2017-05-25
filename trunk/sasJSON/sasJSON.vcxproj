@@ -79,12 +79,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\sasJSON\config.h" />
+    <ClInclude Include="include\sasJSON\jsonconfigreader.h" />
+    <ClInclude Include="include\sasJSON\jsondocument.h" />
+    <ClInclude Include="include\sasJSON\jsondocumentreader.h" />
     <ClInclude Include="include\sasJSON\jsonerrorcollector.h" />
     <ClInclude Include="include\sasJSON\jsoninvoker.h" />
+    <ClInclude Include="include\sasJSON\jsonreader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="jsonconfigreader.cpp" />
+    <ClCompile Include="jsondocumentreader.cpp" />
     <ClCompile Include="jsonerrorcollector.cpp" />
     <ClCompile Include="jsoninvoker.cpp" />
+    <ClCompile Include="jsonreader.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

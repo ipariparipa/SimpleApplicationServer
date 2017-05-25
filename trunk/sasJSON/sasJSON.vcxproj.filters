@@ -24,12 +24,33 @@
     <ClInclude Include="include\sasJSON\jsonerrorcollector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sasJSON\jsonconfigreader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sasJSON\jsonreader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sasJSON\jsondocumentreader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sasJSON\jsondocument.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jsoninvoker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="jsonerrorcollector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jsonconfigreader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jsonreader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jsondocumentreader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
