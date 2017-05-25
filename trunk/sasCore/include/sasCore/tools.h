@@ -28,6 +28,8 @@
 #endif
 
 #include <string>
+#include <list>
+#include <vector>
 
 namespace SAS  {
 
@@ -42,6 +44,29 @@ namespace SAS  {
 	extern SAS_CORE__FUNCTION bool win_getEnv(const std::string & name, std::string & ret);
 #endif
 
+	extern SAS_CORE__FUNCTION void str_split(const std::string & s, char delim, std::list<std::string> & elems);
+
+	extern SAS_CORE__FUNCTION std::list<std::string> str_split(const std::string & s, char delim);
+
+	template<typename std__container, typename delim_T = typename std__container::value_type::value_type>
+	void str_join(const std__container & elems, const delim_T & delim, typename std__container::value_type & s)
+	{
+		size_t i(0), l(elems.size());
+		for (auto & e : elems)
+		{
+			s += e;
+			if (i++ + 1 < l)
+				s += delim;
+		}
+	}
+
+	template<typename std__container, typename delim_T = typename std__container::value_type::value_type>
+	typename std__container::value_type str_join(const std__container & elems, const delim_T & delim)
+	{
+		std__container::value_type s;
+		str_join(elems, delim, s);
+		return s;
+	}
 }
 
 #endif // sasCore__tools_h

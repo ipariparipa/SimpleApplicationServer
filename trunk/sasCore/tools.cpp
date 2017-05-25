@@ -18,6 +18,7 @@
 #include "include/sasCore/tools.h"
 
 #include <vector>
+#include <sstream>
 
 namespace SAS {
 
@@ -63,5 +64,21 @@ namespace SAS {
 	}
 
 #endif
+
+	extern SAS_CORE__FUNCTION void str_split(const std::string & s, char delim, std::list<std::string> & elems)
+	{
+		std::stringstream ss;
+		ss.str(s);
+		std::string item;
+		while (std::getline(ss, item, delim))
+			elems.push_back(item);
+	}
+
+	extern SAS_CORE__FUNCTION std::list<std::string> str_split(const std::string & s, char delim)
+	{
+		std::list<std::string> elems;
+		str_split(s, delim, elems);
+		return elems;
+	}
 
 }
