@@ -61,7 +61,8 @@ namespace SAS {
 		const rapidjson::Value & getValue(const std::string & path) const
 		{
 			SAS_LOG_NDC();
-			auto & ret = _getValue(doc, str_split(path, '/'));
+			auto tmp = str_split(path, '/');
+			auto & ret = _getValue(doc, tmp);
 			return ret;
 		}
 	};

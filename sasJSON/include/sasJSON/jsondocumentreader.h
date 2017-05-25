@@ -37,4 +37,4 @@ namespace SAS {
 	};
 }
 
-#endif sasJSON__JSONDOCUMENTREADER_H_
+#endif // sasJSON__JSONDOCUMENTREADER_H_
