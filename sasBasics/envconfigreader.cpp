@@ -25,45 +25,9 @@
 
 namespace SAS {
 
-void split(const std::string & s, char delim, std::vector<std::string> & elems)
-{
-    std::stringstream ss;
-    ss.str(s);
-    std::string item;
-    while (std::getline(ss, item, delim))
-        elems.push_back(item);
-}
-
-
-std::vector<std::string> split(const std::string & s, char delim)
-{
-    std::vector<std::string> elems;
-    split(s, delim, elems);
-    return elems;
-}
-
-template<typename delim_T>
-void join(const std::vector<std::string> & elems, const delim_T & delim, std::string & s)
-{
-	for(size_t i = 0, l = elems.size(); i < l; ++i)
-	{
-		s += elems[i];
-		if(i + 1 < l)
-			s += delim;
-	}
-}
-
-template<typename delim_T>
-std::string join(const std::vector<std::string> & elems, const delim_T & delim)
-{
-	std::string s;
-	join<delim_T>(elems, delim, s);
-	return s;
-}
-
 std::string to_env(const std::string & path)
 {
-	return join(split(path, '/'), "__");
+	return str_join(str_split(path, '/'), "__");
 }
 
 EnvConfigReader::EnvConfigReader() : _logger(Logging::getLogger("SAS.EnvConfigurator"))
@@ -123,7 +87,10 @@ bool EnvConfigReader::getEntryAsStringList(const std::string & path, std::vector
 	std::string tmp;
 	if(!getEntryAsString(path, tmp, ec))
 		return false;
-	split(tmp, ';', ret);
+	std::list<std::string> tmp_ret;
+	str_split(tmp, ';', tmp_ret);
+	ret.resize(tmp_ret.size());
+	std::copy(tmp_ret.begin(), tmp_ret.end(), ret.begin());
 	return true;
 }
 
@@ -131,9 +98,12 @@ bool EnvConfigReader::getEntryAsStringList(const std::string & path, std::vector
 {
 	SAS_LOG_NDC();
 	std::string tmp;
-	if(!getEntryAsString(path, tmp, join(defaultValue, ';'), ec))
+	if (!getEntryAsString(path, tmp, str_join(defaultValue, ';'), ec))
 		return false;
-	split(tmp, ';', ret);
+	std::list<std::string> tmp_ret;
+	str_split(tmp, ';', tmp_ret);
+	ret.resize(tmp_ret.size());
+	std::copy(tmp_ret.begin(), tmp_ret.end(), ret.begin());
 	return true;
 }
 
