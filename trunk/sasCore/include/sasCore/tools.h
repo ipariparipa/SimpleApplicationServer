@@ -63,7 +63,7 @@ namespace SAS  {
 	template<typename std__container, typename delim_T = typename std__container::value_type::value_type>
 	typename std__container::value_type str_join(const std__container & elems, const delim_T & delim)
 	{
-		std__container::value_type s;
+		typename std__container::value_type s;
 		str_join(elems, delim, s);
 		return s;
 	}
