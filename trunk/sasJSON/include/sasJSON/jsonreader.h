@@ -58,4 +58,4 @@ namespace SAS {
 
 }
 
-#endif sasJSON__JSONREADER_H_
+#endif // sasJSON__JSONREADER_H_
