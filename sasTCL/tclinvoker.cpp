@@ -21,6 +21,7 @@ along with sasTCLClient.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/thread.h>
 
 #include "include/sasTCL/tcllisthandler.h"
+#include "include/sasTCL/tclexecutor.h"
 
 #include <memory>
 #include <mutex>
@@ -35,133 +36,21 @@ namespace SAS {
 
 	struct TCLInvoker_priv
 	{
-		TCLInvoker_priv(TCLInvoker * obj_, const std::string & name_, Tcl_Interp * interp_ = nullptr) :
-			obj(obj_), name(name_), exec(interp_, this), 
+		TCLInvoker_priv(TCLInvoker * obj_, const std::string & name_, Tcl_Interp * interp_) :
+			obj(obj_), name(name_), exec(name_, interp_), 
 			logger(Logging::getLogger("SAS.TCLInvoker."+name_))
+		{ }
+
+		TCLInvoker_priv(TCLInvoker * obj_, const std::string & name_) :
+			obj(obj_), name(name_), exec(name_, obj_),
+			logger(Logging::getLogger("SAS.TCLInvoker." + name_))
 		{ }
 
 
 		TCLInvoker * obj;
 		std::string name;
 
-		struct Executor_thread : public Thread
-		{
-			Executor_thread(Tcl_Interp * interp_, TCLInvoker_priv * priv_) : interp(interp_), priv(priv_)
-			{
-			}
-
-			virtual ~Executor_thread()
-			{
-				stop();
-				wait();
-			}
-
-			struct Run
-			{
-				Run() : ec(nullptr), isOK(false)
-				{ }
-
-				ErrorCollector * ec;
-				std::string script;
-				std::string result;
-				bool isOK;
-			} *current_run = nullptr;
-
-			void run(Run * run)
-			{
-				std::unique_lock<std::mutex> __waiter_locker(wait_mut);
-				{
-					std::lock_guard<std::mutex> __susp_locker(susp_mut);
-					current_run = run;
-					susp_cv.notify_one();
-				}
-				wait_cv.wait(__waiter_locker);
-			}
-			virtual bool start() override
-			{
-				std::unique_lock<std::mutex> __run_locker(run_mut);
-				if (!Thread::start())
-					return false;
-				run_cv.wait(__run_locker);
-				return true;
-			}
-
-			virtual void stop() override
-			{
-				Thread::stop();
-				std::lock_guard<std::mutex> __susp_locker(susp_mut);
-				susp_cv.notify_one();
-			}
-
-			virtual void execute() override
-			{
-				Tcl_Interp * _my_interp = nullptr;
-				if (!interp)
-				{
-					SAS_LOG_NDC();
-					SAS_LOG_TRACE(priv->logger, "Tcl_CreateInterp");
-					interp = _my_interp = Tcl_CreateInterp();
-				}
-
-				priv->obj->init(interp);
-
-				while (true)
-				{
-					std::unique_lock<std::mutex> __run_locker(run_mut);
-					std::unique_lock<std::mutex> __susp_locker(susp_mut);
-					__run_locker.unlock();
-					run_cv.notify_one();
-					susp_cv.wait(__susp_locker);
-					if (status() == Thread::Status::Stopped)
-						break;
-					std::lock_guard<std::mutex> __wait_locker(wait_mut);
-
-					if (current_run)
-					{
-						SAS_LOG_TRACE(priv->logger, "Tcl_GlobalEval");
-
-						if (Tcl_GlobalEval(interp, current_run->script.c_str()) == TCL_ERROR)
-						{
-							TCLListHandler lst(interp, Tcl_GetObjResult(interp));
-
-							for (int i(0), l(lst.length()); i < l; ++i)
-							{
-								auto err = lst.getList(i);
-								if (err.length() == 2)
-									current_run->ec->add(std::stol(err[0]), err[1]);
-								else
-								{
-									current_run->ec->add(-1, "could not run script: '"+lst.toString()+"'");
-									break;
-								}
-							}
-							current_run->isOK = false;
-						}
-						else
-						{
-							std::string res;
-							current_run->result = Tcl_GetStringResult(interp);
-							current_run->isOK = true;
-						}
-					}
-					current_run = nullptr;
-					wait_cv.notify_one();
-				}
-
-
-				if (_my_interp)
-				{
-					SAS_LOG_TRACE(priv->logger, "Tcl_DeleteInterp");
-					Tcl_DeleteInterp(interp);
-				}
-			}
-
-			std::mutex susp_mut, wait_mut, run_mut;
-			std::condition_variable susp_cv, wait_cv, run_cv;
-
-			Tcl_Interp * interp;
-			TCLInvoker_priv * priv;
-		} exec;
+		TCLExecutor exec;
 
 		std::mutex mut;
 		Logging::LoggerPtr logger;
@@ -282,10 +171,8 @@ namespace SAS {
 
 	inline void TCLInvoker::init(Tcl_Interp *interp)
 	{ 
-		//TODO: add embedded TCL functions (pl. blob handling)
+		//TODO: add embedded TCL functions (e.g. blob handling)
 	}
-
-//	Tcl_Interp * TCLInvoker::interp() const { return priv->interp; }
 
 	TCLInvoker::Status TCLInvoker::invoke(const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec)
 	{
@@ -338,7 +225,7 @@ namespace SAS {
 
 				if (format == "TCLS")
 				{
-					TCLInvoker_priv::Executor_thread::Run run;
+					TCLExecutor::Run run;
 					run.ec = &ec;
 					run.script.append(in_data, data_size);
 					in_data += data_size; in_size -= data_size;

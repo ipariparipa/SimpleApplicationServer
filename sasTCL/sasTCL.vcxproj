@@ -51,12 +51,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SAS_TCL__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\sasCore\include\;..\windeps\TCL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sasCore\include\;..\windeps\log4cxx\log4cxx\src\main\include\;..\windeps\TCL\include\;..\sasTCLTools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir);..\windeps\TCL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libtcl86.a;sasCored.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libtcl86.a;sasCored.lib;sasTCLToolsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -66,25 +66,30 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\sasCore\include\;..\windeps\log4cxx\log4cxx\src\main\include\;..\windeps\TCL\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sasCore\include\;..\windeps\log4cxx\log4cxx\src\main\include\;..\windeps\TCL\include\;..\sasTCLTools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SAS_TCL__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libtcl86.a;sasCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libtcl86.a;sasCore.lib;sasTCLTools.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\windeps\TCL\lib;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\sasTCL\config.h" />
+    <ClInclude Include="include\sasTCL\tclconfigreader.h" />
     <ClInclude Include="include\sasTCL\tclerrorcollector.h" />
+    <ClInclude Include="include\sasTCL\tclinterpinitilizer.h" />
     <ClInclude Include="include\sasTCL\tclinvoker.h" />
     <ClInclude Include="include\sasTCL\tcllisthandler.h" />
+    <ClInclude Include="include\sasTCL\tclexecutor.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="tclconfigreader.cpp" />
     <ClCompile Include="tclerrorcollector.cpp" />
+    <ClCompile Include="tclexecutor.cpp" />
     <ClCompile Include="tclinvoker.cpp" />
     <ClCompile Include="tcllisthandler.cpp" />
   </ItemGroup>
