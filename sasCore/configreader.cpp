@@ -82,18 +82,18 @@ namespace SAS {
 		std::string tmp;
 		if(!getEntryAsString(path, tmp, ec))
 			return false;
-		ret = std::stoll(tmp);
-		return true;
+		return toNumber(tmp, ret, ec);
 	}
 
 	bool ConfigReader::getNumberEntry(const std::string & path, long long & ret, long long defaultvalue, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-		std::string tmp;
-		if(!getEntryAsString(path, tmp, std::to_string(defaultvalue), ec))
+		std::string tmp, tmp_dv;
+		if (!toString(defaultvalue, tmp_dv, ec))
 			return false;
-		ret = std::stoll(tmp);
-		return true;
+		if(!getEntryAsString(path, tmp, tmp_dv, ec))
+			return false;
+		return toNumber(tmp, ret, ec);
 	}
 
 	bool ConfigReader::getBoolEntry(const std::string & path, bool & ret, ErrorCollector & ec)
@@ -102,19 +102,42 @@ namespace SAS {
 		std::string tmp;
 		if(!getEntryAsString(path, tmp, ec))
 			return false;
-		ret = tmp == "true" || std::stol(tmp);
-		return true;
+		return toBool(tmp, ret, ec);
 	}
 
 	bool ConfigReader::getBoolEntry(const std::string & path, bool & ret, bool defaultvalue, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-		std::string tmp;
-		if(!getEntryAsString(path, tmp, defaultvalue ? "true" : "false", ec))
+		std::string tmp, tmp_dv;
+		if (!toString(defaultvalue, tmp_dv, ec))
 			return false;
-		ret = tmp == "true" || std::stol(tmp);
+		if(!getEntryAsString(path, tmp, tmp_dv, ec))
+			return false;
+		return toBool(tmp, ret, ec);
+	}
+
+	bool ConfigReader::toBool(const std::string & str, bool & ret, ErrorCollector & ec) const
+	{
+		ret = str == "true" || std::stol(str);
 		return true;
 	}
 
+	bool ConfigReader::toNumber(const std::string & str, long long & ret, ErrorCollector & ec) const
+	{
+		ret = std::stoll(str);
+		return true;
+	}
+
+	bool ConfigReader::toString(bool v, std::string & ret, ErrorCollector & ec) const
+	{
+		ret = v ? "true" : "false";
+		return true;
+	}
+
+	bool ConfigReader::toString(long long v, std::string & ret, ErrorCollector & ec) const
+	{
+		ret = std::to_string(v);
+		return true;
+	}
 
 }

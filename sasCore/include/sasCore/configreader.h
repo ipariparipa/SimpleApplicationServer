@@ -50,7 +50,12 @@ namespace SAS
 
 		virtual bool getBoolEntry(const std::string & path, bool & ret, ErrorCollector & ec);
 		virtual bool getBoolEntry(const std::string & path, bool & ret, bool defaultvalue, ErrorCollector & ec);
-};
+	protected:
+		virtual bool toBool(const std::string & str, bool & ret, ErrorCollector & ec) const;
+		virtual bool toNumber(const std::string & str, long long & ret, ErrorCollector & ec) const;
+		virtual bool toString(bool v, std::string & ret, ErrorCollector & ec) const;
+		virtual bool toString(long long v, std::string & ret, ErrorCollector & ec) const;
+	};
 
 }
 
