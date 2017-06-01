@@ -27,6 +27,15 @@
     <ClInclude Include="include\sasTCL\tcllisthandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sasTCL\tclexecutor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sasTCL\tclconfigreader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sasTCL\tclinterpinitilizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="tclinvoker.cpp">
@@ -36,6 +45,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tcllisthandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tclexecutor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tclconfigreader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

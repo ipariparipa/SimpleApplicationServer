@@ -20,6 +20,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 #include "config.h"
 #include <sasCore/invoker.h>
+#include "tclinterpinitilizer.h"
 #include SAS_TCL__TCL_H
 
 #include <string>
@@ -27,7 +28,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 namespace SAS {
 
 	struct TCLInvoker_priv;
-	class SAS_TCL__CLASS TCLInvoker : public Invoker
+	class SAS_TCL__CLASS TCLInvoker : public Invoker, protected TCLInterpInitializer
 	{
 		friend struct TCLInvoker_priv;
 
@@ -61,7 +62,7 @@ namespace SAS {
 		BlobHandler * blobHandler() const;
 
 	protected:
-		virtual void init(Tcl_Interp *interp);
+		virtual void init(Tcl_Interp *interp) override;
 
 		virtual BlobHandler * createBlobHandler() const;
 
