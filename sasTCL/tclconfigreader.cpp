@@ -36,6 +36,8 @@ namespace SAS {
 			exec("TCLConfigReader", this)
 		{ }
 
+		virtual ~TCLConfigReader_priv() { }
+
 		Logging::LoggerPtr logger;
 		TCLExecutor exec;
 
