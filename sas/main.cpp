@@ -19,6 +19,7 @@
 #include <sasCore/errorcollector.h>
 #include <sasBasics/streamerrorcollector.h>
 #include "sasserver.h"
+#include "version.h"
 
 #include <sasCore/module.h>
 #include <sasCore/session.h>
@@ -27,16 +28,79 @@
 #include <thread>
 #include <iostream>
 #include <sstream>
+#include <fstream>
+
+void writeVersion(std::ostream & os)
+{
+	os << "Version: " << SAS_SERVER_VERSION << std::endl;
+}
+
+void writeHelp(std::ostream & os)
+{
+	writeVersion(os);
+	os << std::endl;
+	os << "Error Handling Options:" << std::endl;
+	os << "\t-ec-stdout" << std::endl;
+	os << "\t-ec-stderr" << std::endl;
+	os << std::endl;
+	SAS::Logging::writeUsage(os);
+}
 
 int main(int argc, char * argv[])
 {
+	std::ostream * err_os = &std::cerr;
+	enum class CLA_Status
+	{
+		None,
+		ECFile
+	} cla_status = CLA_Status::None;
+	bool has_error(false);
+	std::ofstream ec_file_os;
 	for(int i(0); i < argc; ++i)
 	{
-		if(std::string(argv[i]) == "--help")
-			SAS::Logging::writeUsage(std::cout);
+		std::string _argv = argv[i];
+		switch (cla_status)
+		{
+		case CLA_Status::None:
+			if (_argv == "--help")
+			{
+				writeHelp(std::cout);
+				return 0;
+			}
+			else if (_argv == "--version")
+			{
+				writeVersion(std::cout);
+				return 0;
+			}
+			else if (_argv == "-ec-stdout")
+				err_os = &std::cout;
+			else if (_argv == "-ec-stderr")
+				err_os = &std::cerr;
+			else if (_argv == "-ec-file")
+				cla_status = CLA_Status::ECFile;
+			else
+			{
+				std::cerr << "invalid command line argument: " << _argv << std::endl;
+				has_error = true;
+			}
+			break;
+		case CLA_Status::ECFile:
+			cla_status = CLA_Status::None;
+			ec_file_os.open(_argv, std::ios::app);
+			if (ec_file_os.fail())
+			{
+				std::cerr << "could not open file '" << _argv << "' to collect errors" << std::endl;
+				return 1;
+			}
+			err_os = &ec_file_os;
+			break;
+		}
 	}
 
-	SAS::StreamErrorCollector<> ec(std::cerr);
+	if (has_error)
+		return 1;
+
+	SAS::StreamErrorCollector<> ec(*err_os);
 
 	SAS::Logging::init(argc, argv, ec);
 
