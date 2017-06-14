@@ -18,6 +18,7 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 #include "SASTCLDataWriter.h"
 #include "SASErrorCollector.h"
 #include "SASBinData.h"
+#include "errorcodes.h"
 
 #include <msclr/gcroot.h>
 
@@ -75,7 +76,7 @@ namespace SAS {
 				break;
 			}
 			default:
-				ec->Add(-1, System::String::Format("unsupported data version: {0}", priv->ver));
+				ec->Add(SAS_CLIENT__ERROR__TCL_DATA_WRITER__UNSUPPORTED_VERSION, System::String::Format("unsupported data version: {0}", priv->ver));
 				return false;
 			}
 			return true;
@@ -112,7 +113,7 @@ namespace SAS {
 				break;
 			}
 			default:
-				ec->Add(-1, System::String::Format("unsupported data version: {0}", priv->ver));
+				ec->Add(SAS_CLIENT__ERROR__TCL_DATA_WRITER__UNSUPPORTED_VERSION, System::String::Format("unsupported data version: {0}", priv->ver));
 				return false;
 			}
 			return true;
@@ -150,7 +151,7 @@ namespace SAS {
 				break;
 			}
 			default:
-				ec->Add(-1, System::String::Format("unsupported data version: {0}", priv->ver));
+				ec->Add(SAS_CLIENT__ERROR__TCL_DATA_WRITER__UNSUPPORTED_VERSION, System::String::Format("unsupported data version: {0}", priv->ver));
 				return false;
 			}
 			return true;
@@ -188,7 +189,7 @@ namespace SAS {
 				break;
 			}
 			default:
-				ec->Add(-1, System::String::Format("unsupported data version: {0}", priv->ver));
+				ec->Add(SAS_CLIENT__ERROR__TCL_DATA_WRITER__UNSUPPORTED_VERSION, System::String::Format("unsupported data version: {0}", priv->ver));
 				return false;
 			}
 			return true;

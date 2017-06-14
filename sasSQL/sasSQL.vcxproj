@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sasSQL\config.h" />
+    <ClInclude Include="include\sasSQL\errorcodes.h" />
     <ClInclude Include="include\sasSQL\sqlconnector.h" />
     <ClInclude Include="include\sasSQL\sqldatetime.h" />
     <ClInclude Include="include\sasSQL\sqlresult.h" />

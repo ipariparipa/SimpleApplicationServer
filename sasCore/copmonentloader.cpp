@@ -19,12 +19,14 @@
 #include "include/sasCore/componentloader.h"
 #include "include/sasCore/libraryloader.h"
 #include "include/sasCore/errorcollector.h"
+#include "include/sasCore/errorcodes.h"
+#include "include/sasCore/logging.h"
 
 namespace SAS {
 
 	struct ComponentLoader_priv
 	{
-		ComponentLoader_priv() : comp(nullptr), attacher(nullptr), detacher(nullptr)
+		ComponentLoader_priv() : comp(nullptr), attacher(nullptr), detacher(nullptr), logger(Logging::getLogger("SAS.ComponentLoader"))
 		{ }
 
 		std::string filename;
@@ -36,6 +38,8 @@ namespace SAS {
 
 		attacher_T attacher;
 		detacher_T detacher;
+
+		Logging::LoggerPtr logger;
 	};
 
 	ComponentLoader::ComponentLoader(const std::string & filename) : priv(new ComponentLoader_priv)
@@ -56,6 +60,8 @@ namespace SAS {
 
 	bool ComponentLoader::load(ErrorCollector & ec)
 	{
+		SAS_LOG_NDC();
+		SAS_LOG_VAR(priv->logger, priv->filename);
 		if(!priv->loader.load(priv->filename, ec))
 			return false;
 		bool has_error(false);
@@ -68,7 +74,8 @@ namespace SAS {
 
 		if(!(priv->comp = priv->attacher()))
 		{
-			ec.add(-1, "unable to get entrance object of the component '" + priv->filename + "'");
+			auto err = ec.add(SAS_CORE__ERROR__COMPONENT_LOADER__NO_ENTRANCE, "unable to get entrance object of the component '" + priv->filename + "'");
+			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
 

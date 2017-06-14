@@ -18,6 +18,7 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 #include "SASTCLDataReader.h"
 #include "SASErrorCollector.h"
 #include "SASBinData.h"
+#include "errorcodes.h"
 
 #include <msclr/gcroot.h>
 
@@ -60,7 +61,7 @@ namespace SAS {
 			size_t out_size = out.size();
 			if (out_size < sizeof(uint16_t))
 			{
-				ec->Add(-1, "missing data version");
+				ec->Add(SAS_CLIENT__ERROR__TCL_DATA_READER__INVALID_DATA, "missing data version");
 				return false;
 			}
 			const char * out_data = out.data();
@@ -76,7 +77,7 @@ namespace SAS {
 				{
 					if (out_size < 4 + sizeof(uint32_t))
 					{
-						ec->Add(-1, "missing or invalid data header");
+						ec->Add(SAS_CLIENT__ERROR__TCL_DATA_READER__INVALID_DATA, "missing or invalid data header");
 						return false;
 					}
 					std::string format;
@@ -88,7 +89,7 @@ namespace SAS {
 					out_data += sizeof(uint32_t); out_size -= sizeof(uint32_t);
 					if (out_size < data_size)
 					{
-						ec->Add(-1, System::String::Format("invalid size information in data header: '{0}'", data_size));
+						ec->Add(SAS_CLIENT__ERROR__TCL_DATA_READER__INVALID_DATA, System::String::Format("invalid size information in data header: '{0}'", data_size));
 						return false;
 					}
 
@@ -103,7 +104,7 @@ namespace SAS {
 					{
 						if (data_size < sizeof(uint32_t))
 						{
-							ec->Add(-1, "BLOB: missing size information for blob name");
+							ec->Add(SAS_CLIENT__ERROR__TCL_DATA_READER__INVALID_DATA, "BLOB: missing size information for blob name");
 							return false;
 						}
 
@@ -113,7 +114,7 @@ namespace SAS {
 
 						if (data_size < name_size)
 						{
-							ec->Add(-1, "BLOB: missing blob name");
+							ec->Add(SAS_CLIENT__ERROR__TCL_DATA_READER__INVALID_DATA, "BLOB: missing blob name");
 							return false;
 						}
 
@@ -122,7 +123,7 @@ namespace SAS {
 						out_data += name_size; out_size -= name_size; data_size -= name_size;
 						if (!name.length())
 						{
-							ec->Add(-1, "BLOB: blob name is not specified");
+							ec->Add(SAS_CLIENT__ERROR__TCL_DATA_READER__INVALID_DATA, "BLOB: blob name is not specified");
 							return false;
 						}
 						std::vector<char> blob(data_size);
@@ -139,7 +140,7 @@ namespace SAS {
 				break;
 			}
 			default:
-				ec->Add(-1, System::String::Format("unsupported data version: {0}", version));
+				ec->Add(SAS_CLIENT__ERROR__TCL_DATA_READER__UNSUPPORTED_VERSION, System::String::Format("unsupported data version: {0}", version));
 				return false;
 			}
 			return true;

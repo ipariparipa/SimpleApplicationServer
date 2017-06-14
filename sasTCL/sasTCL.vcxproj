@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\sasTCL\config.h" />
+    <ClInclude Include="include\sasTCL\errorcodes.h" />
     <ClInclude Include="include\sasTCL\tclconfigreader.h" />
     <ClInclude Include="include\sasTCL\tclerrorcollector.h" />
     <ClInclude Include="include\sasTCL\tclinterpinitilizer.h" />

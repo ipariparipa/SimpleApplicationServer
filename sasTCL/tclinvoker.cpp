@@ -22,6 +22,7 @@ along with sasTCLClient.  If not, see <http://www.gnu.org/licenses/>
 
 #include "include/sasTCL/tcllisthandler.h"
 #include "include/sasTCL/tclexecutor.h"
+#include "include/sasTCL/errorcodes.h"
 
 #include <memory>
 #include <mutex>
@@ -103,7 +104,7 @@ namespace SAS {
 				SAS_LOG_TRACE(logger, "get blob '" + name + "'");
 				if (!blobs.count(name))
 				{
-					auto err = ec.add(-1, "blob '" + name + "' is not found");
+					auto err = ec.add(SAS_TCL__ERROR__BLOB_HANDLER__NOT_FOUND, "blob '" + name + "' is not found");
 					SAS_LOG_ERROR(logger, err);
 					return false;
 				}
@@ -183,7 +184,7 @@ namespace SAS {
 		size_t in_size = input.size();
 		if (in_size < sizeof(uint16_t))
 		{
-			auto err = ec.add(-1, "missing data version");
+			auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "missing data version");
 			SAS_LOG_ERROR(priv->logger, err);
 			return TCLInvoker::Status::Error;
 		}
@@ -203,7 +204,7 @@ namespace SAS {
 			{
 				if (in_size < 4 + sizeof(uint32_t))
 				{
-					auto err = ec.add(-1, "missing or invalid data header");
+					auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "missing or invalid data header");
 					SAS_LOG_ERROR(priv->logger, err);
 					return TCLInvoker::Status::Error;
 				}
@@ -216,7 +217,7 @@ namespace SAS {
 				in_data += sizeof(uint32_t); in_size -= sizeof(uint32_t);
 				if (in_size < data_size)
 				{
-					auto err = ec.add(-1, "invalid size information in data header: '"+std::to_string(data_size)+"'");
+					auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "invalid size information in data header: '" + std::to_string(data_size) + "'");
 					SAS_LOG_ERROR(priv->logger, err);
 					return TCLInvoker::Status::Error;
 				}
@@ -262,7 +263,7 @@ namespace SAS {
 					std::unique_lock<BlobHandler> __blob_locler(*priv->blobHandler);
 					if (data_size < sizeof(uint32_t))
 					{
-						auto err = ec.add(-1, "BADD: missing size information in for blob name");
+						auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "BADD: missing size information in for blob name");
 						SAS_LOG_ERROR(priv->logger, err);
 						return TCLInvoker::Status::Error;
 					}
@@ -273,7 +274,7 @@ namespace SAS {
 
 					if (data_size < name_size)
 					{
-						auto err = ec.add(-1, "BADD: missing blob name");
+						auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "BADD: missing blob name");
 						SAS_LOG_ERROR(priv->logger, err);
 						return TCLInvoker::Status::Error;
 					}
@@ -284,7 +285,7 @@ namespace SAS {
 					SAS_LOG_VAR(priv->logger, name);
 					if (!name.length())
 					{
-						auto err = ec.add(-1, "BADD: blob name is not specified");
+						auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "BADD: blob name is not specified");
 						SAS_LOG_ERROR(priv->logger, err);
 						return TCLInvoker::Status::Error;
 					}
@@ -297,7 +298,7 @@ namespace SAS {
 					std::unique_lock<BlobHandler> __blob_locler(*priv->blobHandler);
 					if (data_size < sizeof(uint16_t))
 					{
-						auto err = ec.add(-1, "BREM: missing size information in for blob name");
+						auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "BREM: missing size information in for blob name");
 						SAS_LOG_ERROR(priv->logger, err);
 						return TCLInvoker::Status::Error;
 					}
@@ -307,7 +308,7 @@ namespace SAS {
 
 					if (data_size < name_size)
 					{
-						auto err = ec.add(-1, "BADD: missing blob name");
+						auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "BADD: missing blob name");
 						SAS_LOG_ERROR(priv->logger, err);
 						return TCLInvoker::Status::Error;
 					}
@@ -327,7 +328,7 @@ namespace SAS {
 					std::unique_lock<BlobHandler> __blob_locler(*priv->blobHandler);
 					if (data_size < sizeof(uint16_t))
 					{
-						auto err = ec.add(-1, "BGET: missing size information in for blob name");
+						auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "BGET: missing size information in for blob name");
 						SAS_LOG_ERROR(priv->logger, err);
 						return TCLInvoker::Status::Error;
 					}
@@ -337,7 +338,7 @@ namespace SAS {
 
 					if (data_size < name_size)
 					{
-						auto err = ec.add(-1, "BADD: missing blob name");
+						auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "BADD: missing blob name");
 						SAS_LOG_ERROR(priv->logger, err);
 						return TCLInvoker::Status::Error;
 					}
@@ -385,7 +386,7 @@ namespace SAS {
 		}
 		default:
 		{
-			auto err = ec.add(-1, "unsupported data version: '" +std::to_string(version)+ "'");
+			auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "unsupported data version: '" + std::to_string(version) + "'");
 			SAS_LOG_ERROR(priv->logger, err);
 			return TCLInvoker::Status::NotImplemented;
 		}

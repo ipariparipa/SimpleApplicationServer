@@ -16,6 +16,7 @@
  */
 
 #include "include/sasBasics/logging.h"
+#include "include/sasBasics/errorcodes.h"
 
 #include <sasCore/errorcollector.h>
 
@@ -147,7 +148,7 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
 		logging->fs.open(filename, std::ios::out | std::ios_base::app);
 		if(logging->fs.fail())
 		{
-			ec.add(-1, "could not open log file.");
+			ec.add(SAS_BASICS__ERROR__LOGGING__CANNOT_OPEN_LOGFILE, "could not open log file.");
 			return false;
 		}
 		setLogging(logging);
@@ -161,7 +162,7 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
 
 extern SAS_BASICS__FUNCTION void writeUsage(std::ostream & os)
 {
-	os << "Logging options:" << std::endl;
+	os << "Logging Options:" << std::endl;
 #ifdef SAS_LOG4CXX_ENABLED
 	os << "\t-log4cxx-xml-config <xml_file>" << std::endl;
 	os << "\t-log4cxx-property-config <property_file>" << std::endl;

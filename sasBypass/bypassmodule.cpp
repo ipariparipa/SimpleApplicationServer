@@ -25,6 +25,7 @@
 #include <sasCore/application.h>
 #include <sasCore/errorcollector.h>
 #include <sasCore/connector.h>
+#include <sasCore/errorcodes.h>
 
 #include <map>
 #include <mutex>
@@ -136,7 +137,7 @@ namespace SAS {
 		std::string connector_name;
 		if (!app->configReader()->getStringEntry(config_path + "/CONNECTOR", connector_name, ec))
 		{
-			auto err = ec.add(-1, "connector is not specified for bypass module '"+priv->name+"'");
+			auto err = ec.add(SAS_CORE__ERROR__MODULE__MISSING_CONFIG_ENTRY, "connector is not specified for bypass module '" + priv->name + "'");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}

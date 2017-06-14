@@ -17,6 +17,7 @@
 
 #include "corbaconnector.h"
 #include <sasCore/logging.h>
+#include <sasCore/errorcodes.h>
 
 #include <omniORB4/CORBA.h>
 
@@ -95,37 +96,37 @@ namespace SAS {
 			{
 				_corba_sas_module->getSession(_sessionId, CORBA::string_dup(_module.c_str()));
 			}
-			catch (CORBA::COMM_FAILURE & ex)
-			{
-				auto err = ec.add(-1, "Caught a CORBA::COMM_FAILURE while using the naming service.");
-				SAS_LOG_DEBUG(_logger, err);
-				CorbaTools::logException(_logger, ex);
-				return false;
-			}
 			catch (CorbaSAS::ErrorHandling::ErrorException & ex)
 			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::ErrorException while using the naming service.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER__ERROR, "Caught a CorbaSAS::ErrorHandling::ErrorException");
 				SAS_LOG_DEBUG(_logger, err);
 				CorbaTools::logException(_logger, ex, ec);
 				return false;
 			}
 			catch (CorbaSAS::ErrorHandling::FatalErrorException & ex)
 			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::FatalErrorException while using the naming service.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER__FATAL_ERROR, "Caught a CorbaSAS::ErrorHandling::FatalErrorException");
 				SAS_LOG_DEBUG(_logger, err);
 				CorbaTools::logException(_logger, ex, ec);
 				return false;
 			}
 			catch (CorbaSAS::ErrorHandling::NotImplementedException & ex)
 			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::NotImplementedException.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER__NOT_IMPLEMENTED, "Caught a CorbaSAS::ErrorHandling::NotImplementedException");
 				SAS_LOG_DEBUG(_logger, err);
 				CorbaTools::logException(_logger, ex, ec);
 				return false;
 			}
+			catch (CORBA::COMM_FAILURE & ex)
+			{
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__COMMUNICATION_FAILURE, "Caught a CORBA::COMM_FAILURE");
+				SAS_LOG_DEBUG(_logger, err);
+				CorbaTools::logException(_logger, ex);
+				return false;
+			}
 			catch (CORBA::SystemException & ex)
 			{
-				auto err = ec.add(-1, "Caught a CORBA::SystemException.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CORBA::SystemException.");
 				SAS_LOG_ERROR(_logger, err);
 				CorbaTools::logException(_logger, ex);
 
@@ -137,21 +138,21 @@ namespace SAS {
 			}
 			catch (CORBA::Exception & ex)
 			{
-				auto err = ec.add(-1, "Caught a CORBA::Exception.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CORBA::Exception.");
 				SAS_LOG_ERROR(_logger, err);
 				CorbaTools::logException(_logger, ex);
 				return false;
 			}
 			catch (omniORB::fatalException & ex)
 			{
-				auto err = ec.add(-1, "Caught omniORB::fatalException");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught omniORB::fatalException");
 				SAS_LOG_FATAL(_logger, err);
 				CorbaTools::logException(_logger, ex);
 				return false;
 			}
 			catch (...)
 			{
-				auto err = ec.add(-1, "Caught an unknown exception.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught an unknown exception.");
 				SAS_LOG_FATAL(_logger, err);
 				return false;
 			}
@@ -177,37 +178,37 @@ namespace SAS {
 					CorbaTools::toOctetSequence_var(input), out);
 				output = CorbaTools::toByteArray(out);
 			}
-			catch (CORBA::COMM_FAILURE & ex)
-			{
-				auto err = ec.add(-1, "Caught a CORBA::COMM_FAILURE while using the naming service.");
-				SAS_LOG_DEBUG(_logger, err);
-				CorbaTools::logException(_logger, ex);
-				return Status::Error;
-			}
 			catch (CorbaSAS::ErrorHandling::ErrorException & ex)
 			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::ErrorException while using the naming service.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER__ERROR, "Caught a CorbaSAS::ErrorHandling::ErrorException");
 				SAS_LOG_DEBUG(_logger, err);
 				CorbaTools::logException(_logger, ex, ec);
 				return Status::Error;
 			}
 			catch (CorbaSAS::ErrorHandling::FatalErrorException & ex)
 			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::FatalErrorException while using the naming service.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER__FATAL_ERROR, "Caught a CorbaSAS::ErrorHandling::FatalErrorException");
 				SAS_LOG_DEBUG(_logger, err);
 				CorbaTools::logException(_logger, ex, ec);
 				return Status::FatalError;
 			}
 			catch (CorbaSAS::ErrorHandling::NotImplementedException & ex)
 			{
-				auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::NotImplementedException.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER__NOT_IMPLEMENTED, "Caught a CorbaSAS::ErrorHandling::NotImplementedException");
 				SAS_LOG_DEBUG(_logger, err);
 				CorbaTools::logException(_logger, ex, ec);
 				return Status::NotImplemented;
 			}
+			catch (CORBA::COMM_FAILURE & ex)
+			{
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__COMMUNICATION_FAILURE, "Caught a CORBA::COMM_FAILURE while using the naming service.");
+				SAS_LOG_DEBUG(_logger, err);
+				CorbaTools::logException(_logger, ex);
+				return Status::Error;
+			}
 			catch (CORBA::SystemException & ex)
 			{
-				auto err = ec.add(-1, "Caught a CORBA::SystemException.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CORBA::SystemException.");
 				SAS_LOG_ERROR(_logger, err);
 				CorbaTools::logException(_logger, ex);
 
@@ -219,21 +220,21 @@ namespace SAS {
 			}
 			catch (CORBA::Exception & ex)
 			{
-				auto err = ec.add(-1, "Caught a CORBA::Exception.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CORBA::Exception.");
 				SAS_LOG_ERROR(_logger, err);
 				CorbaTools::logException(_logger, ex);
 				return Status::FatalError;
 			}
 			catch (omniORB::fatalException & ex)
 			{
-				auto err = ec.add(-1, "Caught omniORB::fatalException");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught omniORB::fatalException");
 				SAS_LOG_FATAL(_logger, err);
 				CorbaTools::logException(_logger, ex);
 				return Status::FatalError;
 			}
 			catch (...)
 			{
-				auto err = ec.add(-1, "Caught an unknown exception.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught an unknown exception.");
 				SAS_LOG_FATAL(_logger, err);
 				return Status::FatalError;
 			}
@@ -313,7 +314,7 @@ namespace SAS {
 			rootContext = CosNaming::NamingContext::_narrow(obj);
 			if( CORBA::is_nil(rootContext) )
 			{
-				auto err = ec.add(-1, "Failed to narrow the root naming context.");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER_NOT_FOUND, "Failed to narrow the root naming context.");
 				SAS_LOG_ERROR(logger, err);
 				return CORBA::Object::_nil();
 			}
@@ -321,35 +322,35 @@ namespace SAS {
 		catch(CORBA::ORB::InvalidName & ex)
 		{
 			// This should not happen!
-			auto err = ec.add(-1, "Service required is invalid [does not exist].");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER_NOT_FOUND, "Service required is invalid [does not exist].");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 			return CORBA::Object::_nil();
 		}
 		catch (CORBA::SystemException & ex)
 		{
-			auto err = ec.add(-1, "Corba::SystemException");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Corba::SystemException");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 			return CORBA::Object::_nil();
 		}
 		catch (CORBA::Exception & ex)
 		{
-			auto err = ec.add(-1, "Corba::System");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Corba::System");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 			return CORBA::Object::_nil();
 		}
 		catch (omniORB::fatalException & ex)
 		{
-			auto err = ec.add(-1, "omniORB::fatalException");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "omniORB::fatalException");
 			SAS_LOG_FATAL(logger, err);
 			CorbaTools::logException(logger, ex);
 			return CORBA::Object::_nil();
 		}
 		catch (...)
 		{
-			auto err = ec.add(-1, "unknown exception");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "unknown exception");
 			SAS_LOG_FATAL(logger, err);
 			return CORBA::Object::_nil();
 		}
@@ -375,37 +376,37 @@ namespace SAS {
 		{
 			// This exception is thrown if any of the components of the
 			// path [contexts or the object] aren't found:
-			auto err = ec.add(-1, "Context not found.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__SERVER_NOT_FOUND, "Context not found.");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 		}
 		catch(CORBA::COMM_FAILURE & ex)
 		{
-			auto err = ec.add(-1, "Caught system exception COMM_FAILURE -- unable to contact the naming service.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__COMMUNICATION_FAILURE, "Caught system exception COMM_FAILURE -- unable to contact the naming service.");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 		}
 		catch(CORBA::SystemException & ex)
 		{
-			auto err = ec.add(-1, "Caught a CORBA::SystemException while using the naming service.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CORBA::SystemException while using the naming service.");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 		}
 		catch (CORBA::Exception & ex)
 		{
-			auto err = ec.add(-1, "Caught a CORBA::Exception while using the naming service.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CORBA::Exception while using the naming service.");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 		}
 		catch (omniORB::fatalException & ex)
 		{
-			auto err = ec.add(-1, "Caught omniORB::fatalException");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught omniORB::fatalException");
 			SAS_LOG_FATAL(logger, err);
 			CorbaTools::logException(logger, ex);
 		}
 		catch (...)
 		{
-			auto err = ec.add(-1, "Caught an unknown exception while using the naming service.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught an unknown exception while using the naming service.");
 			SAS_LOG_FATAL(logger, err);
 		}
 
@@ -446,7 +447,7 @@ namespace SAS {
 			if(!priv->app->configReader()->getStringEntry(config_path + "/IOR", priv->connectionData.ior, ec) || !priv->connectionData.ior.length())
 			{
 				SAS_LOG_DEBUG(priv->logger, "IOR data is not defined");
-				auto err = ec.add(-1, "connector '"+priv->name+"' cannot be initializes because of the insufficient connection data");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__MISSING_CONNECTION_DATA, "connector '" + priv->name + "' cannot be initializes because of the insufficient connection data");
 				SAS_LOG_ERROR(priv->logger, err);
 				return false;
 			}
@@ -545,14 +546,14 @@ namespace SAS {
 			SAS_LOG_INFO(priv->logger, "use IOR data to get server object");
 			if(CORBA::is_nil(priv->obj = priv->orb->string_to_object(priv->connectionData.ior.c_str())))
 			{
-				auto err = ec.add(-1, "could not create corba object from IOR");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__INVALID_CONNECTION_DATA, "could not create corba object from IOR");
 				SAS_LOG_ERROR(priv->logger, err);
 				return false;
 			}
 		}
 		else
 		{
-			auto err = ec.add(-1, "unexpected error: no connection data is found");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "unexpected error: no connection data is found");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -561,42 +562,42 @@ namespace SAS {
 		{
 			if(CORBA::is_nil(priv->corba_sas_module = CorbaSAS::SASModule::_narrow(priv->obj)))
 			{
-				auto err = ec.add(-1, "could not connect to corba server");
+				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__CANNOT_CONNECT, "could not connect to corba server");
 				SAS_LOG_ERROR(priv->logger, err);
 				return false;
 			}
 		}
 		catch(CORBA::COMM_FAILURE & ex)
 		{
-			auto err = ec.add(-1, "unable to connect");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__COMMUNICATION_FAILURE, "unable to connect");
 			SAS_LOG_ERROR(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex);
 			return false;
 		}
 		catch(CORBA::SystemException & ex)
 		{
-			auto err = ec.add(-1, "Caught CORBA::SystemException.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught CORBA::SystemException.");
 			SAS_LOG_ERROR(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex);
 			return false;
 		}
 		catch(CORBA::Exception & ex)
 		{
-			auto err = ec.add(-1, "Caught CORBA::Exception.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught CORBA::Exception.");
 			SAS_LOG_ERROR(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex);
 			return false;
 		}
 		catch(omniORB::fatalException & ex)
 		{
-			auto err = ec.add(-1, "Caught omniORB::fatalException");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught omniORB::fatalException");
 			SAS_LOG_FATAL(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex);
 			return false;
 		}
 		catch (...)
 		{
-			auto err = ec.add(-1, "Caught unknown exception");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught unknown exception");
 			SAS_LOG_FATAL(priv->logger, err);
 			return false;
 		}
@@ -629,35 +630,35 @@ namespace SAS {
 		}
 		catch (CORBA::COMM_FAILURE & ex)
 		{
-			auto err = ec.add(-1, "Caught a CORBA::COMM_FAILURE while using the naming service.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__COMMUNICATION_FAILURE, "Caught a CORBA::COMM_FAILURE while using the naming service.");
 			SAS_LOG_DEBUG(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex);
 			return false;
 		}
 		catch (CorbaSAS::ErrorHandling::ErrorException & ex)
 		{
-			auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::ErrorException while using the naming service.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CorbaSAS::ErrorHandling::ErrorException while using the naming service.");
 			SAS_LOG_DEBUG(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex, ec);
 			return false;
 		}
 		catch (CorbaSAS::ErrorHandling::FatalErrorException & ex)
 		{
-			auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::FatalErrorException while using the naming service.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CorbaSAS::ErrorHandling::FatalErrorException while using the naming service.");
 			SAS_LOG_DEBUG(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex, ec);
 			return false;
 		}
 		catch (CorbaSAS::ErrorHandling::NotImplementedException & ex)
 		{
-			auto err = ec.add(-1, "Caught a CorbaSAS::ErrorHandling::NotImplementedException.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CorbaSAS::ErrorHandling::NotImplementedException.");
 			SAS_LOG_DEBUG(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex, ec);
 			return false;
 		}
 		catch (CORBA::SystemException & ex)
 		{
-			auto err = ec.add(-1, "Caught a CORBA::SystemException.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CORBA::SystemException.");
 			SAS_LOG_ERROR(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex);
 
@@ -669,21 +670,21 @@ namespace SAS {
 		}
 		catch (CORBA::Exception & ex)
 		{
-			auto err = ec.add(-1, "Caught a CORBA::Exception.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught a CORBA::Exception.");
 			SAS_LOG_ERROR(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex);
 			return false;
 		}
 		catch (omniORB::fatalException & ex)
 		{
-			auto err = ec.add(-1, "Caught omniORB::fatalException");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught omniORB::fatalException");
 			SAS_LOG_FATAL(priv->logger, err);
 			CorbaTools::logException(priv->logger, ex);
 			return false;
 		}
 		catch (...)
 		{
-			auto err = ec.add(-1, "Caught an unknown exception.");
+			auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__UNEXPECTED_ERROR, "Caught an unknown exception.");
 			SAS_LOG_FATAL(priv->logger, err);
 			return false;
 		}

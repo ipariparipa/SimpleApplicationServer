@@ -19,6 +19,7 @@
 
 #include "SASAppSettingsConfigReader.h"
 #include "SASErrorCollector.h"
+#include "errorcodes.h"
 
 using namespace msclr;
 
@@ -47,13 +48,13 @@ namespace SAS {
 			{
 				if (!(priv->config = System::Configuration::ConfigurationManager::OpenExeConfiguration(System::Configuration::ConfigurationUserLevel::None)->AppSettings))
 				{
-					ec->Add(-1, "'appSettings' section is not found.");
+					ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__CANNOT_READ_CONFIG, "'appSettings' section is not found.");
 					return false;
 				}
 			}
 			catch (System::Exception ^ ex)
 			{
-				ec->Add(-1, "'" + ex->GetType()->Name + "' exception is caught: '" + ex->Message + "'");
+				ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__UNEXPECTED_ERROR, "'" + ex->GetType()->Name + "' exception is caught: '" + ex->Message + "'");
 				return false;
 			}
 			return true;
@@ -71,7 +72,7 @@ namespace SAS {
 				auto key = priv->config->Settings[path];
 				if (key == nullptr)
 				{
-					ec->Add(-1, "config entry '" + path + "' is not found");
+					ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "config entry '" + path + "' is not found");
 					ret = nullptr;
 					return false;
 				}
@@ -80,7 +81,7 @@ namespace SAS {
 			}
 			catch (System::Exception ^ ex)
 			{
-				ec->Add(-1, "'" + ex->GetType()->Name + "' exception is caught: '" + ex->Message + "'");
+				ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__CANNOT_GET_ENTRY, "'" + ex->GetType()->Name + "' exception is caught: '" + ex->Message + "'");
 				ret = nullptr;
 				return false;
 			}

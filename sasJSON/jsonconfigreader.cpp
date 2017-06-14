@@ -18,6 +18,7 @@ along with sasJSON.  If not, see <http://www.gnu.org/licenses/>
 #include "include/sasJSON/jsonconfigreader.h"
 #include "include/sasJSON/jsondocument.h"
 #include "include/sasJSON/jsonreader.h"
+#include "include/sasJSON/errorcodes.h"
 
 #include <sasCore/logging.h>
 #include <sasCore/errorcollector.h>
@@ -82,14 +83,14 @@ namespace SAS {
 		auto & v = priv->getValue(path);
 		if (v.IsNull())
 		{
-			auto err = ec.add(-1, "unable to find config path: '" + path + "'");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "unable to find config path: '" + path + "'");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
 
 		if (!v.IsString())
 		{
-			auto err = ec.add(-1, "config entry cannot be get as string");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__TYPE_MISMATCH, "config entry cannot be get as string");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -112,7 +113,7 @@ namespace SAS {
 
 		if (!v.IsString())
 		{
-			auto err = ec.add(-1, "config entry cannot be get as string");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__TYPE_MISMATCH, "config entry cannot be get as string");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -130,14 +131,14 @@ namespace SAS {
 		auto & v = priv->getValue(path);
 		if (v.IsNull())
 		{
-			auto err = ec.add(-1, "unable to find config path: '" + path + "'");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "unable to find config path: '" + path + "'");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
 
 		if (!v.IsArray())
 		{
-			auto err = ec.add(-1, "config entry cannot be get as array");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__INVALID_LIST_VALUE, "config entry cannot be get as array");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -148,7 +149,7 @@ namespace SAS {
 		{
 			if(!v[i].IsString())
 			{
-				auto err = ec.add(-1, "value #"+std::to_string(i)+" cannot be get as string");
+				auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__TYPE_MISMATCH, "value #" + std::to_string(i) + " cannot be get as string");
 				SAS_LOG_ERROR(priv->logger, err);
 				has_error = true;
 			}
@@ -172,7 +173,7 @@ namespace SAS {
 
 		if (!v.IsArray())
 		{
-			auto err = ec.add(-1, "config entry cannot be get as array");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "config entry cannot be get as array");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -183,7 +184,7 @@ namespace SAS {
 		{
 			if (!v[i].IsString())
 			{
-				auto err = ec.add(-1, "value #" + std::to_string(i) + " cannot be get as string");
+				auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__INVALID_LIST_VALUE, "value #" + std::to_string(i) + " cannot be get as string");
 				SAS_LOG_ERROR(priv->logger, err);
 				has_error = true;
 			}
@@ -202,14 +203,14 @@ namespace SAS {
 		auto & v = priv->getValue(path);
 		if (v.IsNull())
 		{
-			auto err = ec.add(-1, "unable to find config path: '" + path + "'");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "unable to find config path: '" + path + "'");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
 
 		if (!v.IsNumber())
 		{
-			auto err = ec.add(-1, "config entry cannot be get as number");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__TYPE_MISMATCH, "config entry cannot be get as number");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -232,7 +233,7 @@ namespace SAS {
 
 		if (!v.IsNumber())
 		{
-			auto err = ec.add(-1, "config entry cannot be get as number");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__TYPE_MISMATCH, "config entry cannot be get as number");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -250,14 +251,14 @@ namespace SAS {
 		auto & v = priv->getValue(path);
 		if (v.IsNull())
 		{
-			auto err = ec.add(-1, "unable to find config path: '" + path + "'");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "unable to find config path: '" + path + "'");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
 
 		if (!v.IsBool())
 		{
-			auto err = ec.add(-1, "config entry cannot be get as boolean");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__TYPE_MISMATCH, "config entry cannot be get as boolean");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -280,7 +281,7 @@ namespace SAS {
 
 		if (!v.IsBool())
 		{
-			auto err = ec.add(-1, "config entry cannot be get as boolean");
+			auto err = ec.add(SAS_JSON__ERROR__CONFIG_READER__TYPE_MISMATCH, "config entry cannot be get as boolean");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}

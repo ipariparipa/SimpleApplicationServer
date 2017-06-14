@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sasTCLTools\config.h" />
+    <ClInclude Include="include\sasTCLTools\errorcodes.h" />
     <ClInclude Include="include\sasTCLTools\tcldatareader.h" />
     <ClInclude Include="include\sasTCLTools\tcldatawriter.h" />
     <ClInclude Include="include\sasTCLTools\tcllist.h" />

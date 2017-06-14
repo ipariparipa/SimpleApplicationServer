@@ -18,6 +18,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include "include/sasTCL/tclexecutor.h"
 #include "include/sasTCL/tcllisthandler.h"
 #include "include/sasTCL/tclinterpinitilizer.h"
+#include "include/sasTCL/errorcodes.h"
 
 #include <sasCore/logging.h>
 #include <sasCore/errorcollector.h>
@@ -123,7 +124,7 @@ namespace SAS {
 							priv->current_run->ec->add(std::stol(err[0]), err[1]);
 						else
 						{
-							priv->current_run->ec->add(-1, "could not run script: '" + lst.toString() + "'");
+							priv->current_run->ec->add(SAS_TCL__ERROR__EXECUTOR__CANNOT_RUN_SCRIPT, "could not run script: '" + lst.toString() + "'");
 							break;
 						}
 					}

@@ -16,6 +16,7 @@
  */
 
 #include "include/sasCore/libraryloader.h"
+#include "include/sasCore/errorcodes.h"
 
 #include <assert.h>
 #if SAS_OS == SAS_OS_LINUX
@@ -62,13 +63,13 @@ namespace SAS {
 #if SAS_OS == SAS_OS_LINUX
 		if(!(priv->handle = dlopen(filename.c_str(), RTLD_LAZY)))
 		{
-			ec.add(-1, "could not open library: '" + filename + "': " + dlerror());
+			ec.add(SAS_CORE__ERROR__LIBRARY_LOADER__CANNOT_OPEN, "could not open library: '" + filename + "': " + dlerror());
 			return false;
 		}
 #elif SAS_OS == SAS_OS_WINDOWS
 		if (!(priv->handle = LoadLibrary(filename.c_str())))
 		{
-			ec.add(-1, "could not open library: '" + filename + "': " + win_getLastErrorMessage());
+			ec.add(SAS_CORE__ERROR__LIBRARY_LOADER__CANNOT_OPEN, "could not open library: '" + filename + "': " + win_getLastErrorMessage());
 			return false;
 		}
 #else
@@ -104,13 +105,13 @@ namespace SAS {
 #if SAS_OS == SAS_OS_LINUX
 		if (!(ret = dlsym(priv->handle, name)))
 		{
-			ec.add(-1, "could not find procedure '" + std::string(name) + "' in library '" + priv->filename + "': " + dlerror());
+			ec.add(SAS_CORE__ERROR__LIBRARY_LOADER__MISSING_PROCEDURE, "could not find procedure '" + std::string(name) + "' in library '" + priv->filename + "': " + dlerror());
 			return nullptr;
 		}
 #elif SAS_OS == SAS_OS_WINDOWS
 		if (!(ret = GetProcAddress(priv->handle, name)))
 		{
-			ec.add(-1, "could not find procedure '" + std::string(name) + "' in library '" + priv->filename + "': " + win_getLastErrorMessage());
+			ec.add(SAS_CORE__ERROR__LIBRARY_LOADER__MISSING_PROCEDURE, "could not find procedure '" + std::string(name) + "' in library '" + priv->filename + "': " + win_getLastErrorMessage());
 			return nullptr;
 		}
 #else
