@@ -19,6 +19,7 @@
 #include "include/sasCore/object.h"
 #include "include/sasCore/logging.h"
 #include "include/sasCore/errorcollector.h"
+#include "include/sasCore/errorcodes.h"
 
 #include <mutex>
 #include <map>
@@ -72,7 +73,7 @@ struct ObjectRegistry_priv
 					SAS_LOG_VAR(logger, o->name());
 					if(tr->reg[o->name()] != o)
 					{
-						auto err = ec.add(-1, "another object is already registered with the same identifier: '"+o->type()+"/"+o->name()+"'");
+						auto err = ec.add(SAS_CORE__ERROR__OBJECT_REGISTRY__ALREADY_REGISTERED, "another object is already registered with the same identifier: '" + o->type() + "/" + o->name() + "'");
 						SAS_LOG_ERROR(logger, err);
 						has_error = true;
 					}
@@ -110,7 +111,7 @@ bool ObjectRegistry::registerObject(Object * obj, ErrorCollector & ec)
 		SAS_LOG_VAR(priv->logger, obj->name());
 		if(tr->reg[obj->name()] != obj)
 		{
-			auto err = ec.add(-1, "another object is already registered with the same identifier: '"+obj->type()+"/"+obj->name()+"'");
+			auto err = ec.add(SAS_CORE__ERROR__OBJECT_REGISTRY__ALREADY_REGISTERED, "another object is already registered with the same identifier: '" + obj->type() + "/" + obj->name() + "'");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -140,14 +141,14 @@ Object * ObjectRegistry::getObject(const std::string & type, const std::string &
 	auto tr = priv->getTypeReg(type);
 	if(!tr)
 	{
-		auto err = ec.add(-1, "type is not found in object registry: '"+type+"'");
+		auto err = ec.add(SAS_CORE__ERROR__OBJECT_REGISTRY__TYPE_NOT_FOUND, "type is not found in object registry: '" + type + "'");
 		SAS_LOG_ERROR(priv->logger, err);
 		return nullptr;
 	}
 	std::unique_lock<std::mutex> __locker(tr->mut);
 	if(!tr->reg.count(name))
 	{
-		auto err = ec.add(-1, "object is not found in registry: '"+type+"/"+name+"'");
+		auto err = ec.add(SAS_CORE__ERROR__OBJECT_REGISTRY__OBJECT_NOT_FOUND, "object is not found in registry: '" + type + "/" + name + "'");
 		SAS_LOG_ERROR(priv->logger, err);
 		return nullptr;
 	}
@@ -164,14 +165,14 @@ std::vector<Object *> ObjectRegistry::getObjects(const std::string & type, Error
 	auto tr = priv->getTypeReg(type);
 	if(!tr)
 	{
-		auto err = ec.add(-1, std::string("type is not found in object registry: '")+type+"'");
+		auto err = ec.add(SAS_CORE__ERROR__OBJECT_REGISTRY__TYPE_NOT_FOUND, std::string("type is not found in object registry: '") + type + "'");
 		SAS_LOG_ERROR(priv->logger, err);
 		return ret;
 	}
 	std::unique_lock<std::mutex> __locker(tr->mut);
 	if(!tr->reg.size())
 	{
-		auto err = ec.add(-1, std::string("no objects are found in object registry for type: '")+type+"'");
+		auto err = ec.add(SAS_CORE__ERROR__OBJECT_REGISTRY__OBJECT_NOT_FOUND, std::string("no objects are found in object registry for type: '") + type + "'");
 		SAS_LOG_ERROR(priv->logger, err);
 		return ret;
 	}

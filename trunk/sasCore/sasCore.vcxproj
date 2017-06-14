@@ -130,6 +130,7 @@
     <ClInclude Include="include\sasCore\connector.h" />
     <ClInclude Include="include\sasCore\controlledthread.h" />
     <ClInclude Include="include\sasCore\defines.h" />
+    <ClInclude Include="include\sasCore\errorcodes.h" />
     <ClInclude Include="include\sasCore\errorcollector.h" />
     <ClInclude Include="include\sasCore\init.h" />
     <ClInclude Include="include\sasCore\interface.h" />

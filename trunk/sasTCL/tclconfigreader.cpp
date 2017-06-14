@@ -19,6 +19,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include "include/sasTCL/tclerrorcollector.h"
 #include "include/sasTCL/tclinterpinitilizer.h"
 #include "include/sasTCL/tclexecutor.h"
+#include "include/sasTCL/errorcodes.h"
 
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
@@ -58,7 +59,7 @@ namespace SAS {
 
 			if (argc < 2)
 			{
-				auto err = ec.add(-1, "SAS::get_entry: invalid arguments");
+				auto err = ec.add(SAS_TCL__ERROR__CONFIG_READER__CANNOT_GET_ENTRY, "SAS::get_entry: invalid arguments");
 				SAS_LOG_ERROR(obj->logger, err);
 				Tcl_SetObjResult(interp, ec.errors().obj());
 				return TCL_ERROR;
@@ -69,7 +70,7 @@ namespace SAS {
 			{
 				if (argc < 3)
 				{
-					auto err = ec.add(-1, "SAS::get_entry: variable '"+std::string(argv[1])+"' is not found");
+					auto err = ec.add(SAS_TCL__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "SAS::get_entry: variable '" + std::string(argv[1]) + "' is not found");
 					SAS_LOG_ERROR(obj->logger, err);
 					Tcl_SetObjResult(interp, ec.errors().obj());
 					return TCL_ERROR;
@@ -100,14 +101,14 @@ namespace SAS {
 	{
 		if (!getter_function.length())
 		{
-			auto err = ec.add(-1, "argument 'getter_function' cannot be empty");
+			auto err = ec.add(SAS_TCL__ERROR__CONFIG_READER__INVALID_ARGUMENT, "argument 'getter_function' cannot be empty");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
 		priv->getter_function = getter_function;
 		if (!priv->exec.start())
 		{
-			auto err = ec.add(-1, "could not start TCL executor");
+			auto err = ec.add(SAS_TCL__ERROR__CONFIG_READER__UNEXPECTED_ERROR, "could not start TCL executor");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -116,7 +117,7 @@ namespace SAS {
 		file.open(tclfile, std::ios_base::binary);
 		if (file.fail())
 		{
-			auto err = ec.add(-1, "could not read TCL config file");
+			auto err = ec.add(SAS_CORE__ERROR__CONFIG_READER__CANNOT_READ_CONFIG, "could not read TCL config file");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -144,7 +145,7 @@ namespace SAS {
 		TCLList lst_res;
 		if (!lst_res.fromString(run.result))
 		{
-			auto err = ec.add(-1, "unexpected error: could not use result as valid TCL list");
+			auto err = ec.add(SAS_TCL__ERROR__CONFIG_READER__INVALID_LIST_VALUE, "unexpected error: could not use result as valid TCL list");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -173,7 +174,7 @@ namespace SAS {
 		TCLList lst_res;
 		if (!lst_res.fromString(run.result))
 		{
-			auto err = ec.add(-1, "unexpected error: could not use result as valid TCL list");
+			auto err = ec.add(SAS_TCL__ERROR__CONFIG_READER__INVALID_LIST_VALUE, "unexpected error: could not use result as valid TCL list");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}

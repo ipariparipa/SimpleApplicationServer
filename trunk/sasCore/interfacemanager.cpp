@@ -20,6 +20,7 @@
 #include "include/sasCore/logging.h"
 #include "include/sasCore/thread.h"
 #include "include/sasCore/errorcollector.h"
+#include "include/sasCore/errorcodes.h"
 
 #include <mutex>
 #include <map>
@@ -89,7 +90,7 @@ bool InterfaceManager::registerInterface(Interface * interface, ErrorCollector &
 	std::unique_lock<std::mutex> __locker(priv->mut);
 	if(priv->threads.count(interface->name()))
 	{
-		auto err = ec.add(-1, std::string("interface is already registered: ") + interface->name());
+		auto err = ec.add(SAS_CORE__ERROR__INTERFACE_MANAGER__ALREADY_REGISTERED, std::string("interface is already registered: ") + interface->name());
 		SAS_LOG_ERROR(logger(), err);
 		return false;
 	}
@@ -108,7 +109,7 @@ bool InterfaceManager::registerInterfaces(const std::vector<Interface *> & inter
 		auto intf = interfaces[i];
 		if(priv->threads.count(intf->name()))
 		{
-			auto err = ec.add(-1, std::string("interface is already registered: ") + intf->name());
+			auto err = ec.add(SAS_CORE__ERROR__INTERFACE_MANAGER__ALREADY_REGISTERED, std::string("interface is already registered: ") + intf->name());
 			SAS_LOG_ERROR(logger(), err);
 			has_error = true;
 		}

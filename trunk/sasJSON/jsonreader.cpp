@@ -17,6 +17,7 @@ along with sasJSON.  If not, see <http://www.gnu.org/licenses/>
 
 #include "include/sasJSON/jsonreader.h"
 #include "include/sasJSON/jsondocument.h"
+#include "include/sasJSON/errorcodes.h"
 
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
@@ -81,7 +82,7 @@ namespace SAS {
 		}
 		else
 		{
-			auto err = ec.add(-1, "unable to open file");
+			auto err = ec.add(SAS_JSON__ERROR__STREAM_READER__CANNOT_OPEN_FILE, "unable to open file");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -98,7 +99,7 @@ namespace SAS {
 
 		if (priv->doc->ParseInsitu(priv->buffer.data()).HasParseError())
 		{
-			auto err = ec.add(priv->doc->GetParseError(), "JSON parse error");
+			auto err = ec.add(SAS_JSON__ERROR__STREAM_READER__PARSE_ERROR, "JSON parse error (" + std::to_string(priv->doc->GetParseError()) + ")");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}

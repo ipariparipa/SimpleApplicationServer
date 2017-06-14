@@ -85,6 +85,7 @@
   <ItemGroup>
     <ClInclude Include="include\sasBasics\config.h" />
     <ClInclude Include="include\sasBasics\envconfigreader.h" />
+    <ClInclude Include="include\sasBasics\errorcodes.h" />
     <ClInclude Include="include\sasBasics\logging.h" />
     <ClInclude Include="include\sasBasics\server.h" />
     <ClInclude Include="include\sasBasics\streamerrorcollector.h" />

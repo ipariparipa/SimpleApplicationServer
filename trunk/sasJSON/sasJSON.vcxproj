@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\sasJSON\config.h" />
+    <ClInclude Include="include\sasJson\errorcodes.h" />
     <ClInclude Include="include\sasJSON\jsonconfigreader.h" />
     <ClInclude Include="include\sasJSON\jsondocument.h" />
     <ClInclude Include="include\sasJSON\jsondocumentreader.h" />

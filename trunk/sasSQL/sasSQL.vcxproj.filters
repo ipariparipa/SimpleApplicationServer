@@ -44,5 +44,8 @@
     <ClInclude Include="include\sasSQL\sqlvariant.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sasSQL\errorcodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

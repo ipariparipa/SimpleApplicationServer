@@ -21,6 +21,7 @@
 
 #include <sasCore/application.h>
 #include <sasCore/configreader.h>
+#include <sasSQL/errorcodes.h>
 
 #include "mysqlresult.h"
 #include "mysqlstatement.h"
@@ -143,7 +144,7 @@ struct MySQLConnector_priv
 				connection_data.unix_socket.size() ? connection_data.unix_socket.c_str() : NULL,
 				0))
 			{
-				auto err = ec.add(-1, std::string("could not connect to MySQL service: ") + mysql_error(conn->my));
+				auto err = ec.add(SAS_SQL__ERROR__CANNOT_CONNECT_TO_DB_SEVICE, std::string("could not connect to MySQL service: ") + mysql_error(conn->my));
 				SAS_LOG_ERROR(logger, err);
 				detach();
 				return nullptr;
@@ -243,13 +244,13 @@ bool MySQLConnector::init(const std::string & configPath, ErrorCollector & ec)
 		long long max = 2147483648; //2G
 		if(ll_tmp < 0)
 		{
-			auto err = ec.add(-1, "MAX_BUFFER_SIZE cannot be less then 0");
+			auto err = ec.add(SAS_SQL__ERROR__INVALID_CONFIG_VALUE, "MAX_BUFFER_SIZE cannot be less then 0");
 			SAS_LOG_ERROR(priv->logger, err);
 			has_error = true;
 		}
 		else if(ll_tmp > max)
 		{
-			auto err = ec.add(-1, "MAX_BUFFER_SIZE cannot be greater then " + std::to_string(max));
+			auto err = ec.add(SAS_SQL__ERROR__INVALID_CONFIG_VALUE, "MAX_BUFFER_SIZE cannot be greater then " + std::to_string(max));
 			SAS_LOG_ERROR(priv->logger, err);
 			has_error = true;
 		}
@@ -307,7 +308,7 @@ bool MySQLConnector::exec(const std::string & statement, SQLResult *& res, Error
 	SAS_LOG_TRACE(priv->logger, "mysql_query");
 	if(mysql_query(conn->my, statement.c_str()))
 	{
-		auto err = ec.add(-1, std::string("could execute SQL statement: ") + mysql_error(conn->my));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_EXECUTE_STATEMENT, std::string("could execute SQL statement: ") + mysql_error(conn->my));
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
@@ -332,7 +333,7 @@ bool MySQLConnector::exec(const std::string & statement, ErrorCollector & ec)
 	SAS_LOG_TRACE(priv->logger, "mysql_query");
 	if(mysql_query(conn->my, statement.c_str()))
 	{
-		auto err = ec.add(-1, std::string("could execute SQL statement: ") + mysql_error(conn->my));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_EXECUTE_STATEMENT, std::string("could execute SQL statement: ") + mysql_error(conn->my));
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}

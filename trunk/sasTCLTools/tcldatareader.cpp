@@ -16,6 +16,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "include/sasTCLTools/tcldatareader.h"
+#include "include/sasTCLTools/errorcodes.h"
 
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
@@ -52,7 +53,7 @@ namespace SAS {
 		size_t out_size = out.size();
 		if (out_size < sizeof(uint16_t))
 		{
-			auto err = ec.add(-1, "missing data version");
+			auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_READER__INVALID_DATA_HEADER, "missing data version");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -71,7 +72,7 @@ namespace SAS {
 			{
 				if (out_size < 4 + sizeof(uint32_t))
 				{
-					auto err = ec.add(-1, "missing or invalid data header");
+					auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_READER__INVALID_DATA_HEADER, "missing or invalid data header");
 					SAS_LOG_ERROR(priv->logger, err);
 					return false;
 				}
@@ -84,7 +85,7 @@ namespace SAS {
 				out_data += sizeof(uint32_t); out_size -= sizeof(uint32_t);
 				if (out_size < data_size)
 				{
-					auto err = ec.add(-1, "invalid size information in data header: '" + std::to_string(data_size) + "'");
+					auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_READER__INVALID_DATA_HEADER, "invalid size information in data header: '" + std::to_string(data_size) + "'");
 					SAS_LOG_ERROR(priv->logger, err);
 					return false;
 				}
@@ -100,7 +101,7 @@ namespace SAS {
 				{
 					if (data_size < sizeof(uint32_t))
 					{
-						auto err = ec.add(-1, "BLOB: missing size information for blob name");
+						auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_READER__INVALID_DATA_HEADER, "BLOB: missing size information for blob name");
 						SAS_LOG_ERROR(priv->logger, err);
 						return false;
 					}
@@ -111,7 +112,7 @@ namespace SAS {
 
 					if (data_size < name_size)
 					{
-						auto err = ec.add(-1, "BLOB: missing blob name");
+						auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_READER__INVALID_DATA_HEADER, "BLOB: missing blob name");
 						SAS_LOG_ERROR(priv->logger, err);
 						return false;
 					}
@@ -121,7 +122,7 @@ namespace SAS {
 					SAS_LOG_VAR(priv->logger, name);
 					if (!name.length())
 					{
-						auto err = ec.add(-1, "BLOB: blob name is not specified");
+						auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_READER__INVALID_DATA_HEADER, "BLOB: blob name is not specified");
 						SAS_LOG_ERROR(priv->logger, err);
 						return false;
 					}
@@ -136,7 +137,7 @@ namespace SAS {
 		}
 		default:
 		{
-			auto err = ec.add(-1, "unsupported data version: " + std::to_string(version));
+			auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_READER__UNSUPPORTED_VERSION, "unsupported data version: " + std::to_string(version));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}

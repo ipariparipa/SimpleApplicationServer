@@ -16,6 +16,7 @@
  */
 
 #include "include/sasJSON/jsoninvoker.h"
+#include "include/sasJSON/errorcodes.h"
 
 #include <sasCore/logging.h>
 #include <sasCore/errorcollector.h>
@@ -34,14 +35,14 @@ namespace SAS {
 		{
 			if(!function.IsObject())
 			{
-				auto err = ec.add(-1, "function call must be an object");
+				auto err = ec.add(SAS_CORE__ERROR__INVOKER__TYPE_MISMATCH, "function call must be an object");
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
 
 			if(!function.HasMember("function"))
 			{
-				auto err = ec.add(-1, "'function' is not specified");
+				auto err = ec.add(SAS_CORE__ERROR__INVOKER__INVALID_DATA, "'function' is not specified");
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
@@ -49,7 +50,7 @@ namespace SAS {
 			auto & _name = function["function"];
 			if(_name.IsNull() || !_name.IsString())
 			{
-				auto err = ec.add(-1, "'function' is not string");
+				auto err = ec.add(SAS_CORE__ERROR__INVOKER__TYPE_MISMATCH, "'function' is not string");
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
@@ -57,14 +58,14 @@ namespace SAS {
 			std::string name = _name.GetString();
 			if(!functions.count(name))
 			{
-				auto err = ec.add(-1, "unknown function: '"+name+"'");
+				auto err = ec.add(SAS_JSON__ERROR__INVOKER__UNSUPPORTED_FUNCTIONALITY, "unknown function: '" + name + "'");
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
 
 			if(!function.HasMember("arguments"))
 			{
-				auto err = ec.add(-1, "'arguments' for function '"+name+"' are not specified");
+				auto err = ec.add(SAS_CORE__ERROR__INVOKER__INVALID_DATA, "'arguments' for function '" + name + "' are not specified");
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
@@ -96,7 +97,7 @@ namespace SAS {
 		memcpy(_input.data(), input.data(), input.size());
 		if(doc.ParseInsitu(_input.data()).HasParseError())
 		{
-			auto err = ec.add(doc.GetParseError(), "JSON parse error");
+			auto err = ec.add(SAS_JSON__ERROR__INVOKER__INVALID_DATA, "JSON parse error (" + std::to_string(doc.GetParseError()) + ")");
 			SAS_LOG_ERROR(priv->logger, err);
 			return Status::Error;
 		}

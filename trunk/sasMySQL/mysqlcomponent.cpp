@@ -23,6 +23,8 @@
 #include <sasCore/configreader.h>
 #include <sasCore/logging.h>
 
+#include <sasSQL/errorcodes.h>
+
 #include "mysqlconnector.h"
 
 #include SAS_MYSQL__MYSQL_H
@@ -65,7 +67,7 @@ public:
 
 		if (mysql_library_init(app->argc(), app->argv(), nullptr))
 		{
-			auto err = ec.add(-1, "could not initialize MySQL library");
+			auto err = ec.add(SAS_SQL__ERROR__CANNOT_INIT_CONNECTOR_LIB, "could not initialize MySQL library");
 			SAS_LOG_ERROR(logger, err);
 			return false;
 		}

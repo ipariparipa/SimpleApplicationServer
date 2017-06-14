@@ -21,6 +21,7 @@
 
 #include <sasCore/errorcollector.h>
 #include <sasSQL/sqldatetime.h>
+#include <sasSQL/errorcodes.h>
 
 #include <cstring>
 #include <memory>
@@ -262,7 +263,7 @@ bool MySQLStatement::prepare(const std::string & statement, ErrorCollector & ec)
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_prepare");
 	if(mysql_stmt_prepare(priv->stmt, statement.c_str(), statement.length()))
 	{
-		auto err = ec.add(-1, std::string("could not prepare SQL statement: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_PREPARE_STATEMENT, std::string("could not prepare SQL statement: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -292,7 +293,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 	{
 		SAS_LOG_VAR(priv->conn->logger(), stmt_params_size);
 		SAS_LOG_VAR(priv->conn->logger(), params_size);
-		auto err = ec.add(-1, "insufficient number of parameters");
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, "insufficient number of parameters");
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -316,7 +317,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 		{
 		case SQLDataType::None:
 		{
-			auto err = ec.add(-1, std::string("type of parameter '") + std::to_string(i) + std::string("' is not specified"));
+			auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, std::string("type of parameter '") + std::to_string(i) + std::string("' is not specified"));
 			SAS_LOG_ERROR(priv->conn->logger(), err);
 			has_error = true;
 			break;
@@ -371,7 +372,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 			{
 			case SQLVariant::DateTimeSubType::None:
 			{
-				auto err = ec.add(-1, std::string("date time sub type of parameter '") + std::to_string(i) + std::string("' is not specified"));
+				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, std::string("date time sub type of parameter '") + std::to_string(i) + std::string("' is not specified"));
 				SAS_LOG_ERROR(priv->conn->logger(), err);
 				has_error = true;
 				break;
@@ -393,7 +394,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 			}
 			if(b.buffer_type == MYSQL_TYPE_NULL)
 			{
-				auto err = ec.add(-1, std::string("unsupported date time sub type of parameter '") + std::to_string(i) + std::string("'"));
+				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, std::string("unsupported date time sub type of parameter '") + std::to_string(i) + std::string("'"));
 				SAS_LOG_ERROR(priv->conn->logger(), err);
 				has_error = true;
 				break;
@@ -465,7 +466,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 		}
 		if(b.buffer_type == MYSQL_TYPE_NULL)
 		{
-			auto err = ec.add(-1, std::string("unsupported type of parameter '") + std::to_string(i) + std::string("'"));
+			auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, std::string("unsupported type of parameter '") + std::to_string(i) + std::string("'"));
 			SAS_LOG_ERROR(priv->conn->logger(), err);
 			has_error = true;
 			break;
@@ -476,7 +477,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_bind_param");
 	if(mysql_stmt_bind_param(priv->stmt, priv->param_binders.data()))
 	{
-		auto err = ec.add(-1, std::string("could not bind parameters: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, std::string("could not bind parameters: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -493,7 +494,7 @@ bool MySQLStatement::execDML(ErrorCollector & ec)
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_execute");
 	if(mysql_stmt_execute(priv->stmt))
 	{
-		auto err = ec.add(-1, std::string("could not execute statement: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_EXECUTE_STATEMENT, std::string("could not execute statement: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -511,7 +512,7 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_result_metadata");
 	if(!(meta_res =  mysql_stmt_result_metadata(priv->stmt)))
 	{
-		auto err = ec.add(-1, std::string("no meta information is found: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_EXECUTE_STATEMENT, std::string("no meta information is found: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -592,7 +593,7 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 		case MYSQL_TYPE_SET:
 		case MYSQL_TYPE_GEOMETRY:
 			{
-				auto err = ec.add(-1, "unsupported result type:" + f->type);
+				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_RESULT, "unsupported result type:" + f->type);
 				SAS_LOG_ERROR(priv->conn->logger(), err);
 				has_error = true;
 				break;
@@ -608,7 +609,7 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_bind_result");
 	if(mysql_stmt_bind_result(priv->stmt, priv->res_binders.data()))
 	{
-		auto err = ec.add(-1, std::string("could not bind results: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_RESULT, std::string("could not bind results: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -616,7 +617,7 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_execute");
 	if(mysql_stmt_execute(priv->stmt))
 	{
-		auto err = ec.add(-1, std::string("could not execute statement: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_EXECUTE_STATEMENT, std::string("could not execute statement: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -624,7 +625,7 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_store_result");
 	if(mysql_stmt_store_result(priv->stmt))
 	{
-		auto err = ec.add(-1, std::string("could not store statement result: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_RESULT, std::string("could not store statement result: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -640,7 +641,7 @@ bool MySQLStatement::fieldNum(size_t & ret, ErrorCollector & ec)
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_result_metadata");
 	if(!(meta_res =  mysql_stmt_result_metadata(priv->stmt)))
 	{
-		auto err = ec.add(-1, std::string("no meta information is found: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__NO_META_INFO, std::string("no meta information is found: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -659,7 +660,7 @@ bool MySQLStatement::fields(std::vector<std::tuple<std::string /*db/scheme*/, st
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_result_metadata");
 	if(!(meta_res =  mysql_stmt_result_metadata(priv->stmt)))
 	{
-		auto err = ec.add(-1, std::string("no meta information is found: ") + mysql_stmt_error(priv->stmt));
+		auto err = ec.add(SAS_SQL__ERROR__NO_META_INFO, std::string("no meta information is found: ") + mysql_stmt_error(priv->stmt));
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
 	}
@@ -703,9 +704,14 @@ bool MySQLStatement::fetch(std::vector<SQLVariant> & ret, ErrorCollector & ec)
 	case 0:
 		break;
 	case MYSQL_REPORT_DATA_TRUNCATION:
-		SAS_LOG_ERROR(priv->conn->logger(), "mysql_stmt_fetch has returned with MYSQL_REPORT_DATA_TRUNCATION");
+	{
+		auto err = ec.add(SAS_SQL__ERROR__UNSUPPORTED_FEATURE, "mysql_stmt_fetch has returned with MYSQL_REPORT_DATA_TRUNCATION");
+		SAS_LOG_ERROR(priv->conn->logger(), err);
 		break;
+	}
 	case MYSQL_NO_DATA:
+		auto msg = ec.add(SAS_SQL__ERROR__NO_DATA, "(no data)");
+		SAS_LOG_DEBUG(priv->conn->logger(), msg);
 		return false;
 	}
 

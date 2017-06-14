@@ -24,6 +24,7 @@
 #include "include/sasCore/componentloader.h"
 #include "include/sasCore/configreader.h"
 #include "include/sasCore/component.h"
+#include "include/sasCore/errorcodes.h"
 
 #include <list>
 #include <memory>
@@ -83,7 +84,7 @@ bool Application::init(ErrorCollector & ec)
 	std::vector<std::string> comp_paths;
 	if (!configReader()->getStringListEntry("SAS/COMPONENTS", comp_paths, ec) || !comp_paths.size())
 	{
-		auto err = ec.add(-1, "components are not set");
+		auto err = ec.add(SAS_CORE__ERROR__APPLICATION__NO_COMPONENTS, "components are not set");
 		SAS_LOG_ERROR(logger(), err);
 		return false;
 	}

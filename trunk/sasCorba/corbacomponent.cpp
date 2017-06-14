@@ -20,6 +20,7 @@
 #include <sasCore/objectregistry.h>
 #include <sasCore/configreader.h>
 #include <sasCore/logging.h>
+#include <sasCore/errorcodes.h>
 
 #include "corbainterface.h"
 #include "corbaconnector.h"
@@ -59,7 +60,7 @@ public:
 			}
 			else
 			{
-				SAS_LOG_INFO(logger, "no options are set in configureation, using commanf line arguments");
+				SAS_LOG_INFO(logger, "no options are set in configureation, using command line arguments");
 				int argc = app->argc();
 				char ** argv = app->argv();
 				orb = CORBA::ORB_init(argc, argv);
@@ -67,42 +68,42 @@ public:
 		}
 		catch (CORBA::COMM_FAILURE & ex)
 		{
-			auto err = ec.add(-1, "Caught system exception COMM_FAILURE.");
+			auto err = ec.add(SAS_CORE__ERROR__COMPONENT__INIT_FAILURE, "Caught system exception COMM_FAILURE.");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 			return false;
 		}
 		catch (CORBA::SystemException & ex)
 		{
-			auto err = ec.add(-1, "Caught a CORBA::SystemException.");
+			auto err = ec.add(SAS_CORE__ERROR__COMPONENT__INIT_FAILURE, "Caught a CORBA::SystemException.");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 			return false;
 		}
 		catch (CORBA::Exception & ex)
 		{
-			auto err = ec.add(-1, "Caught a CORBA::Exception.");
+			auto err = ec.add(SAS_CORE__ERROR__COMPONENT__INIT_FAILURE, "Caught a CORBA::Exception.");
 			SAS_LOG_ERROR(logger, err);
 			CorbaTools::logException(logger, ex);
 			return false;
 		}
 		catch (omniORB::fatalException & ex)
 		{
-			auto err = ec.add(-1, "Caught omniORB::fatalException");
+			auto err = ec.add(SAS_CORE__ERROR__COMPONENT__INIT_FAILURE, "Caught omniORB::fatalException");
 			SAS_LOG_FATAL(logger, err);
 			CorbaTools::logException(logger, ex);
 			return false;
 		}
 		catch (...)
 		{
-			auto err = ec.add(-1, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
+			auto err = ec.add(SAS_CORE__ERROR__COMPONENT__INIT_FAILURE, "Caught a sas::error_handling::invoker_error_exception while using the naming service.");
 			SAS_LOG_FATAL(logger, err);
 			return false;
 		}
 
 		if (CORBA::is_nil(orb))
 		{
-			auto err = ec.add(-1, "could not initialize ORB");
+			auto err = ec.add(SAS_CORE__ERROR__COMPONENT__INIT_FAILURE, "could not initialize ORB");
 			SAS_LOG_ERROR(logger, err);
 			return false;
 		}

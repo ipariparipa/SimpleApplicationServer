@@ -16,6 +16,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "include/sasTCLTools/tcldatawriter.h"
+#include "include/sasTCLTools/errorcodes.h"
 
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
@@ -72,7 +73,7 @@ namespace SAS {
 		}
 		default:
 		{
-			auto err = ec.add(-1, "unsupported data version: " + std::to_string(priv->ver));
+			auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_WRITER__UNSUPPORTED_VERSION, "unsupported data version: " + std::to_string(priv->ver));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -109,7 +110,7 @@ namespace SAS {
 		}
 		default:
 		{
-			auto err = ec.add(-1, "unsupported data version: " + std::to_string(priv->ver));
+			auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_WRITER__UNSUPPORTED_VERSION, "unsupported data version: " + std::to_string(priv->ver));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -149,7 +150,7 @@ namespace SAS {
 		}
 		default:
 		{
-			auto err = ec.add(-1, "unsupported data version: " + std::to_string(priv->ver));
+			auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_WRITER__UNSUPPORTED_VERSION, "unsupported data version: " + std::to_string(priv->ver));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -189,7 +190,7 @@ namespace SAS {
 		}
 		default:
 		{
-			auto err = ec.add(-1, "unsupported data version: " + std::to_string(priv->ver));
+			auto err = ec.add(SAS_TCL_TOOLS__ERROR__DATA_WRITER__UNSUPPORTED_VERSION, "unsupported data version: " + std::to_string(priv->ver));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}

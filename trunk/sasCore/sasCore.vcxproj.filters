@@ -161,6 +161,9 @@
     <ClInclude Include="include\sasCore\platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sasCore\errorcodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="include\sasCore\_platform_win.h_">
