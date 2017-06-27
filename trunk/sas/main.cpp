@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
 	} cla_status = CLA_Status::None;
 	bool has_error(false);
 	std::ofstream ec_file_os;
-	for(int i(0); i < argc; ++i)
+	for(int i(1); i < argc; ++i)
 	{
 		std::string _argv = argv[i];
 		switch (cla_status)
@@ -78,11 +78,6 @@ int main(int argc, char * argv[])
 				err_os = &std::cerr;
 			else if (_argv == "-ec-file")
 				cla_status = CLA_Status::ECFile;
-			else
-			{
-				std::cerr << "invalid command line argument: " << _argv << std::endl;
-				has_error = true;
-			}
 			break;
 		case CLA_Status::ECFile:
 			cla_status = CLA_Status::None;
