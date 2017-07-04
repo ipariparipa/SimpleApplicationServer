@@ -1,4 +1,4 @@
-include(../utils/common.pri)
+include(../common.pri)
 
 TEMPLATE = lib
 CONFIG += console c++11
