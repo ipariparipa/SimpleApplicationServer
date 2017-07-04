@@ -36,174 +36,201 @@ namespace SAS {
 
 struct MySQLConnector_priv
 {
-	MySQLConnector_priv()
+	MySQLConnector_priv(Application * app_, const std::string & name_) :
+		app(app_),
+		name(name_),
+		logger(Logging::getLogger("SAS.MySQLConnector." + name_)),
+		connectionManager(settings, connection_data, name_)
 	{ }
 
+	Application * app;
 	std::string name;
+	Logging::LoggerPtr logger;
+	MySQL_Settings settings;
+
 	struct ConnectionData
 	{
-		ConnectionData() : port(0) //, connected(false)
+		ConnectionData()
 		{ }
 
 		std::string host;
 		std::string user;
 		std::string passwd;
 		std::string db;
-		unsigned int port; // optional
+		unsigned int port = 0; // optional
 		std::string unix_socket; // optional
 
-//		bool connected;
 	} connection_data;
 	std::mutex connection_data_mut;
 
-	Logging::LoggerPtr logger;
-
-	Application * app;
-
-	struct Connection
+	struct ConnectionManager //: public TimerThread
 	{
-		Connection() : my(mysql_init(nullptr)), connected(false)
+		const MySQL_Settings & settings;
+		const ConnectionData & connection_data;
+		Logging::LoggerPtr logger;
+
+		ConnectionManager(const MySQL_Settings & settings_, const ConnectionData & connection_data_, const std::string & name) :
+			settings(settings_),
+			connection_data(connection_data_),
+			logger(Logging::getLogger("SAS.MySQLConnector." + name + ".ConnectionManager."))
 		{ }
 
-		~Connection()
+		struct Connection
 		{
-			std::unique_lock<std::mutex> __locker(mut);
-			if (my)
-				mysql_close(my);
-		}
+			Connection() : my(mysql_init(nullptr))
+			{ }
 
-		MYSQL * my;
-		std::mutex mut;
-		std::mutex external_mut;
-		bool connected;
-	} _conn;
-
-
-	std::mutex connection_repo_mut;
-	std::map<ThreadId, Connection*> connection_registry;
-	std::map<Connection*, size_t> connection_repo;
-
-	Connection * conn(ErrorCollector & ec)
-	{
-		SAS_LOG_NDC();
-
-		std::unique_lock<std::mutex> __locker(connection_repo_mut);
-		auto & conn = connection_registry[Thread::getThreadId()];
-		if (conn && conn->connected)
-			return conn;
-
-		if (!conn)
-		{
-			if (settings.max_connections && connection_repo.size() >= settings.max_connections)
+			~Connection()
 			{
-				SAS_LOG_TRACE(logger, "reuse already existing mysql connection");
-				size_t min_conn_num = SIZE_MAX;
-				for (auto & c : connection_repo)
+				std::unique_lock<std::mutex> __locker(mut);
+				if (my)
+					mysql_close(my);
+			}
+
+			MYSQL * my;
+			std::mutex mut;
+			std::mutex external_mut;
+			size_t connected = 0;
+		};
+
+
+		std::mutex connection_repo_mut;
+		std::map<ThreadId, Connection*> connection_registry;
+		std::map<Connection*, size_t> connection_repo;
+
+		Connection * connection(ErrorCollector & ec)
+		{
+			SAS_LOG_NDC();
+
+			std::unique_lock<std::mutex> __locker(connection_repo_mut);
+			auto & conn = connection_registry[Thread::getThreadId()];
+			if (!conn)
+			{
+				if (settings.max_connections && connection_repo.size() >= settings.max_connections)
 				{
-					if (c.second < min_conn_num)
+					SAS_LOG_TRACE(logger, "reuse already existing mysql connection");
+					size_t min_conn_num = SIZE_MAX;
+					for (auto & c : connection_repo)
 					{
-						conn = c.first;
-						min_conn_num = c.second;
+						if (c.second < min_conn_num)
+						{
+							conn = c.first;
+							min_conn_num = c.second;
+						}
 					}
-				}
-				if (!conn)
-					conn = connection_repo.begin()->first;
-				++connection_repo[conn];
-			}
-			else
-			{
-				SAS_LOG_INFO(logger, "create new mysql connection (#"+std::to_string(connection_repo.size()+1)+")");
-				connection_repo[conn = new Connection] = 1;
-			}
-			connection_registry[Thread::getThreadId()] = conn;
-		}
-
-		assert(conn);
-
-		if (conn->connected)
-			return conn;
-
-		SAS_LOG_ASSERT(logger, conn->my, "mysql pointer must not be null"); // checked only here!
-
-		SAS_LOG_VAR(logger, connection_data.host);
-		SAS_LOG_VAR(logger, connection_data.user);
-		SAS_LOG_VAR(logger, connection_data.passwd);
-		SAS_LOG_VAR(logger, connection_data.db);
-		SAS_LOG_VAR(logger, connection_data.port);
-		SAS_LOG_VAR(logger, connection_data.unix_socket);
-
-		{
-			std::unique_lock<std::mutex> __locker(conn->mut);
-			SAS_LOG_TRACE(logger, "mysql_real_connect");
-			if (!mysql_real_connect(conn->my,
-				connection_data.host.c_str(),
-				connection_data.user.c_str(),
-				connection_data.passwd.c_str(),
-				connection_data.db.c_str(),
-				connection_data.port,
-				connection_data.unix_socket.size() ? connection_data.unix_socket.c_str() : NULL,
-				0))
-			{
-				auto err = ec.add(SAS_SQL__ERROR__CANNOT_CONNECT_TO_DB_SEVICE, std::string("could not connect to MySQL service: ") + mysql_error(conn->my));
-				SAS_LOG_ERROR(logger, err);
-				detach();
-				return nullptr;
-			}
-			conn->connected = true;
-			SAS_LOG_DEBUG(logger, "mysql connection has been successfully built");
-		}
-
-		return conn;
-	}
-
-	Connection * conn()
-	{
-		std::unique_lock<std::mutex> __locker(connection_repo_mut);
-		auto * conn = connection_registry[Thread::getThreadId()];
-		if (conn && conn->connected)
-			return conn;
-
-		connection_registry.erase(Thread::getThreadId());
-		return nullptr;
-	}
-
-	void detach()
-	{
-		SAS_LOG_NDC();
-
-		SAS_LOG_TRACE(logger, "detach mysql connection");
-
-		std::unique_lock<std::mutex> __locker(connection_repo_mut);
-		auto th_id = Thread::getThreadId();
-		if (connection_registry.count(th_id))
-		{
-			auto conn = connection_registry[th_id];
-			connection_registry.erase(th_id);
-			if (connection_repo.count(conn))
-			{
-				auto & c = connection_repo[conn];
-				if (c < 2)
-				{
-					connection_repo.erase(conn);
-					delete conn;
+					if (!conn)
+						conn = connection_repo.begin()->first;
+					++connection_repo[conn];
 				}
 				else
-					--c;
+				{
+					SAS_LOG_INFO(logger, "create new mysql connection (#"+std::to_string(connection_repo.size()+1)+")");
+					connection_repo[conn = new Connection] = 1;
+				}
+				connection_registry[Thread::getThreadId()] = conn;
+			}
+			assert(conn);
+
+			if (conn->connected)
+			{
+				SAS_LOG_DEBUG(logger, "test MySQL connection");
+				if(!mysql_ping(conn->my))
+					return conn;
+				conn->connected = false;
+				SAS_LOG_INFO(logger, "MySQL connection has already gone. try to rebuild connection");
+			}
+
+			//not (yet) connected or connection has already gone
+
+			SAS_LOG_ASSERT(logger, conn->my, "mysql pointer must not be null"); // checked only here!
+
+			SAS_LOG_VAR(logger, connection_data.host);
+			SAS_LOG_VAR(logger, connection_data.user);
+			SAS_LOG_VAR(logger, connection_data.passwd);
+			SAS_LOG_VAR(logger, connection_data.db);
+			SAS_LOG_VAR(logger, connection_data.port);
+			SAS_LOG_VAR(logger, connection_data.unix_socket);
+
+			{
+				std::unique_lock<std::mutex> __locker(conn->mut);
+				SAS_LOG_TRACE(logger, "mysql_real_connect");
+				if (!mysql_real_connect(conn->my,
+					connection_data.host.c_str(),
+					connection_data.user.c_str(),
+					connection_data.passwd.c_str(),
+					connection_data.db.c_str(),
+					connection_data.port,
+					connection_data.unix_socket.size() ? connection_data.unix_socket.c_str() : NULL,
+					0))
+				{
+					auto err = ec.add(SAS_SQL__ERROR__CANNOT_CONNECT_TO_DB_SEVICE, std::string("could not connect to MySQL service: ") + mysql_error(conn->my));
+					SAS_LOG_ERROR(logger, err);
+					detach();
+					return nullptr;
+				}
+				conn->connected = true;
+				SAS_LOG_DEBUG(logger, "mysql connection has been successfully built");
+			}
+
+			return conn;
+		}
+
+		Connection * connection()
+		{
+			SAS_LOG_NDC();
+
+			std::unique_lock<std::mutex> __locker(connection_repo_mut);
+			auto * conn = connection_registry[Thread::getThreadId()];
+			if (conn && conn->connected)
+			{
+				/*
+				if(mysql_ping(conn->my))
+				{
+					SAS_LOG_INFO(logger, "MySQL connection has already gone.");
+					conn->connected = false;
+					connection_registry.erase(Thread::getThreadId());
+					return nullptr;
+				}
+				*/
+				return conn;
+			}
+
+			connection_registry.erase(Thread::getThreadId());
+			return nullptr;
+		}
+
+		void detach()
+		{
+			SAS_LOG_NDC();
+
+			SAS_LOG_TRACE(logger, "detach mysql connection");
+
+			std::unique_lock<std::mutex> __locker(connection_repo_mut);
+			auto th_id = Thread::getThreadId();
+			if (connection_registry.count(th_id))
+			{
+				auto conn = connection_registry[th_id];
+				connection_registry.erase(th_id);
+				if (connection_repo.count(conn))
+				{
+					auto & c = connection_repo[conn];
+					if (c < 2)
+					{
+						connection_repo.erase(conn);
+						delete conn;
+					}
+					else
+						--c;
+				}
 			}
 		}
-	}
-
-	MySQL_Settings settings;
+	} connectionManager;
 
 };
 
 
-MySQLConnector::MySQLConnector(const std::string & name, Application * app) : SQLConnector(), priv(new MySQLConnector_priv)
-{
-	priv->app = app;
-	priv->logger = Logging::getLogger("SAS.MySQLConnector." + name);
-	priv->name= name;
-}
+MySQLConnector::MySQLConnector(const std::string & name, Application * app) : SQLConnector(), priv(new MySQLConnector_priv(app, name))
+{ }
 
 MySQLConnector::~MySQLConnector()
 {
@@ -273,17 +300,17 @@ bool MySQLConnector::connect(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
 
-	if(!priv->conn(ec))
+	if(!priv->connectionManager.connection(ec))
 		return false;
 	
-	priv->detach();
+	priv->connectionManager.detach();
 	return true;
 }
 
 SQLStatement * MySQLConnector::createStatement(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	auto conn = priv->conn(ec);
+	auto conn = priv->connectionManager.connection(ec);
 	if (!conn)
 		return nullptr;
 
@@ -297,7 +324,7 @@ SQLStatement * MySQLConnector::createStatement(ErrorCollector & ec)
 bool MySQLConnector::exec(const std::string & statement, SQLResult *& res, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	auto conn = priv->conn(ec);
+	auto conn = priv->connectionManager.connection(ec);
 	if (!conn)
 		return false;
 
@@ -322,7 +349,7 @@ bool MySQLConnector::exec(const std::string & statement, SQLResult *& res, Error
 bool MySQLConnector::exec(const std::string & statement, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	auto conn = priv->conn(ec);
+	auto conn = priv->connectionManager.connection(ec);
 	if (!conn)
 		return false;
 
@@ -343,7 +370,7 @@ bool MySQLConnector::exec(const std::string & statement, ErrorCollector & ec)
 
 void MySQLConnector::detach()
 {
-	priv->detach();
+	priv->connectionManager.detach();
 }
 
 Logging::LoggerPtr MySQLConnector::logger() const
@@ -358,7 +385,7 @@ const MySQL_Settings & MySQLConnector::settings() const
 
 std::mutex & MySQLConnector::mutex()
 {
-	auto conn = priv->conn();
+	auto conn = priv->connectionManager.connection();
 	if (!conn)
 	{
 		SAS_LOG_NDC();
@@ -370,12 +397,12 @@ std::mutex & MySQLConnector::mutex()
 bool MySQLConnector::activate(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	return priv->conn(ec) != nullptr;
+	return priv->connectionManager.connection(ec) != nullptr;
 }
 
 void MySQLConnector::lock()
 {
-	auto conn = priv->conn();
+	auto conn = priv->connectionManager.connection();
 	if (!conn)
 	{
 		SAS_LOG_NDC();
@@ -386,7 +413,7 @@ void MySQLConnector::lock()
 
 void MySQLConnector::unlock()
 {
-	auto conn = priv->conn();
+	auto conn = priv->connectionManager.connection();
 	if (!conn)
 	{
 		SAS_LOG_NDC();
