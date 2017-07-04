@@ -23,6 +23,8 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/thread.h>
 #include SAS_TCL__TCL_H
 
+#include <string>
+
 namespace SAS {
 
 	class TCLInterpInitializer;
