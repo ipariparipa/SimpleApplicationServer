@@ -133,7 +133,7 @@ struct MySQLConnector_priv
 
 			if (conn->connected)
 			{
-				SAS_LOG_DEBUG(logger, "test MySQL connection");
+				SAS_LOG_TRACE(logger, "test MySQL connection");
 				if(!mysql_ping(conn->my))
 					return conn;
 				conn->connected = false;
