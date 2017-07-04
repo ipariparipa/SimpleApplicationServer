@@ -41,18 +41,22 @@ struct ObjectRegistry_priv
 		std::map<std::string /*name*/, Object*> reg;
 	};
 
-	std::map<std::string /*type*/, TypeReg> reg;
+	std::map<std::string /*type*/, std::unique_ptr<TypeReg>> reg;
 
 	TypeReg * setTypeReg(const std::string & type)
 	{
 		std::unique_lock<std::mutex> __locker(mut);
-		return &reg[type];
+		if(reg.count(type))
+			return reg[type].get();
+		auto r = new TypeReg();
+		reg[type].reset(r);
+		return r;
 	}
 
 	TypeReg * getTypeReg(const std::string & type)
 	{
 		std::unique_lock<std::mutex> __locker(mut);
-		return reg.count(type) ? &reg[type] : nullptr;
+		return reg.count(type) ? reg.at(type).get() : nullptr;
 	}
 
 	bool registerObjects(std::map<std::string /*type*/, std::list<Object *>> obj, ErrorCollector & ec)
