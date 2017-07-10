@@ -633,6 +633,23 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 	return true;
 }
 
+bool MySQLStatement::getLastGeneratedId(const std::string & schema, const std::string & table, const std::string & field, SQLVariant & ret, ErrorCollector & ec) // final
+{
+	SAS_LOG_NDC();
+
+	if (schema.length() ||table.length() || field.length())
+		SAS_LOG_TRACE(priv->conn->logger(), "usage of schema, table and field is not supported by this version of MySQL connector. arguments are skipped, but keep it to use because of the compatibility to another SQL connector");
+
+	if (!prepare("select last_insert_id()", ec) || !exec(ec))
+		return false;
+	std::vector<SAS::SQLVariant> data;
+	if (!fetch(data, ec))
+		return false;
+	SAS_LOG_ASSERT(priv->conn->logger(), data.size() == 1, "invalid data size");
+	ret = data.front();
+	return true;
+}
+
 bool MySQLStatement::fieldNum(size_t & ret, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();

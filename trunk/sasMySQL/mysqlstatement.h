@@ -39,6 +39,7 @@ public:
 	virtual bool bindParam(const std::vector<SQLVariant> & params, ErrorCollector & ec) final;
 	virtual bool execDML(ErrorCollector & ec) final;
 	virtual bool exec(ErrorCollector & ec) final;
+	virtual bool getLastGeneratedId(const std::string & schema, const std::string & table, const std::string & field, SQLVariant & ret, ErrorCollector & ec) final;
 
 	virtual bool fieldNum(size_t & ret, ErrorCollector & ec) final;
 	virtual bool fields(std::vector<std::tuple<std::string /*db/scheme*/, std::string /*table*/, std::string /*field name*/, SQLDataType>> & ret, ErrorCollector & ec) final;
