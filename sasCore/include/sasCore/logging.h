@@ -71,7 +71,10 @@ namespace SAS { namespace Logging {
 #define SAS_LOG_FATAL(logger, msg) LOG4CXX_FATAL(logger, msg)
 #define SAS_ROOT_LOG_FATAL(msg) SAS_LOG_FATAL(log4cxx::Logger::getRootLogger(), msg)
 
-#define SAS_LOG_ASSERT(logger, condition, msg) LOG4CXX_ASSERT(logger, condition, msg); assert(condition)
+#define SAS_LOG_SOFT_ASSERT(logger, condition, msg) LOG4CXX_ASSERT(logger, condition, msg)
+#define SAS_ROOT_LOG_SOFT_ASSERT(condition, msg) SAS_LOG_SOFT_ASSERT(log4cxx::Logger::getRootLogger(), conditnio, msg)
+
+#define SAS_LOG_ASSERT(logger, condition, msg) SAS_LOG_SOFT_ASSERT(logger, condition, msg); assert(condition)
 #define SAS_ROOT_LOG_ASSERT(condition, msg) SAS_LOG_ASSERT(log4cxx::Logger::getRootLogger(), conditnio, msg)
 
 #define SAS_LOG_VAR_NAME(logger, var_name, val) SAS_LOG_DEBUG(logger, (std::string)var_name + " = " + SAS::Logging::toString(val))
@@ -220,11 +223,13 @@ extern SAS_CORE__FUNCTION void setLogging(AbstractLogging * logging);
 #define SAS_LOG_FATAL(logger, msg) SAS_LOG_ADD(logger, SAS::Logging::AbstractLogger::Priority::Fatal, msg)
 #define SAS_ROOT_LOG_FATAL(msg) SAS_LOG_FATAL(SAS::Logging::getRootLogger(), msg)
 
-#define SAS_LOG_ASSERT(logger, condition, msg) \
+#define SAS_LOG_SOFT_ASSERT(logger, condition, msg) \
 		if(!(condition)) \
-			logger->add(SAS::Logging::AbstractLogger::Priority::Fatal, std::string(#condition) + " " + msg, __FILE__, __LINE__); \
-		assert(condition)
-#define SAS_ROOT_LOG_ASSERT(condition, msg) assert(condition) SAS_ROOT_LOG_ASSERT(SAS::Logging::getRootLogger(), condition, msg)
+			logger->add(SAS::Logging::AbstractLogger::Priority::Fatal, std::string(#condition) + " " + msg, __FILE__, __LINE__)
+#define SAS_ROOT_LOG_SOFT_ASSERT(condition, msg) SAS_ROOT_LOG_SOFT_ASSERT(SAS::Logging::getRootLogger(), condition, msg)
+
+#define SAS_LOG_ASSERT(logger, condition, msg) SAS_LOG_SOFT_ASSERT(logger, condition, msg); assert(condition)
+#define SAS_ROOT_LOG_ASSERT(condition, msg) SAS_ROOT_LOG_ASSERT(SAS::Logging::getRootLogger(), condition, msg)
 
 #define SAS_LOG_VAR_NAME(logger, var_name, val) SAS_LOG_DEBUG(logger, (std::string)var_name + " = " + SAS::Logging::toString(val))
 #define SAS_ROOT_LOG_VAR_NAME(var_name, val) SAS_LOG_VAR_NAME(SAS::Logging::getRootLogger(), var_name, val)
