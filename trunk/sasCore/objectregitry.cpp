@@ -41,16 +41,16 @@ struct ObjectRegistry_priv
 		std::map<std::string /*name*/, Object*> reg;
 	};
 
-	std::map<std::string /*type*/, std::unique_ptr<TypeReg>> reg;
+	std::map<std::string /*type*/, std::shared_ptr<TypeReg>> reg;
 
 	TypeReg * setTypeReg(const std::string & type)
 	{
 		std::unique_lock<std::mutex> __locker(mut);
 		if(reg.count(type))
 			return reg[type].get();
-		auto r = new TypeReg();
-		reg[type].reset(r);
-		return r;
+		auto r = std::make_shared<TypeReg>();
+		reg[type] = r;
+		return r.get();
 	}
 
 	TypeReg * getTypeReg(const std::string & type)
