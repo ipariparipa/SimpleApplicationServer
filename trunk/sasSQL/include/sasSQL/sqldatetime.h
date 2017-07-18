@@ -38,6 +38,13 @@ public:
 
 	SQLDateTime & operator = (const SQLDateTime & o);
 
+	bool operator < (const SQLDateTime & o) const;
+	bool operator <= (const SQLDateTime & o) const;
+	bool operator > (const SQLDateTime & o) const;
+	bool operator >= (const SQLDateTime & o) const;
+	bool operator == (const SQLDateTime & o) const;
+	bool operator != (const SQLDateTime & o) const;
+
 	bool isNull() const;
 	bool has_msecs() const;
 
