@@ -119,6 +119,40 @@ SQLDateTime & SQLDateTime::operator = (const SQLDateTime & o)
 	return *this;
 }
 
+bool SQLDateTime::operator < (const SQLDateTime & o) const
+{
+	return to_time_t() < o.to_time_t() ||
+			((priv->msecs < 0 ? 0 : priv->msecs)  < (o.priv->msecs < 0 ? 0 : o.priv->msecs));
+}
+
+bool SQLDateTime::operator <= (const SQLDateTime & o) const
+{
+	return operator <(o) || operator ==(o);
+}
+
+bool SQLDateTime::operator > (const SQLDateTime & o) const
+{
+	return to_time_t() > o.to_time_t() ||
+			((priv->msecs < 0 ? 0 : priv->msecs) > (o.priv->msecs < 0 ? 0 : o.priv->msecs));
+}
+
+bool SQLDateTime::operator >= (const SQLDateTime & o) const
+{
+	return operator >(o) || operator ==(o);
+}
+
+bool SQLDateTime::operator == (const SQLDateTime & o) const
+{
+	return to_time_t() == o.to_time_t() &&
+			((priv->msecs < 0 ? 0 : priv->msecs) == (o.priv->msecs < 0 ? 0 : o.priv->msecs));
+}
+
+bool SQLDateTime::operator != (const SQLDateTime & o) const
+{
+	return to_time_t() != o.to_time_t() &&
+			((priv->msecs < 0 ? 0 : priv->msecs) != (o.priv->msecs < 0 ? 0 : o.priv->msecs));
+}
+
 bool SQLDateTime::isNull() const
 {
 	return priv->isNull;
