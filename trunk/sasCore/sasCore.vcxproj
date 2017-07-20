@@ -103,7 +103,7 @@
     <ClCompile Include="configreader.cpp" />
     <ClCompile Include="connector.cpp" />
     <ClCompile Include="controlledthread.cpp" />
-    <ClCompile Include="copmonentloader.cpp" />
+    <ClCompile Include="componentloader.cpp" />
     <ClCompile Include="errorcollector.cpp" />
     <ClCompile Include="interfacemanager.cpp" />
     <ClCompile Include="invoker.cpp" />
@@ -111,7 +111,7 @@
     <ClCompile Include="logging.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="object.cpp" />
-    <ClCompile Include="objectregitry.cpp" />
+    <ClCompile Include="objectregistry.cpp" />
     <ClCompile Include="sas.cpp" />
     <ClCompile Include="session.cpp" />
     <ClCompile Include="sessionmanager.cpp" />
