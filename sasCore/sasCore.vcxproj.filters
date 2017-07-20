@@ -33,9 +33,6 @@
     <ClCompile Include="controlledthread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="copmonentloader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="errorcollector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,9 +54,6 @@
     <ClCompile Include="object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="objectregitry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -79,6 +73,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="componentloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="objectregistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
