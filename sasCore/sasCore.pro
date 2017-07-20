@@ -13,7 +13,7 @@ SOURCES += \
     configreader.cpp \
     connector.cpp \
     controlledthread.cpp \
-    copmonentloader.cpp \
+    componentloader.cpp \
     errorcollector.cpp \
     interfacemanager.cpp \
     invoker.cpp \
@@ -21,7 +21,7 @@ SOURCES += \
     logging.cpp \
     module.cpp \
     object.cpp \
-    objectregitry.cpp \
+    objectregistry.cpp \
     sas.cpp \
     session.cpp \
     sessionmanager.cpp \
