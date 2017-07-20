@@ -74,21 +74,21 @@ namespace SAS {
 
 			virtual inline ~DefaultBlobHandler() { }
 
-			virtual void addBlob(const std::string & name, const std::vector<char> & data) final
+			virtual void addBlob(const std::string & name, const std::vector<unsigned char> & data) final
 			{
 				SAS_LOG_NDC();
 				SAS_LOG_TRACE(logger, "add blob '" + name + "' (" + std::to_string(data.size()) + ")");
 				blobs[name] = data;
 			}
 
-			virtual void setBlob(const std::string & name, std::vector<char> *& data) final
+			virtual void setBlob(const std::string & name, std::vector<unsigned char> *& data) final
 			{
 				SAS_LOG_NDC();
 				SAS_LOG_TRACE(logger, "set blob");
 				data = &blobs[name];
 			}
 
-			virtual void addBlob(const std::string & name, const char * data, size_t size) final
+			virtual void addBlob(const std::string & name, const unsigned char * data, size_t size) final
 			{
 				SAS_LOG_NDC();
 				SAS_LOG_TRACE(logger, "add blob '" + name + "' (" + std::to_string(size) + ")");
@@ -98,7 +98,7 @@ namespace SAS {
 					std::memcpy(b.data(), data, size);
 			}
 
-			virtual bool getBlob(const std::string & name, std::vector<char> *& ret, ErrorCollector & ec) final
+			virtual bool getBlob(const std::string & name, std::vector<unsigned char> *& ret, ErrorCollector & ec) final
 			{
 				SAS_LOG_NDC();
 				SAS_LOG_TRACE(logger, "get blob '" + name + "'");
@@ -112,14 +112,14 @@ namespace SAS {
 				return true;
 			}
 
-			virtual bool getAll(std::vector<std::pair<std::string, std::vector<char>*>> & ret, ErrorCollector & ec) final
+			virtual bool getAll(std::vector<std::pair<std::string, std::vector<unsigned char>*>> & ret, ErrorCollector & ec) final
 			{
 				SAS_LOG_NDC();
 				SAS_LOG_TRACE(logger, "get all blob");
 				ret.resize(blobs.size());
 				size_t i(0);
 				for (auto & b : blobs)
-					ret[i++] = std::pair<std::string, std::vector<char>*>(b.first, &b.second);
+					ret[i++] = std::pair<std::string, std::vector<unsigned char>*>(b.first, &b.second);
 				return true;
 			}
 
@@ -138,7 +138,7 @@ namespace SAS {
 				blobs.clear();
 			}
 
-			std::map<std::string, std::vector<char>> blobs;
+			std::map<std::string, std::vector<unsigned char>> blobs;
 			Logging::LoggerPtr logger;
 			std::mutex mut;
 		};
@@ -290,7 +290,7 @@ namespace SAS {
 						return TCLInvoker::Status::Error;
 					}
 					SAS_LOG_VAR(priv->logger, data_size);
-					priv->blobHandler->addBlob(name, in_data, data_size);
+					priv->blobHandler->addBlob(name, (const unsigned char *) in_data, data_size);
 					in_data += data_size; in_size -= data_size;
 				}
 				else if (format == "BREM")
@@ -347,7 +347,7 @@ namespace SAS {
 					name.append(in_data, name_size);
 					in_data += name_size; in_size -= name_size, data_size -= name_size;
 					SAS_LOG_VAR(priv->logger, name);
-					std::vector<std::pair<std::string, std::vector<char>*>> blobs;
+					std::vector<std::pair<std::string, std::vector<unsigned char>*>> blobs;
 					if (name.length())
 					{
 						blobs.resize(1);

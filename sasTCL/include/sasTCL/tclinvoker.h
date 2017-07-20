@@ -27,6 +27,22 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
+	class TCLBlobHandler
+	{
+	public:
+		virtual void lock() = 0;
+		virtual void unlock() = 0;
+
+		virtual inline ~TCLBlobHandler() { }
+		virtual void addBlob(const std::string & name, const std::vector<unsigned char> & data) = 0;
+		virtual void addBlob(const std::string & name, const unsigned char * data, size_t size) = 0;
+		virtual void setBlob(const std::string & name, std::vector<unsigned char> *& data) = 0;
+		virtual bool getAll(std::vector<std::pair<std::string, std::vector<unsigned char>*>> & ret, ErrorCollector & ec) = 0;
+		virtual bool getBlob(const std::string & name, std::vector<unsigned char> *& data, ErrorCollector & ec) = 0;
+		virtual void removeBlob(const std::string & name) = 0;
+		virtual void removeAll() = 0;
+	};
+
 	struct TCLInvoker_priv;
 	class SAS_TCL__CLASS TCLInvoker : public Invoker, protected TCLInterpInitializer
 	{
@@ -34,23 +50,7 @@ namespace SAS {
 
 		SAS_COPY_PROTECTOR(TCLInvoker)
 	public:
-
-		class BlobHandler
-		{
-		public:
-			virtual void lock() = 0;
-			virtual void unlock() = 0;
-
-			virtual inline ~BlobHandler() { }
-			virtual void addBlob(const std::string & name, const std::vector<char> & data) = 0;
-			virtual void addBlob(const std::string & name, const char * data, size_t size) = 0;
-			virtual void setBlob(const std::string & name, std::vector<char> *& data) = 0;
-			virtual bool getAll(std::vector<std::pair<std::string, std::vector<char>*>> & ret, ErrorCollector & ec) = 0;
-			virtual bool getBlob(const std::string & name, std::vector<char> *& data, ErrorCollector & ec) = 0;
-			virtual void removeBlob(const std::string & name) = 0;
-			virtual void removeAll() = 0;
-		};
-
+		typedef TCLBlobHandler BlobHandler;
 		TCLInvoker(const std::string & name, Tcl_Interp * interp);
 		TCLInvoker(const std::string & name);
 		virtual ~TCLInvoker();
