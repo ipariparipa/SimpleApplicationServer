@@ -46,6 +46,8 @@ namespace SAS {
 
 		void append(const TCLList & o);
 		void append(const std::string & str);
+		void appendEval(const TCLList & o);
+		void appendEval(const std::string & str);
 
 		const std::string & operator [] (size_t idx) const;
 		bool getList(size_t idx, TCLList & ret) const;
