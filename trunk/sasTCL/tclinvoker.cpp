@@ -200,6 +200,8 @@ namespace SAS {
 			output.resize(sizeof(uint16_t));
 			memcpy(output.data(), &version, sizeof(uint16_t));
 
+			bool has_script_error(false);
+
 			while (in_size)
 			{
 				if (in_size < 4 + sizeof(uint32_t))
@@ -233,30 +235,41 @@ namespace SAS {
 
 					SAS_LOG_VAR(priv->logger, run.script);
 
-					if (run.script.length())
+					if (!has_script_error)
 					{
-						priv->exec.run(&run);
-						if (!run.isOK)
-							return TCLInvoker::Status::Error;
-						auto & res = run.result;
-						std::vector<char> header(4 + sizeof(uint32_t));
-						char * out_header = header.data();
-						memcpy(out_header, "TCLR", 4);
-						out_header += 4;
-						uint32_t tmp_32(res.size());
-						memcpy(out_header, &tmp_32, sizeof(uint32_t));
-						output.insert(std::end(output), header.begin(), header.end());
-						output.insert(std::end(output), res.begin(), res.end());
+						if (run.script.length())
+						{
+							priv->exec.run(&run);
+							if (!run.isOK)
+							{
+								has_script_error = true;
+								//return TCLInvoker::Status::Error;
+							}
+							else
+							{
+								auto & res = run.result;
+								std::vector<char> header(4 + sizeof(uint32_t));
+								char * out_header = header.data();
+								memcpy(out_header, "TCLR", 4);
+								out_header += 4;
+								uint32_t tmp_32(res.size());
+								memcpy(out_header, &tmp_32, sizeof(uint32_t));
+								output.insert(std::end(output), header.begin(), header.end());
+								output.insert(std::end(output), res.begin(), res.end());
+							}
+						}
+						else
+						{
+							SAS_LOG_DEBUG(priv->logger, "nothing to do");
+							std::vector<char> header(4 + sizeof(uint32_t));
+							char * out_data = header.data();
+							memcpy(out_data, std::string("TCL\0").c_str(), 4);
+							//size of result is 0(zero)
+							output.insert(std::end(output), header.begin(), header.end());
+						}
 					}
 					else
-					{
-						SAS_LOG_DEBUG(priv->logger, "nothing to do");
-						std::vector<char> header(4 + sizeof(uint32_t));
-						char * out_data = header.data();
-						memcpy(out_data, std::string("TCL\0").c_str(), 4);
-						//size of result is 0(zero)
-						output.insert(std::end(output), header.begin(), header.end());
-					}
+						SAS_LOG_TRACE(priv->logger, "script is ignored");
 				}
 				else if (format == "BADD")
 				{
@@ -382,6 +395,8 @@ namespace SAS {
 					in_data += data_size; in_size -= data_size;
 				}
 			}
+			if (has_script_error)
+				return TCLInvoker::Status::Error;
 			break;
 		}
 		default:
