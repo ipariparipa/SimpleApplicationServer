@@ -36,6 +36,18 @@ struct SQLDateTime_priv
 	bool daylightSaveTime;
 	bool negative;
 	short ms_precision;
+
+	void set_tm(tm & ret)
+	{
+		memset(&ret, 0, sizeof(tm));
+		ret.tm_year = years - 1900;
+		ret.tm_mon = months - 1;
+		ret.tm_mday = days;
+		ret.tm_hour = hours;
+		ret.tm_min = minutes;
+		ret.tm_sec = seconds;
+		ret.tm_isdst = daylightSaveTime;
+	}
 };
 
 
@@ -93,7 +105,7 @@ SQLDateTime::SQLDateTime(const tm * t) : priv(new SQLDateTime_priv)
 	priv->ms_precision = 0;
 }
 
-SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, bool daylightSaveTime, bool negative, short ms_precision) : priv(new SQLDateTime_priv)
+SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, bool negative, short ms_precision) : priv(new SQLDateTime_priv)
 {
 	priv->years = years;
 	priv->months = months;
@@ -102,10 +114,16 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
 	priv->minutes = minutes;
 	priv->seconds = seconds;
 	priv->msecs = msecs;
-	priv->daylightSaveTime = daylightSaveTime;
 	priv->negative = negative;
 	priv->isNull = false;
 	priv->ms_precision = ms_precision;
+	priv->daylightSaveTime = false;
+
+	tm tmp;
+	priv->set_tm(tmp);
+	tmp.tm_isdst = -1;
+	mktime(&tmp);
+	priv->daylightSaveTime = tmp.tm_isdst != 0;
 }
 
 SQLDateTime::~SQLDateTime()
@@ -234,13 +252,7 @@ std::string SQLDateTime::toString() const
 tm SQLDateTime::to_tm() const
 {
 	tm ret;
-	ret.tm_year = priv->years - 1900;
-	ret.tm_mon = priv->months - 1;
-	ret.tm_mday = priv->days;
-	ret.tm_hour = priv->hours;
-	ret.tm_min = priv->minutes;
-	ret.tm_sec = priv->seconds;
-	ret.tm_isdst = priv->daylightSaveTime;
+	priv->set_tm(ret);
 	mktime(&ret);
 	return ret;
 }

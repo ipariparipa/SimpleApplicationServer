@@ -21,7 +21,19 @@
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
 
+#include <memory>
+
 namespace SAS {
+
+	bool SQLConnector::getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec)
+	{
+		SAS_LOG_NDC();
+		std::unique_ptr<SQLStatement> stmt(createStatement(ec));
+		if (!stmt)
+			return false;
+		return stmt->getSysDate(ret, ec);
+	}
+
 
 struct SQLTransactionProtector_priv
 {
