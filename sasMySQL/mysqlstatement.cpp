@@ -184,7 +184,7 @@ struct MySQLStatement_priv
 				return SQLVariant(SQLDataType::DateTime, sub_type);
 
 			return SQLVariant(SQLDateTime(data.year, data.month, data.day,
-				data.hour, data.minute, data.second, data.second_part, false, data.neg!=0), sub_type);
+				data.hour, data.minute, data.second, data.second_part, data.neg!=0), sub_type);
 		}
 
 	private:
@@ -736,6 +736,19 @@ bool MySQLStatement::fetch(std::vector<SQLVariant> & ret, ErrorCollector & ec)
 	for(size_t i(0), l(ret.size()); i < l; ++i)
 		ret[i] = priv->res_helpers[i]->getData();
 
+	return true;
+}
+
+bool MySQLStatement::getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+
+	std::vector<SAS::SQLVariant> data;
+	if (!prepare("select sysdate()", ec) || !exec(ec) || !fetch(data, ec))
+		return false;
+
+	SAS_LOG_ASSERT(priv->conn->logger(), data.size() == 1, "invalid length of data");
+	ret = data[0].asDateTime();
 	return true;
 }
 

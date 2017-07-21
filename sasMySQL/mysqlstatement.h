@@ -45,6 +45,8 @@ public:
 	virtual bool fields(std::vector<std::tuple<std::string /*db/scheme*/, std::string /*table*/, std::string /*field name*/, SQLDataType>> & ret, ErrorCollector & ec) final;
 	virtual unsigned long long rowNum() final;
 	virtual bool fetch(std::vector<SQLVariant> &, ErrorCollector & ec) final;
+
+	virtual bool getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec) final;
 private:
 	MySQLStatement_priv * priv;
 };

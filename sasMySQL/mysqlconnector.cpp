@@ -22,6 +22,8 @@
 #include <sasCore/application.h>
 #include <sasCore/configreader.h>
 #include <sasSQL/errorcodes.h>
+#include <sasSQL/sqlstatement.h>
+#include <sasSQL/sqldatetime.h>
 
 #include "mysqlresult.h"
 #include "mysqlstatement.h"
@@ -30,6 +32,7 @@
 #include <vector>
 #include <list>
 #include <mutex>
+#include <memory>
 #include <assert.h>
 
 namespace SAS {
@@ -439,6 +442,5 @@ bool MySQLConnector::rollback(ErrorCollector & ec)
 	SAS_LOG_NDC();
 	return exec("rollback", ec);
 }
-
 
 }
