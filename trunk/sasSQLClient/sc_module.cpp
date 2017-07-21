@@ -127,7 +127,7 @@ namespace SAS { namespace SQLClient {
 						{
 							std::string blob_name = "blob#" + std::to_string(blob_idx++);
 							field.append(blob_name);
-							std::vector<char> * blob;
+							std::vector<unsigned char> * blob;
 							obj->blobHandler()->setBlob(blob_name, blob);
 							size_t blob_size;
 							auto blob_data = d.asBlob(blob_size);
