@@ -19,6 +19,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <cstring>
 
 namespace SAS {
 
@@ -39,7 +40,7 @@ struct SQLDateTime_priv
 
 	void set_tm(tm & ret)
 	{
-		memset(&ret, 0, sizeof(tm));
+		std::memset(&ret, 0, sizeof(tm));
 		ret.tm_year = years - 1900;
 		ret.tm_mon = months - 1;
 		ret.tm_mday = days;
