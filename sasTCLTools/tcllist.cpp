@@ -26,7 +26,12 @@ namespace SAS {
 		TCLList_priv() : isNull(true)
 		{ }
 
-		std::list<std::string> lst;
+		struct Elem
+		{
+			std::string str;
+			enum Type {Element, Eval} type;
+		};
+		std::list<Elem> lst;
 
 		bool isNull;
 	};
@@ -74,7 +79,7 @@ namespace SAS {
 
 		auto add = [&](const std::string & str) -> bool
 		{
-			priv->lst.push_back(str);
+			priv->lst.push_back({ str, TCLList_priv::Elem::Element });
 			return true;
 		};
 
@@ -141,12 +146,22 @@ namespace SAS {
 
 	void TCLList::append(const TCLList & o)
 	{
-		priv->lst.push_back(o.toString());
+		priv->lst.push_back({ o.toString(), TCLList_priv::Elem::Element });
 	}
 
 	void TCLList::append(const std::string & str)
 	{
-		priv->lst.push_back(str);
+		priv->lst.push_back({ str, TCLList_priv::Elem::Element });
+	}
+
+	void TCLList::appendEval(const TCLList & o)
+	{
+		priv->lst.push_back({ o.toString(), TCLList_priv::Elem::Eval });
+	}
+
+	void TCLList::appendEval(const std::string & str)
+	{
+		priv->lst.push_back({ str, TCLList_priv::Elem::Eval });
 	}
 
 	const std::string & TCLList::operator [] (size_t idx) const
@@ -162,7 +177,7 @@ namespace SAS {
 		size_t i(0);
 		for (const auto & d : priv->lst)
 			if (i++ == idx)
-				return d;
+				return d.str;
 		return null_value;
 	}
 
@@ -183,10 +198,18 @@ namespace SAS {
 		int idx(0);
 		for(auto e : priv->lst)
 		{
-			if (e.find(' ') == std::string::npos)
-				ret += e;
-			else
-				ret += "{" + e + "}";
+			switch (e.type)
+			{
+			case TCLList_priv::Elem::Element:
+				if (e.str.find(' ') == std::string::npos)
+					ret += e.str;
+				else
+					ret += "{" + e.str + "}";
+				break;
+			case TCLList_priv::Elem::Eval:
+				ret += "[" + e.str + "]";
+				break;
+			}
 
 			if (idx++ < last_idx)
 				ret += " ";
