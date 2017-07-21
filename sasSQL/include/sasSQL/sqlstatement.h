@@ -34,6 +34,8 @@ public:
 	virtual bool execDML(ErrorCollector & ec) = 0;
 	virtual bool exec(ErrorCollector & ec) = 0;
 	virtual bool getLastGeneratedId(const std::string & schema, const std::string & table, const std::string & field, SQLVariant & ret, ErrorCollector & ec) = 0;
+
+	virtual bool getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec) = 0;
 };
 
 }

@@ -28,6 +28,7 @@ namespace SAS {
 class ErrorCollector;
 class SQLStatement;
 class SQLResult;
+class SQLDateTime;
 
 class SAS_SQL__CLASS SQLConnector : public Object
 {
@@ -57,6 +58,7 @@ public:
 	virtual bool commit(ErrorCollector & ec) = 0;
 	virtual bool rollback(ErrorCollector & ec) = 0;
 
+	virtual bool getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec);
 };
 
 
