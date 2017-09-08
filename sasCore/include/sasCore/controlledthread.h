@@ -33,6 +33,8 @@ public:
 	void suspend();
 	void resume();
 
+	bool reserveSuspended();
+
 protected:
 	virtual void begun() override;
 	virtual void ended() override;

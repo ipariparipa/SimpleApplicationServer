@@ -24,6 +24,7 @@ namespace SAS {
 	struct ControlledThread_priv
 	{
 		std::timed_mutex suspender_mutex;
+		std::timed_mutex reserver_mutex;
 	};
 
 
@@ -43,6 +44,14 @@ namespace SAS {
 	void ControlledThread::resume()
 	{
 		priv->suspender_mutex.unlock();
+		priv->reserver_mutex.unlock();
+	}
+
+	bool ControlledThread::reserveSuspended()
+	{
+		if (!priv->reserver_mutex.try_lock())
+			return false;
+		return true;
 	}
 
 	void ControlledThread::begun()
@@ -53,8 +62,10 @@ namespace SAS {
 
 	bool ControlledThread::enterContolledSection()
 	{
+		priv->reserver_mutex.unlock();
 		priv->suspender_mutex.lock();
 		priv->suspender_mutex.unlock();
+		priv->reserver_mutex.lock();
 		return true;
 	}
 

@@ -20,6 +20,7 @@ along with sasJSON.  If not, see <http://www.gnu.org/licenses/>
 
 #include "config.h"
 #include <sasCore/errorcollector.h>
+#include <sasCore/defines.h>
 
 #include <rapidjson/document.h>
 
@@ -28,9 +29,12 @@ namespace SAS {
 	struct JSONErrorCollector_priv;
 	class SAS_JSON__CLASS JSONErrorCollector : public SAS::ErrorCollector
 	{
+		SAS_COPY_PROTECTOR(JSONErrorCollector)
+	public:
 		JSONErrorCollector(rapidjson::Document::AllocatorType & alloc_);
+		virtual ~JSONErrorCollector();
 
-		const rapidjson::Value & errors() const;
+		rapidjson::Value & errors() const;
 
 	protected:
 		virtual void append(long errorCode, const std::string & errorText) override;

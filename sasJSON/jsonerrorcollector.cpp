@@ -32,7 +32,12 @@ namespace SAS {
 		SAS::ErrorCollector(), priv(new JSONErrorCollector_priv(alloc))
 	{ }
 
-	const rapidjson::Value & JSONErrorCollector::errors() const
+	JSONErrorCollector::~JSONErrorCollector()
+	{
+		delete priv;
+	}
+
+	rapidjson::Value & JSONErrorCollector::errors() const
 	{
 		return priv->errs;
 	}
