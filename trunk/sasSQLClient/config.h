@@ -33,5 +33,4 @@
 #  endif
 #endif
 
-
 #endif // sasSQLClient__config_h
