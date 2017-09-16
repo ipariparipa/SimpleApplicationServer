@@ -28,6 +28,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include <rapidjson/document.h>
 
 #include <sstream>
+#include <mutex>
 
 namespace SAS {
 
@@ -36,15 +37,13 @@ namespace SAS {
 		Logging::LoggerPtr _logger;
 		std::string _module;
 		MQTTClient _client;
-		long _send_timeout, _rec_timeout;
 		std::mutex mut;
+		long _rec_count = 0;
 	public:
 		MQTTCaller(const std::string & module, const std::string & name) :
 			_logger(Logging::getLogger("SAS.MQTTCaller." + module + "." + name)),
 			_module(module),
-			_client(name),
-			_send_timeout(0),
-			_rec_timeout(0)
+			_client(name)
 		{ }
 
 		~MQTTCaller()
@@ -52,14 +51,12 @@ namespace SAS {
 			_client.deinit();
 		}
 
-		bool init(const MQTTConnectionOptions & options, long send_timeout, long rec_timeout, ErrorCollector & ec)
+		bool init(const MQTTConnectionOptions & options, ErrorCollector & ec)
 		{
 			SAS_LOG_NDC();
 			std::unique_lock<std::mutex> __locker(mut);
 			if (!_client.init(options, ec))
 				return false;
-			_send_timeout = send_timeout;
-			_rec_timeout = rec_timeout;
 			return _client.connect(ec);
 		}
 
@@ -79,26 +76,26 @@ namespace SAS {
 			_client.deinit();
 		}
 
-		bool msg_exchange(const std::string & topic, const std::vector<std::string> & arguments, const std::vector<char> & input, std::string & out_topic, std::vector<std::string> & out_arguments, std::vector<char> & output, ErrorCollector & ec)
+		bool msg_exchange(const std::string & topic, const std::vector<std::string> & arguments, const std::vector<char> & input, std::string & out_topic, std::vector<std::string> & out_arguments, std::vector<char> & output, long receive_count, ErrorCollector & ec)
 		{
 			SAS_LOG_NDC();
 			std::unique_lock<std::mutex> __locker(mut);
 			std::stringstream ss;
 			ss << Thread::getThreadId();
 
-			std::string msg_id = std::to_string((unsigned int) this) + "_" + ss.str();
+			std::string msg_id = std::to_string((unsigned long) this) + "_" + ss.str();
 			std::string send_topic = _module + "/" + topic + "/" + msg_id;
 			for (auto & a : arguments)
 				send_topic += "/" + a;
 
-			if (!_client.publish(send_topic, input, 2, _send_timeout * 1000, ec))
+			if (!_client.publish(send_topic, input, 2, ec))
 				return false;
 
 			std::vector<std::string> rec_subs_topic(0);
 			rec_subs_topic[0] = _module + "/" + msg_id + "/*";
 
 			std::string rec_topic;
-			if (!_client.receive(rec_subs_topic, 2, rec_topic, output, 1000, _rec_timeout, ec))
+			if (!_client.receive(rec_subs_topic, 2, rec_topic, output, receive_count, ec))
 				return false;
 
 			auto lst = str_split(rec_topic, '/');
@@ -132,6 +129,7 @@ namespace SAS {
 					break;
 				case 3:
 					out_topic = t;
+					break;
 				default:
 					args.push_back(t);
 				}
@@ -193,6 +191,7 @@ namespace SAS {
 		std::string _invoker;
 		std::string _module;
 		long long _session_id;
+		long _receive_count = 0;
 	public:
 		MQTTConnection(const std::string & module, const std::string & invoker) : Connection(), MQTTCaller(module, invoker),
 			_logger(Logging::getLogger("SAS.MQTTConnection." + module + "." + invoker)),
@@ -205,7 +204,17 @@ namespace SAS {
 		virtual ~MQTTConnection()
 		{
 			SAS_LOG_NDC();
-			endSession(NullEC());
+			NullEC ec;
+			endSession(ec);
+		}
+
+		bool init(MQTTConnectionOptions & options, long receive_count, ErrorCollector & ec)
+		{
+			SAS_LOG_NDC();
+			if(!MQTTCaller::init(options, ec))
+				return false;
+			_receive_count = receive_count;
+			return true;
 		}
 
 		virtual bool getSession(ErrorCollector & ec) override
@@ -218,7 +227,7 @@ namespace SAS {
 			std::string out_topic;
 			std::vector<std::string> out_args;
 			std::vector<char> output;
-			if (!msg_exchange("get_session", in_args, std::vector<char>(), out_topic, out_args, output, ec))
+			if (!msg_exchange("get_session", in_args, std::vector<char>(), out_topic, out_args, output, _receive_count, ec))
 				return false;
 			
 			if (out_topic == "error" || out_topic == "fatal")
@@ -251,7 +260,7 @@ namespace SAS {
 			in_args[1] = std::to_string(_session_id);
 			std::string out_topic;
 			std::vector<std::string> out_args;
-			if (!msg_exchange("end_session", in_args, input, out_topic, out_args, output, ec))
+			if (!msg_exchange("end_session", in_args, input, out_topic, out_args, output, _receive_count, ec))
 				return Status::Error;
 
 			if (out_topic == "error")
@@ -294,7 +303,7 @@ namespace SAS {
 			std::string out_topic;
 			std::vector<std::string> out_args;
 			std::vector<char> output;
-			if (!msg_exchange("end_session", in_args, std::vector<char>(), out_topic, out_args, output, ec))
+			if (!msg_exchange("end_session", in_args, std::vector<char>(), out_topic, out_args, output, _receive_count, ec))
 				return false;
 
 			if (out_topic == "error" || out_topic == "fatal")
@@ -326,8 +335,7 @@ namespace SAS {
 		Application * app;
 		Logging::LoggerPtr logger;
 
-		long send_timetout = 0;
-		long rec_timeout = 0;
+		long rec_count = 0;
 		long disconnect_timeout = 0;
 		MQTTConnectionOptions options;
 	};
@@ -361,7 +369,7 @@ namespace SAS {
 	{
 		SAS_LOG_NDC();
 		auto conn = new MQTTConnection(module_name, invoker_name);
-		if (!conn->init(priv->options, priv->send_timetout, priv->rec_timeout, ec) || !conn->connect(ec))
+		if (!conn->init(priv->options, priv->rec_count, ec) || !conn->connect(ec))
 		{
 			delete conn;
 			return nullptr;
@@ -372,14 +380,14 @@ namespace SAS {
 	bool MQTTConnector::getModuleInfo(const std::string & moduleName, std::string & description, std::string & version, ErrorCollector & ec)
 	{
 		MQTTCaller caller(moduleName, priv->name);
-		if (!caller.init(priv->options, priv->send_timetout, priv->rec_timeout, ec))
+		if (!caller.init(priv->options, ec))
 			return false;
 		std::vector<std::string> in_args(1);
 		in_args[0] = moduleName;
 		std::string out_topic;
 		std::vector<std::string> out_args;
 		std::vector<char> output;
-		if (!caller.msg_exchange("get_module_info", in_args, std::vector<char>(), out_topic, out_args, output, ec))
+		if (!caller.msg_exchange("get_module_info", in_args, std::vector<char>(), out_topic, out_args, output, priv->rec_count, ec))
 			return false;
 
 		if (out_topic == "error" || out_topic == "fatal")
