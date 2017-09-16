@@ -3,6 +3,8 @@
 	<name>sasMQTT</name>
 	<comment></comment>
 	<projects>
+		<project>sasCore</project>
+		<project>sasJSON</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
