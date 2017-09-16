@@ -43,9 +43,9 @@ namespace SAS {
 		bool init(const MQTTConnectionOptions & options, ErrorCollector & ec);
 		void deinit();
 
-		bool publish(const std::string & topic, const std::vector<char> & payload, long qus, long timeout, ErrorCollector & ec);
-		bool receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, long timeout, long count, ErrorCollector & ec);
-		bool receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, long timeout, ErrorCollector & ec);
+		bool publish(const std::string & topic, const std::vector<char> & payload, long qus, ErrorCollector & ec);
+		bool receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, long count, ErrorCollector & ec);
+		bool receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, ErrorCollector & ec);
 
 		bool connect(ErrorCollector & ec);
 		bool disconnect(long timeout, ErrorCollector & ec);

@@ -28,9 +28,12 @@ namespace SAS {
 		std::string clientId;
 		std::string host;
 		std::string port;
-		long keepalive; //secs
+		long keepalive = 0; //secs
 		std::string username;
 		std::string password;
+
+		long receive_timeout = 1000;
+		long publish_timeout = 10000;
 	};
 
 }

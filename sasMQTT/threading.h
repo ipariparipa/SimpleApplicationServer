@@ -56,7 +56,7 @@ namespace SAS {
 		{
 			std::unique_lock<std::mutex> __locker(mut);
 
-			std::list<std::shared_ptr<Run>> tmp;
+			std::list<std::shared_ptr<T_Task>> tmp;
 			std::copy(data.begin(), data.end(), tmp.begin());
 			data.clear();
 			return tmp;
@@ -109,24 +109,6 @@ namespace SAS {
 		}
 	protected:
 		virtual std::shared_ptr<T_Thread> newThread() = 0;
-	};
-
-	template<typename T_Thread>
-	class ThreadPool : public AbstractThreadPool<T_Thread>
-	{
-	public:
-		ThreadPool(const Logging::LoggerPtr & logger) : AbstractThreadPool<T_Thread>(),
-			_logger(logger)
-		{ }
-
-		virtual ~ThreadPool() { }
-	protected:
-		virtual std::shared_ptr<T_Thread> newThread() override
-		{
-			return std::make_shared<T_Thread>(_logger);
-		}
-
-		Logging::LoggerPtr _logger;
 	};
 
 }

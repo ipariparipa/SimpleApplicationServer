@@ -62,7 +62,8 @@ namespace SAS {
 			ResponserThread(MQTTConnectionOptions & options, const Logging::LoggerPtr & logger) : ThreadInPool<Response>(logger),
 				_client(logger)
 			{
-				_client.init(options, NullEC());
+				NullEC ec;
+				_client.init(options, ec);
 			}
 
 			virtual ~ResponserThread() { }
@@ -83,7 +84,8 @@ namespace SAS {
 					topic = r->module + "/" + r->msg_id + "/" + r->topic;
 					for (auto & a : r->arguments)
 						topic += "/" + a;
-					_client.publish(topic, r->payload, 2, 1000, NullEC());
+					NullEC ec;
+					_client.publish(topic, r->payload, 2, ec);
 				}
 			}
 		};
@@ -266,7 +268,7 @@ namespace SAS {
 						break;
 					case Out_Error:
 						out_doc.AddMember("errors", ec.errors(), out_doc.GetAllocator());
-						// continue!
+						//no break
 					case Out_JSon:
 						{
 							rapidjson::StringBuffer sb;
@@ -296,6 +298,12 @@ namespace SAS {
 				_logger(logger),
 				_reponser_threadPool(logger)
 			{}
+
+			void init(const MQTTConnectionOptions & options)
+			{
+				_reponser_threadPool.init(options);
+			}
+
 		protected:
 			virtual std::shared_ptr<RunnerThread> newThread() override
 			{
@@ -303,11 +311,33 @@ namespace SAS {
 			}
 
 		private:
-			ThreadPool<ResponserThread> _reponser_threadPool;
+			class ResponserThreadPool : public AbstractThreadPool<ResponserThread>
+			{
+				Logging::LoggerPtr _logger;
+				MQTTConnectionOptions _options;
+			public:
+				ResponserThreadPool(const Logging::LoggerPtr & logger) :
+					_logger(logger)
+				{ }
+
+				virtual ~ResponserThreadPool() { }
+
+				void init(const MQTTConnectionOptions & options)
+				{
+					_options = options;
+				}
+
+				virtual std::shared_ptr<ResponserThread> newThread()
+				{
+					return std::make_shared<ResponserThread>(_options, _logger);
+				}
+
+			} _reponser_threadPool;
+
 		} _runner_threadPool;
 
 		MQTTClient _client;
-		long _timeout = 0;
+		long _receive_count = 0;
 	public:
 		MQTTRunner(MQTTInterface * interface_, Application * app) :
 			_interface(interface_),
@@ -317,12 +347,13 @@ namespace SAS {
 			_client(interface_->name())
 		{ }
 
-		bool init(const MQTTConnectionOptions & options, long timeout, ErrorCollector & ec)
+		bool init(const MQTTConnectionOptions & options, long receive_count, ErrorCollector & ec)
 		{
 			SAS_LOG_NDC();
 			if (!_client.init(options, ec))
 				return false;
-			_timeout = timeout;
+			_runner_threadPool.init(options);
+			_receive_count = receive_count;
 			return true;
 		}
 
@@ -342,7 +373,7 @@ namespace SAS {
 				auto run = std::make_shared<Run>();
 				std::string rec_topic;
 
-				if (!_client.receive(topics, 2, rec_topic, run->payload, _timeout, ec))
+				if (!_client.receive(topics, 2, rec_topic, run->payload, _receive_count, ec))
 					return MQTTInterface::Status::Crashed;
 
 				auto lst = str_split(rec_topic, '/');
@@ -364,10 +395,13 @@ namespace SAS {
 						break;
 					case 1:
 						run->topic = t;
+						break;
 					case 3:
 						run->msg_id = t;
+						break;
 					default:
 						args.push_back(t);
+						break;
 					}
 				}
 

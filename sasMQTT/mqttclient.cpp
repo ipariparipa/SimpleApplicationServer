@@ -25,6 +25,9 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include <MQTTClient.h>
 #include <MQTTClientPersistence.h>
 
+#include <memory>
+#include <string.h>
+
 namespace SAS {
 
 	struct MQTTClient_priv
@@ -83,7 +86,7 @@ namespace SAS {
 		priv->mqtt_handle = NULL;
 	}
 
-	bool MQTTClient::publish(const std::string & topic, const std::vector<char> & payload, long qus, long timeout, ErrorCollector & ec)
+	bool MQTTClient::publish(const std::string & topic, const std::vector<char> & payload, long qus, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
 		MQTTClient_deliveryToken dt;
@@ -99,8 +102,8 @@ namespace SAS {
 				return false;
 			}
 		}
-		if (timeout > 0)
-			if ((rc = MQTTClient_waitForCompletion(priv->mqtt_handle, dt, timeout) != MQTTCLIENT_SUCCESS))
+		if (priv->options.receive_timeout > 0)
+			if ((rc = MQTTClient_waitForCompletion(priv->mqtt_handle, dt, priv->options.publish_timeout) != MQTTCLIENT_SUCCESS))
 			{
 				auto err = ec.add(-1, "MQTT message is lost (" + std::to_string(rc) + ")");
 				SAS_LOG_ERROR(priv->logger, err);
@@ -110,7 +113,7 @@ namespace SAS {
 		return true;
 	}
 
-	bool MQTTClient::receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, long timeout, long count, ErrorCollector & ec)
+	bool MQTTClient::receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, long count, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
 
@@ -133,7 +136,10 @@ namespace SAS {
 			~Subscriber()
 			{
 				if (!_active)
-					unsubscribe(NullEC());
+				{
+					NullEC ec;
+					unsubscribe(ec);
+				}
 			}
 
 			bool subscribe(ErrorCollector & ec)
@@ -189,13 +195,13 @@ namespace SAS {
 		{
 			if (count >= 0)
 				++i;
-			if (!(rc = MQTTClient_receive(priv->mqtt_handle, &_topic, &_topic_len, &message, timeout)) != MQTTCLIENT_SUCCESS)
+			if (!(rc = MQTTClient_receive(priv->mqtt_handle, &_topic, &_topic_len, &message, priv->options.receive_timeout)) != MQTTCLIENT_SUCCESS)
 			{
 				if (!connect(ec))
 					return false;
 				if (!subscriber.subscribe(ec))
 					return false;
-				if (!(rc = MQTTClient_receive(priv->mqtt_handle, &_topic, &_topic_len, &message, timeout)) != MQTTCLIENT_SUCCESS)
+				if (!(rc = MQTTClient_receive(priv->mqtt_handle, &_topic, &_topic_len, &message, priv->options.receive_timeout)) != MQTTCLIENT_SUCCESS)
 				{
 					auto err = ec.add(-1, "MQTT connection refused (" + std::to_string(rc) + ")");
 					SAS_LOG_ERROR(priv->logger, err);
@@ -218,9 +224,9 @@ namespace SAS {
 		return false;
 	}
 
-	bool MQTTClient::receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, long timeout, ErrorCollector & ec)
+	bool MQTTClient::receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, ErrorCollector & ec)
 	{
-		return receive(subscribe, qus, topic, payload, timeout, -1, ec);
+		return receive(subscribe, qus, topic, payload, -1, ec);
 	}
 
 	bool MQTTClient::connect(ErrorCollector & ec)
