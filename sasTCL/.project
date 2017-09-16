@@ -4,6 +4,7 @@
 	<comment></comment>
 	<projects>
 		<project>sasCore</project>
+		<project>sasTCLTools</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
