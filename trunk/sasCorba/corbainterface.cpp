@@ -414,6 +414,44 @@ public:
 		}
 		SAS_LOG_INFO(_interface->logger(), "interface is stopped");
 
+		return Interface::Status::Ended;
+	}
+
+	Interface::Status shutdown(ErrorCollector & ec)
+	{
+		SAS_LOG_NDC();
+		try
+		{
+			SAS_LOG_INFO(_interface->logger(), "shut down CORBA interface.");
+			orb->shutdown(true);
+		}
+		catch(CORBA::SystemException & ex)
+		{
+			auto err = ec.add(SAS_CORE__ERROR__INTERFACE__UNEXPECTED_ERROR, "Caught CORBA::SystemException.");
+			SAS_LOG_ERROR(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
+			return Interface::Status::Crashed;
+		}
+		catch(CORBA::Exception & ex)
+		{
+			auto err = ec.add(SAS_CORE__ERROR__INTERFACE__UNEXPECTED_ERROR, "Caught CORBA::Exception.");
+			SAS_LOG_ERROR(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
+			return Interface::Status::Crashed;
+		}
+		catch(omniORB::fatalException & ex)
+		{
+			auto err = ec.add(SAS_CORE__ERROR__INTERFACE__UNEXPECTED_ERROR, "Caught omniORB::fatalException");
+			SAS_LOG_FATAL(_interface->logger(), err);
+			CorbaTools::logException(_interface->logger(), ex);
+			return Interface::Status::Crashed;
+		}
+		catch(...)
+		{
+			auto err = ec.add(SAS_CORE__ERROR__INTERFACE__UNEXPECTED_ERROR, "Caught an unknown exception");
+			SAS_LOG_FATAL(_interface->logger(), err);
+			return Interface::Status::Crashed;
+		}
 		return Interface::Status::Stopped;
 	}
 
@@ -445,6 +483,12 @@ CorbaInterface::Status CorbaInterface::run(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
 	return _runner->run(ec);
+}
+
+CorbaInterface::Status CorbaInterface::shutdown(ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	return _runner->shutdown(ec);
 }
 
 bool CorbaInterface::init(const CORBA::ORB_var & orb, const std::string & config_path, ErrorCollector & ec)

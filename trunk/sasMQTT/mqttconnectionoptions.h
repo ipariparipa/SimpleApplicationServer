@@ -23,17 +23,24 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
+	class ConfigReader;
+	class ErrorCollector;
+
 	struct MQTTConnectionOptions
 	{
 		std::string clientId;
-		std::string host;
-		std::string port;
-		long keepalive = 0; //secs
+		std::string serverUri;
+		long keepalive = 100; //secs
 		std::string username;
 		std::string password;
+		bool cleanSession = true;
+		long connectTimeout = 30; //secs
+		long retryInterval = 20; //secs
 
-		long receive_timeout = 1000;
-		long publish_timeout = 10000;
+		long receive_timeout = 1000; //msecs
+		long publish_timeout = 1000; //msecs
+
+		bool build(const std::string & config_path, ConfigReader * cr, ErrorCollector & ec);
 	};
 
 }

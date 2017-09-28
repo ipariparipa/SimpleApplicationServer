@@ -21,6 +21,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/application.h>
 #include <sasCore/thread.h>
 #include <sasCore/tools.h>
+#include <sasCore/configreader.h>
 
 #include "mqttclient.h"
 #include "mqttconnectionoptions.h"
@@ -88,20 +89,21 @@ namespace SAS {
 			for (auto & a : arguments)
 				send_topic += "/" + a;
 
-			if (!_client.publish(send_topic, input, 2, ec))
-				return false;
+			std::vector<char> _input(input.size()+1);
+			std::copy(input.begin(), input.end(), _input.begin());
 
-			std::vector<std::string> rec_subs_topic(0);
-			rec_subs_topic[0] = _module + "/" + msg_id + "/*";
+			std::vector<std::string> rec_subs_topic(1);
+			rec_subs_topic[0] = "sas/response/" + msg_id + "/#";
 
 			std::string rec_topic;
-			if (!_client.receive(rec_subs_topic, 2, rec_topic, output, receive_count, ec))
+
+			if (!_client.exchange(send_topic, _input, SAS_MQTT__QOS, rec_subs_topic, SAS_MQTT__QOS, rec_topic, output, receive_count, ec))
 				return false;
 
 			auto lst = str_split(rec_topic, '/');
 			if (lst.size() < 3)
 			{
-				auto err = ec.add(-1, "unknown topic: '" + rec_topic + "'");
+				auto err = ec.add(-1, "unexpected topic: '" + rec_topic + "'");
 				SAS_LOG_ERROR(_logger, err);
 				return false;
 			}
@@ -109,17 +111,12 @@ namespace SAS {
 			size_t i(0);
 			for (auto & t : lst)
 			{
-				switch (i)
+				switch (i++)
 				{
 				case 0:
-					if (t != _module)
-					{
-						auto err = ec.add(-1, "unexpected error: caught an invalid message: '" + rec_topic + "'");
-						SAS_LOG_ERROR(_logger, err);
-						return false;
-					}
-					break;
 				case 1:
+					break;
+				case 2:
 					if (t != msg_id)
 					{
 						auto err = ec.add(-1, "unexpected error: caught an invalid message: '" + rec_topic + "'");
@@ -152,16 +149,16 @@ namespace SAS {
 				SAS_LOG_ERROR(_logger, err);
 				return false;
 			}
-			if (!doc.HasMember("error"))
+			if (!doc.HasMember("errors"))
 			{
-				auto err = ec.add(-1, "member 'error' is not found");
+				auto err = ec.add(-1, "member 'errors' is not found");
 				SAS_LOG_ERROR(_logger, err);
 				return false;
 			}
-			auto & v = doc["member"];
+			auto & v = doc["errors"];
 			if (!v.IsArray())
 			{
-				auto err = ec.add(-1, "member 'error' is not array");
+				auto err = ec.add(-1, "member 'errors' is not array");
 				SAS_LOG_ERROR(_logger, err);
 				return false;
 			}
@@ -170,7 +167,7 @@ namespace SAS {
 			{
 				if (it->IsObject())
 				{
-					auto err = ec.add(-1, "member 'error' has invalid element");
+					auto err = ec.add(-1, "member 'errors' has invalid element");
 					SAS_LOG_ERROR(_logger, err);
 					has_error = true;
 					continue;
@@ -221,9 +218,8 @@ namespace SAS {
 		{
 			SAS_LOG_NDC();
 
-			std::vector<std::string> in_args(2);
-			in_args[0] = _module;
-			in_args[1] = std::to_string(_session_id);
+			std::vector<std::string> in_args(1);
+			in_args[0] = std::to_string(_session_id);
 			std::string out_topic;
 			std::vector<std::string> out_args;
 			std::vector<char> output;
@@ -256,11 +252,11 @@ namespace SAS {
 			SAS_LOG_NDC();
 			
 			std::vector<std::string> in_args(2);
-			in_args[0] = _module;
-			in_args[1] = std::to_string(_session_id);
+			in_args[0] = std::to_string(_session_id);
+			in_args[1] = _invoker;
 			std::string out_topic;
 			std::vector<std::string> out_args;
-			if (!msg_exchange("end_session", in_args, input, out_topic, out_args, output, _receive_count, ec))
+			if (!msg_exchange("invoke", in_args, input, out_topic, out_args, output, _receive_count, ec))
 				return Status::Error;
 
 			if (out_topic == "error")
@@ -297,9 +293,8 @@ namespace SAS {
 	private:
 		bool endSession(ErrorCollector & ec)
 		{
-			std::vector<std::string> in_args(2);
-			in_args[0] = _module;
-			in_args[1] = std::to_string(_session_id);
+			std::vector<std::string> in_args(1);
+			in_args[0] = std::to_string(_session_id);
 			std::string out_topic;
 			std::vector<std::string> out_args;
 			std::vector<char> output;
@@ -335,7 +330,7 @@ namespace SAS {
 		Application * app;
 		Logging::LoggerPtr logger;
 
-		long rec_count = 0;
+		long rec_count = 10;
 		long disconnect_timeout = 0;
 		MQTTConnectionOptions options;
 	};
@@ -355,6 +350,15 @@ namespace SAS {
 	bool MQTTConnector::init(const std::string & path, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
+		priv->options.clientId = priv->name;
+		if(!priv->options.build(path, priv->app->configReader(), ec))
+			return false;
+
+		long long ll_tmp;
+		if(!priv->app->configReader()->getNumberEntry(path + "/RECEIVE_COUNT", ll_tmp, priv->rec_count, ec))
+			return false;
+		ll_tmp = priv->rec_count;
+
 		return true;
 	}
 

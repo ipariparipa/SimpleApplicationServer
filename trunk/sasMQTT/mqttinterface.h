@@ -34,21 +34,20 @@ namespace SAS {
 	
 	class MQTTInterface : public Interface
 	{
+		struct Priv;
+		Priv * priv;
 	public:
 		MQTTInterface(const std::string & name, Application * app);
+		virtual ~MQTTInterface();
 
 		virtual std::string name() const final;
 		virtual Status run(ErrorCollector & ec) final;
+		virtual Status shutdown(ErrorCollector & ec) final;
 
 		bool init(const std::string & config_path, ErrorCollector & ec);
 
 		Logging::LoggerPtr logger() const;
 
-	private:
-		Application * _app;
-		std::unique_ptr<MQTTRunner> _runner;
-		Logging::LoggerPtr _logger;
-		std::string _name;
 	};
 
 }

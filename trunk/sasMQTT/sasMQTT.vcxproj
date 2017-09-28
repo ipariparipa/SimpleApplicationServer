@@ -56,7 +56,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir);..\windeps\paho-mqtt\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sasCored.lib;sasJSond.lib;paho-mqtt3c.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sasCored.lib;sasJSond.lib;paho-mqtt3c.lib;paho-mqtt3a.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -74,11 +74,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OutDir);..\windeps\paho-mqtt\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sasCore.lib;sasJSon.lib;paho-mqtt3c.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sasCore.lib;sasJSon.lib;paho-mqtt3c.lib;paho-mqtt3a.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <ClInclude Include="mqttasync.h" />
     <ClInclude Include="mqttclient.h" />
     <ClInclude Include="mqttconnectionoptions.h" />
     <ClInclude Include="mqttconnector.h" />
@@ -86,8 +87,10 @@
     <ClInclude Include="threading.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="mqttasync.cpp" />
     <ClCompile Include="mqttclient.cpp" />
     <ClCompile Include="mqttcomponent.cpp" />
+    <ClCompile Include="mqttconnectionoption.cpp" />
     <ClCompile Include="mqttconnector.cpp" />
     <ClCompile Include="mqttinterface.cpp" />
   </ItemGroup>

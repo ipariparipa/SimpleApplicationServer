@@ -52,6 +52,7 @@ namespace SAS {
 	} watchdog;
 
 	Logging::LoggerPtr logger, wd_logger;
+	bool shutdown = false;
 };
 
 Server::Server(int argc, char ** argv) : 
@@ -63,7 +64,7 @@ Server::~Server()
 
 Logging::LoggerPtr Server::logger()
 {
-	return priv->logger;
+    return priv->logger;
 }
 
 void Server::addInterfaceEvent(Interface::Status status, Interface * intf, const std::string & message)
@@ -73,8 +74,10 @@ void Server::addInterfaceEvent(Interface::Status status, Interface * intf, const
 	priv->watchdog.suspender_cv.notify_one();
 }
 
+//virtual
 void Server::run()
 {
+	priv->shutdown = false;
 	while(true)
 	{
 		std::unique_lock<std::mutex> __susp_locker(priv->watchdog.suspender_cv_mut);
@@ -85,22 +88,44 @@ void Server::run()
 			priv->watchdog.intf_messages.pop();
 			switch(im.status)
 			{
+			case Interface::Status::Unexpected:
+				SAS_LOG_INFO(priv->wd_logger, std::string("interface '") + im.obj->name() + "' unexpected status: '" + im.text + "'");
+				break;
 			case Interface::Status::CannotStart:
-				SAS_LOG_INFO(priv->wd_logger, std::string("interface '") + im.obj->name() + "' could not be started: '" + im.text + "'");
+				SAS_LOG_ERROR(priv->wd_logger, std::string("interface '") + im.obj->name() + "' could not be started: '" + im.text + "'");
 				break;
 			case Interface::Status::Started:
 				SAS_LOG_INFO(priv->wd_logger, std::string("interface '") + im.obj->name() + "' is started: '" + im.text + "'");
 				break;
 			case Interface::Status::Stopped:
-				SAS_LOG_WARN(priv->wd_logger, std::string("interface '") + im.obj->name() + "' is stopped: '" + im.text + "'");
+				SAS_LOG_INFO(priv->wd_logger, std::string("interface '") + im.obj->name() + "' is stopped: '" + im.text + "'");
 				break;
 			case Interface::Status::Crashed:
 				SAS_LOG_ERROR(priv->wd_logger, std::string("interface '") + im.obj->name() + "' is crashed '" + im.text + "'");
 				break;
+			case Interface::Status::CannotStop:
+				SAS_LOG_ERROR(priv->wd_logger, std::string("interface '") + im.obj->name() + "' could not be stopped: '" + im.text + "'");
+				break;
+			case Interface::Status::Ended:
+				SAS_LOG_INFO(priv->wd_logger, std::string("interface '") + im.obj->name() + "' has ended: '" + im.text + "'");
+				break;
 			}
 		}
 		priv->watchdog.suspender_cv.notify_one();
+		if(priv->shutdown)
+		{
+			SAS_LOG_INFO(priv->wd_logger, "shutting down server runner");
+			return;
+		}
 	}
+}
+
+//virtual
+void Server::shutdown()
+{
+	std::lock_guard<std::mutex> __susp_locker(priv->watchdog.suspender_cv_mut);
+	priv->shutdown = true;
+	priv->watchdog.suspender_cv.notify_one();
 }
 
 }
