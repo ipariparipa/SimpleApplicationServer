@@ -33,6 +33,9 @@
     <ClInclude Include="mqttconnectionoptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mqttasync.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mqttinterface.cpp">
@@ -45,6 +48,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mqttclient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mqttasync.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mqttconnectionoption.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

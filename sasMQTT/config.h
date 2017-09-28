@@ -33,5 +33,6 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #  endif
 #endif
 
+#define SAS_MQTT__QOS 0
 
 #endif // sasMQTT__config_h

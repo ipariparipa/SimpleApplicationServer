@@ -30,6 +30,8 @@
 #include <sstream>
 #include <fstream>
 
+#include <signal.h>
+
 void writeVersion(std::ostream & os)
 {
 	os << "Version: " << SAS_SERVER_VERSION << std::endl;
@@ -46,8 +48,25 @@ void writeHelp(std::ostream & os)
 	SAS::Logging::writeUsage(os);
 }
 
+SAS::SASServer * _srv = nullptr;
+SAS::ErrorCollector * _ec = nullptr;
+
+void cfinish(int sig)
+{
+	signal(SIGINT, NULL);
+	if(_srv)
+	{
+		assert(_ec);
+		_srv->stopOrTerminate(1000, *_ec);
+		_srv->shutdown();
+	}
+}
+
 int main(int argc, char * argv[])
 {
+	signal(SIGINT, cfinish);
+	signal(SIGTERM, cfinish);
+
 	std::ostream * err_os = &std::cerr;
 	enum class CLA_Status
 	{
@@ -96,6 +115,7 @@ int main(int argc, char * argv[])
 		return 1;
 
 	SAS::StreamErrorCollector<> ec(*err_os);
+	_ec = &ec;
 
 	SAS::Logging::init(argc, argv, ec);
 
@@ -104,6 +124,7 @@ int main(int argc, char * argv[])
 	SAS_ROOT_LOG_INFO("starting");
 
 	SAS::SASServer server(argc, argv);
+	_srv = &server;
 
 	SAS_ROOT_LOG_TRACE("initializing SAS");
 	if(!server.init(ec))
@@ -121,6 +142,11 @@ int main(int argc, char * argv[])
 
 	SAS_ROOT_LOG_TRACE("start watchdog");
 	server.run();
-
+/*
+	std::string str;
+	std::cout << "> ";
+	std::cin >> str;
+	cfinish(SIGINT);
+*/
 	return 0;
 }

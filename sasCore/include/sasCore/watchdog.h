@@ -35,7 +35,6 @@ public:
 
 	virtual void addInterfaceEvent(Interface::Status ctx, Interface * intf, const std::string & message) = 0;
 
-	virtual void run() = 0;
 };
 
 }

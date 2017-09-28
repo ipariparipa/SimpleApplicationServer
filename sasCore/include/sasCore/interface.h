@@ -34,10 +34,13 @@ protected:
 public:
 	enum class Status
 	{
+		Unexpected,
 		CannotStart,
 		Started,
 		Stopped,
-		Crashed
+		Crashed,
+		CannotStop,
+		Ended
 	};
 
 	virtual inline ~Interface() { }
@@ -45,6 +48,8 @@ public:
 	virtual std::string name() const = 0;
 
 	virtual Status run(ErrorCollector & ec) = 0;
+
+	virtual Status shutdown(ErrorCollector & ec) = 0;
 };
 
 }

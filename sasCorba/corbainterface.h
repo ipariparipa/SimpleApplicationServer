@@ -41,6 +41,7 @@ public:
 
 	virtual std::string name() const final;
 	virtual Status run(ErrorCollector & ec) final;
+	virtual Status shutdown(ErrorCollector & ec) final;
 
 	bool init(const CORBA::ORB_var & orb, const std::string & config_path, ErrorCollector & ec);
 

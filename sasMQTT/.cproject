@@ -57,6 +57,7 @@
 									<listOptionValue builtIn="false" value="sasJSON"/>
 									<listOptionValue builtIn="false" value="log4cxx"/>
 									<listOptionValue builtIn="false" value="paho-mqtt3c"/>
+									<listOptionValue builtIn="false" value="paho-mqtt3a"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1157134333" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${WorkspaceDirPath}/bin/${ConfigName}&quot;"/>
@@ -130,6 +131,7 @@
 									<listOptionValue builtIn="false" value="sasJSON"/>
 									<listOptionValue builtIn="false" value="log4cxx"/>
 									<listOptionValue builtIn="false" value="paho-mqtt3c"/>
+									<listOptionValue builtIn="false" value="paho-mqtt3a"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.445037187" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${WorkspaceDirPath}/bin/${ConfigName}&quot;"/>

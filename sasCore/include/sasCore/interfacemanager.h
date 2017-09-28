@@ -40,6 +40,10 @@ public:
 
 	bool start(ErrorCollector & ec);
 	void terminate();
+	bool stop(ErrorCollector & ec);
+	bool stopOrTerminate(long waitUntil, ErrorCollector & ec);
+	bool wait(long waitUntil, ErrorCollector & ec);
+	void wait();
 
 	bool registerInterface(Interface * interface, ErrorCollector & ec);
 	bool registerInterfaces(const std::vector<Interface *> & interfaces, ErrorCollector & ec);

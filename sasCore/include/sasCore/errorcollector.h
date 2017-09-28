@@ -39,7 +39,7 @@ protected:
 struct NullEC : public ErrorCollector
 {
 	virtual ~NullEC() { }
-	virtual void append(long errorCode, const std::string & errorText) override { }
+        virtual void append(long /*errorCode*/, const std::string & /*errorText*/) override { }
 };
 
 struct SimpleErrorCollector_priv;

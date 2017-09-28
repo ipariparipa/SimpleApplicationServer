@@ -25,6 +25,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 
 #include "mqttinterface.h"
 #include "mqttconnector.h"
+#include "mqttasync.h"
 
 #include <numeric>
 
@@ -42,15 +43,10 @@ namespace SAS {
 
 			this->app = app;
 
-			std::vector<std::string> ops;
-			if (app->configReader()->getStringListEntry("SAS/MQTT/OPTIONS", ops, ec))
-			{
-				SAS_LOG_VAR_NAME(logger, "options", Logging::toString(ops));
-			}
-
 			auto im = app->interfaceManager();
 			if (im)
 			{
+				MQTTAsync::globalInit();
 				std::vector<std::string> interface_names;
 				if (app->configReader()->getStringListEntry("SAS/MQTT/INTERFACES", interface_names, ec))
 				{

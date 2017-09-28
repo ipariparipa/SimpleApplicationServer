@@ -38,7 +38,13 @@ namespace SAS {
 
 	void ControlledThread::suspend()
 	{
-		priv->suspender_mutex.lock();
+		if(status() == Status::NotRunning)
+		{
+			priv->suspender_mutex.lock();
+			start();
+		}
+		else
+			priv->suspender_mutex.lock();
 	}
 
 	void ControlledThread::resume()

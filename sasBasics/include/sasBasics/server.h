@@ -42,7 +42,9 @@ public:
 	virtual Logging::LoggerPtr logger() override;
 
 	virtual void addInterfaceEvent(Interface::Status status, Interface * intf, const std::string & message) override;
-	virtual void run() override;
+
+	virtual void run();
+	virtual void shutdown();
 
 private:
 	Server_priv * priv;

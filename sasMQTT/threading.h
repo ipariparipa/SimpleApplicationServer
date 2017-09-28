@@ -32,31 +32,31 @@ namespace SAS {
 	class TaskQueue
 	{
 		std::mutex mut;
-		std::deque<std::shared_ptr<T_Task>> data;
+		std::deque<T_Task * > data;
 	public:
-		void add(const std::shared_ptr<T_Task> & run)
+		void add(T_Task * run)
 		{
 			std::unique_lock<std::mutex> __locker(mut);
 
 			data.push_back(run);
 		}
 
-		std::shared_ptr<T_Task> take()
+		T_Task * take()
 		{
 			std::unique_lock<std::mutex> __locker(mut);
 
 			if (!data.size())
-				return std::shared_ptr<T_Task>();
+				return nullptr;
 			auto d = data.front();
 			data.pop_front();
 			return d;
 		}
 
-		std::list<std::shared_ptr<T_Task>> takeAll()
+		std::list<T_Task *> takeAll()
 		{
 			std::unique_lock<std::mutex> __locker(mut);
 
-			std::list<std::shared_ptr<T_Task>> tmp;
+			std::list<T_Task *> tmp;
 			std::copy(data.begin(), data.end(), tmp.begin());
 			data.clear();
 			return tmp;
@@ -68,20 +68,36 @@ namespace SAS {
 	class ThreadInPool : public ControlledThread
 	{
 	public:
-		ThreadInPool(const Logging::LoggerPtr & logger) : ControlledThread(),
-			_logger(logger)
+		ThreadInPool() : ControlledThread()
 		{ }
 
 		virtual ~ThreadInPool() { }
 
-		void add(const std::shared_ptr<T_task> & task)
+		void add(T_task * task)
 		{
 			_tasks.add(task);
 			resume();
 		}
 
 	protected:
-		Logging::LoggerPtr _logger;
+		virtual void execute() final
+		{
+			while(enterContolledSection())
+			{
+				auto task = _tasks.take();
+				if(!task)
+				{
+					suspend();
+					continue;
+				}
+				complete(task);
+				delete task;
+			}
+		}
+
+		virtual bool complete(T_task * task) = 0;
+
+	private:
 		TaskQueue<T_task> _tasks;
 	};
 
@@ -92,6 +108,8 @@ namespace SAS {
 		std::mutex mut;
 		std::list<std::shared_ptr<T_Thread>> threads;
 	public:
+		virtual ~AbstractThreadPool() { }
+
 		std::shared_ptr<T_Thread> get()
 		{
 			std::unique_lock<std::mutex> __locker(mut);
@@ -104,7 +122,7 @@ namespace SAS {
 			std::shared_ptr<T_Thread> th;
 			threads.push_back(th = newThread());
 			th->start();
-			th->suspend();
+			//th->suspend();
 			return th;
 		}
 	protected:
