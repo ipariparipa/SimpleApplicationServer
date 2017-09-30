@@ -36,7 +36,7 @@ protected:
 	virtual void append(long errorCode, const std::string & errorText) = 0;
 };
 
-struct NullEC : public ErrorCollector
+struct SAS_CORE__CLASS NullEC : public ErrorCollector
 {
 	virtual ~NullEC() { }
         virtual void append(long /*errorCode*/, const std::string & /*errorText*/) override { }
