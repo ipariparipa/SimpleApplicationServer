@@ -33,6 +33,8 @@ namespace SAS {
 		bool start(long milliseconds);
 		virtual void stop() override;
 
+		bool setInterval(long milliseconds);
+
 	protected:
 		virtual void begun() override;
 		virtual void ended() override;
