@@ -47,14 +47,16 @@ bool EnvConfigReader::getEntryAsString(const std::string & path, std::string & r
 	char * tmp;
 	if (!(tmp = getenv(env_name.c_str())))
 	{
-		SAS_LOG_TRACE(_logger, "environment variable is not set");
+		auto err = ec.add(-1, "environment variable '"+env_name+"' is not set");
+		SAS_LOG_ERROR(_logger, err);
 		return false;
 	}
 	ret = tmp;
 #elif SAS_OS == SAS_OS_WINDOWS
 	if (!win_getEnv(env_name, ret))
 	{
-		SAS_LOG_TRACE(_logger, "environment variable is not set");
+		auto err = ec.add(-1, "environment variable '"+env_name+"' is not set");
+		SAS_LOG_ERROR(_logger, err);
 		return false;
 	}
 #else

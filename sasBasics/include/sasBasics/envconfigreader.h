@@ -40,6 +40,7 @@ public:
 	virtual bool getEntryAsStringList(const std::string & path, std::vector<std::string> & ret, ErrorCollector & ec) override;
 	virtual bool getEntryAsStringList(const std::string & path, std::vector<std::string> & ret, const std::vector<std::string> & defaultValue, ErrorCollector & ec) override;
 private:
+
 	Logging::LoggerPtr _logger;
 
 };
