@@ -37,6 +37,7 @@ namespace SAS {
 	{
 		Logging::LoggerPtr _logger;
 		std::string _module;
+		std::string _clientId;
 		MQTTClient _client;
 		std::mutex mut;
 		long _rec_count = 0;
@@ -58,6 +59,7 @@ namespace SAS {
 			std::unique_lock<std::mutex> __locker(mut);
 			if (!_client.init(options, ec))
 				return false;
+			_clientId = options.clientId;
 			return _client.connect(ec);
 		}
 
@@ -84,7 +86,7 @@ namespace SAS {
 			std::stringstream ss;
 			ss << Thread::getThreadId();
 
-			std::string msg_id = std::to_string((unsigned long) this) + "_" + ss.str();
+			std::string msg_id = this->_clientId + "_" + std::to_string((unsigned long) this) + "_" + ss.str();
 			std::string send_topic = _module + "/" + topic + "/" + msg_id;
 			for (auto & a : arguments)
 				send_topic += "/" + a;
@@ -165,7 +167,7 @@ namespace SAS {
 			bool has_error(false);
 			for (auto it = v.Begin(); it != v.End(); ++it)
 			{
-				if (it->IsObject())
+				if (!it->IsObject())
 				{
 					auto err = ec.add(-1, "member 'errors' has invalid element");
 					SAS_LOG_ERROR(_logger, err);
