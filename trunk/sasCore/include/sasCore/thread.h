@@ -64,6 +64,25 @@ private:
 	Thread_priv * priv;
 };
 
+class SAS_CORE__CLASS Notifier
+{
+	SAS_COPY_PROTECTOR(Notifier)
+public:
+	Notifier();
+	~Notifier();
+
+	void notify();
+	void notifyAll();
+
+	void wait();
+	bool wait(long msecs);
+	bool tryWait();
+
+private:
+	struct Priv;
+	Priv * priv;
+};
+
 }
 
 #endif /* INCLUDE_SASCORE_THREAD_H_ */

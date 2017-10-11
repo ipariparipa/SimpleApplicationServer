@@ -118,4 +118,64 @@ namespace SAS
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 	}
+
+
+	struct Notifier::Priv
+	{
+		std::mutex mutex;
+		std::condition_variable condition;
+		unsigned long count = 0;
+	};
+
+	Notifier::Notifier() : priv(new Priv)
+	{ }
+
+	Notifier::~Notifier()
+	{
+		delete priv;
+	}
+
+	void Notifier::notify() 
+	{
+		std::unique_lock<std::mutex> lock(priv->mutex);
+		priv->condition.notify_one();
+		++priv->count;
+	}
+
+	void Notifier::notifyAll()
+	{
+		std::unique_lock<std::mutex> lock(priv->mutex);
+		priv->condition.notify_all();
+		++priv->count;
+	}
+
+	void Notifier::wait() 
+	{
+		std::unique_lock<std::mutex> lock(priv->mutex);
+		while (!priv->count)
+			priv->condition.wait(lock);
+		--priv->count;
+	}
+
+	bool Notifier::wait(long msecs)
+	{
+		std::unique_lock<std::mutex> lock(priv->mutex);
+		while (!priv->count)
+			if (priv->condition.wait_for(lock, std::chrono::milliseconds(msecs)) != std::cv_status::no_timeout)
+				return false;
+		--priv->count;
+		return true;
+	}
+
+	bool Notifier::tryWait() 
+	{
+		std::unique_lock<std::mutex> lock(priv->mutex);
+		if (priv->count) 
+		{
+			--priv->count;
+			return true;
+		}
+		return false;
+	}
+
 }
