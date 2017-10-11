@@ -47,13 +47,13 @@
     <ClCompile Include="mqttconnector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mqttclient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mqttasync.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mqttconnectionoption.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mqttclient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
