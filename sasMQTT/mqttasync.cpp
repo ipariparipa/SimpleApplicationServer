@@ -9,11 +9,13 @@
 
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
+#include <sasCore/thread.h>
 
 #include <MQTTAsync.h>
 #include <string.h>
 
 #include <mutex>
+#include <condition_variable>
 
 namespace SAS {
 
@@ -22,7 +24,13 @@ struct MQTTAsync_priv
 	MQTTAsync_priv(MQTTAsync * that_, const std::string & name) :
 		that(that_),
 		mqtt_handle(NULL),
-		logger(Logging::getLogger("MQTTAsync." + name))
+		logger(Logging::getLogger("SAS.MQTTAsync." + name))
+	{ }
+
+	MQTTAsync_priv(MQTTAsync * that_, const Logging::LoggerPtr & logger_) :
+		that(that_),
+		mqtt_handle(NULL),
+		logger(logger_)
 	{ }
 
 	MQTTAsync * that;
@@ -31,10 +39,12 @@ struct MQTTAsync_priv
 	MQTTConnectionOptions options;
 	std::vector<std::string> topics;
 	int t_qos = 0;
-	ErrorCollector * runner_ec = nullptr;
+	
+	std::mutex mut;
+	ErrorCollector * ec = nullptr;
 
-	std::mutex runner_mutex;
-	std::mutex conn_mut;
+	Notifier runner_not;
+	Notifier conn_not;
 
 	bool subscribe(ErrorCollector & ec)
 	{
@@ -59,14 +69,13 @@ struct MQTTAsync_priv
 			auto err = ec.add(-1, "could not subscribe for MQTT topics ("+std::to_string(rc)+")");
 			SAS_LOG_ERROR(logger, err);
 			return false;
-			}
+		}
 		return true;
 	}
 
 	bool connect(ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-		conn_mut.lock();
 		MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
 		conn_opts.keepAliveInterval = options.keepalive;
 		conn_opts.automaticReconnect = 1;
@@ -85,34 +94,40 @@ struct MQTTAsync_priv
 			return false;
 		}
 
+		conn_not.wait();
+
 		return true;
 	}
 
 	static void _connectionLost(void* context, char* cause)
 	{
 		SAS_LOG_NDC();
-		SAS_LOG_ERROR(((MQTTAsync_priv*)context)->logger, "MQTT connection lost: '" + std::string(cause) + "'");
+		auto priv = (MQTTAsync_priv*)context;
+		SAS_LOG_ERROR(priv->logger, "MQTT connection lost: '" + std::string(cause ? cause : "(no_cause)") + "'");
 		NullEC ec;
-		if(!((MQTTAsync_priv*)context)->that->connect(((MQTTAsync_priv*)context)->runner_ec ? *((MQTTAsync_priv*)context)->runner_ec : ec))
-			((MQTTAsync_priv*)context)->runner_mutex.unlock();
+		if (!priv->that->connect(priv->ec ? *priv->ec : ec))
+			priv->runner_not.notify();
 	}
 
 	static void _connected(void* context, char* cause)
 	{
 		SAS_LOG_NDC();
-		SAS_LOG_DEBUG(((MQTTAsync_priv*)context)->logger, "MQTT connected: '" + std::string(cause) + "'");
+		auto priv = (MQTTAsync_priv*)context;
+		SAS_LOG_DEBUG(priv->logger, "MQTT connected: '" + std::string(cause ? cause : "(no_cause)") + "'");
+		priv->conn_not.notify();
 	}
 
 	static int _messageArrived(void* context, char* topicName, int topicLen, MQTTAsync_message* message)
 	{
 		SAS_LOG_NDC();
-		SAS_LOG_ASSERT(((MQTTAsync_priv*)context)->logger, message, "'message' must be not NULL");
+		auto priv = (MQTTAsync_priv*)context;
+		SAS_LOG_ASSERT(priv->logger, message, "'message' must be not NULL");
 
 		std::string _topic;
 		_topic.append((const char *) topicName, topicLen);
 		std::vector<char> _payload(message->payloadlen);
 		memcpy(_payload.data(), message->payload, message->payloadlen);
-		bool ret = ((MQTTAsync_priv*)context)->that->messageArrived(_topic, _payload, message->qos);
+		bool ret = priv->that->messageArrived(_topic, _payload, message->qos);
 
 		MQTTAsync_freeMessage(&message);
 		MQTTAsync_free(topicName);
@@ -129,17 +144,20 @@ struct MQTTAsync_priv
 	{
 		SAS_LOG_NDC();
 		NullEC ec;
-		((MQTTAsync_priv*)context)->conn_mut.unlock();
-		((MQTTAsync_priv*)context)->subscribe(((MQTTAsync_priv*)context)->runner_ec ? *((MQTTAsync_priv*)context)->runner_ec : ec);
+		auto priv = (MQTTAsync_priv*)context;
+		SAS_LOG_DEBUG(priv->logger, "MQTT connected");
+		priv->subscribe(priv->ec ? *priv->ec : ec);
+		priv->conn_not.notify();
 	}
 
 	static void _onConnectionFailed(void* context, MQTTAsync_failureData* response)
 	{
 		SAS_LOG_NDC();
 		NullEC ec;
-		auto err = (((MQTTAsync_priv*)context)->runner_ec ? ((MQTTAsync_priv*)context)->runner_ec : &ec)->add(-1, "connection failed: '"+ std::string(response->message) +"'");
-		SAS_LOG_ERROR(((MQTTAsync_priv*)context)->logger, err);
-		((MQTTAsync_priv*)context)->conn_mut.unlock();
+		auto priv = (MQTTAsync_priv*)context;
+		auto err = (priv->ec ? priv->ec : &ec)->add(-1, "connection failed: '" + std::string(response->message ? response->message : "(no_message)") + "'");
+		SAS_LOG_ERROR(priv->logger, err);
+		priv->conn_not.notify();
 	}
 
 };
@@ -147,8 +165,13 @@ struct MQTTAsync_priv
 MQTTAsync::MQTTAsync(const std::string & name) : priv(std::make_unique<MQTTAsync_priv>(this, name))
 { }
 
-MQTTAsync::~MQTTAsync()
+MQTTAsync::MQTTAsync(const Logging::LoggerPtr & logger) : priv(std::make_unique<MQTTAsync_priv>(this, logger))
 { }
+
+MQTTAsync::~MQTTAsync()
+{
+	deinit();
+}
 
 
 //static
@@ -183,6 +206,16 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 	return true;
 }
 
+void MQTTAsync::deinit()
+{
+	if (priv->mqtt_handle)
+	{ 
+		MQTTAsync_destroy(&priv->mqtt_handle);
+		priv->mqtt_handle = nullptr;
+	}
+}
+
+
 bool MQTTAsync::connect(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
@@ -209,8 +242,6 @@ bool MQTTAsync::subscribe(const std::vector<std::string> & topics, int qos, Erro
 
 	if(!MQTTAsync_isConnected(priv->mqtt_handle) && !connect(ec))
 		return false;
-
-	std::unique_lock<std::mutex> __locker(priv->conn_mut);
 
 	priv->topics = topics;
 	priv->t_qos = qos;
@@ -266,17 +297,15 @@ bool MQTTAsync::send(const std::string & topic, const std::vector<char> & payloa
 
 bool MQTTAsync::run(ErrorCollector & ec)
 {
-	priv->runner_ec = &ec;
-	priv->runner_mutex.lock();
-	priv->runner_mutex.lock();
-	priv->runner_ec = nullptr;
-	priv->runner_mutex.unlock();
+	priv->ec = &ec;
+	priv->runner_not.wait();
+	priv->ec = nullptr;
 	return true;
 }
 
 bool MQTTAsync::shutdown(ErrorCollector & ec)
 {
-	priv->runner_mutex.unlock();
+	priv->runner_not.notify();
 	return true;
 }
 

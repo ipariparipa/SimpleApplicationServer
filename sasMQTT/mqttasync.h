@@ -11,6 +11,7 @@
 #include "config.h"
 #include <sasCore/defines.h>
 #include "mqttconnectionoptions.h"
+#include <sasCore/logging.h>
 
 #include <memory>
 #include <vector>
@@ -27,11 +28,13 @@ class MQTTAsync
 	SAS_COPY_PROTECTOR(MQTTAsync);
 public:
 	MQTTAsync(const std::string & name);
+	MQTTAsync(const Logging::LoggerPtr & logger);
 	virtual ~MQTTAsync();
 
 	static void globalInit();
 
 	bool init(const MQTTConnectionOptions & conn_opts, ErrorCollector & ec);
+	void deinit();
 
 	bool connect(ErrorCollector & ec);
 	bool disconnect(ErrorCollector & ec);
@@ -46,13 +49,12 @@ public:
 
 	const MQTTConnectionOptions & connectOptions() const;
 protected:
-	virtual bool messageArrived(const std::string & topic, const std::vector<char> & payload, int qus) = 0;
+	virtual bool messageArrived(const std::string & topic, const std::vector<char> & payload, int qos) = 0;
 
 private:
 	std::unique_ptr<MQTTAsync_priv> priv;
 };
 
 }
-
 
 #endif /* MQTTASYNC_H_ */
