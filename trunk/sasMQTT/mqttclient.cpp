@@ -64,7 +64,7 @@ namespace SAS {
 				std::vector<char> payload;
 				int qos = 0;
 
-				Notifier not;
+				Notifier notifier;
 			};
 
 			std::mutex ticket_mut;
@@ -102,7 +102,7 @@ namespace SAS {
 					if (count >= 0)
 						++i;
 
-					if (t.not.wait(this->connectOptions().receive_timeout))
+					if (t.notifier.wait(this->connectOptions().receive_timeout))
 					{
 						std::unique_lock<std::mutex> __ticket_locker(ticket_mut);
 						this->unsubscribe(ec);
@@ -136,7 +136,7 @@ namespace SAS {
 					ticket->topic = topic;
 					ticket->payload = payload;
 					ticket->qos = qos;
-					ticket->not.notify();
+					ticket->notifier.notify();
 					ticket_mut.unlock();
 					return true;
 				}
