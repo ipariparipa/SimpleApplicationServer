@@ -45,7 +45,7 @@ namespace SAS {
 		return Thread::start();
 	}
 
-	bool TimerThread::setInterval(long milliseconds)
+	void TimerThread::setInterval(long milliseconds)
 	{
 		priv->milliseconds = milliseconds;
 	}
