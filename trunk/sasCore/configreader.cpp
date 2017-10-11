@@ -18,6 +18,7 @@
 #include "include/sasCore/configreader.h"
 #include "include/sasCore/errorcollector.h"
 #include "include/sasCore/logging.h"
+#include "stdlib.h"
 
 namespace SAS {
 
@@ -118,13 +119,13 @@ namespace SAS {
 
 	bool ConfigReader::toBool(const std::string & str, bool & ret, ErrorCollector & ec) const
 	{
-		ret = str == "true" || std::stol(str);
+		ret = str == "true" || atol(str.c_str());
 		return true;
 	}
 
 	bool ConfigReader::toNumber(const std::string & str, long long & ret, ErrorCollector & ec) const
 	{
-		ret = std::stoll(str);
+		ret = atoll(str.c_str());
 		return true;
 	}
 
