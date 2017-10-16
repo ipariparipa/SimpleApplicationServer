@@ -25,15 +25,17 @@
 
 namespace SAS {
 
-struct SQLDateTime_priv;
 class SAS_SQL__CLASS SQLDateTime
 {
+	struct Priv;
+	Priv * priv;
 public:
 	SQLDateTime(const SQLDateTime & o);
 	SQLDateTime();
 	SQLDateTime(time_t t);
 	SQLDateTime(const tm * t);
 	SQLDateTime(unsigned int year, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs = -1, bool negative = false, short ms_precision = 6);
+	SQLDateTime(const std::string & str);
 	virtual ~SQLDateTime();
 
 	SQLDateTime & operator = (const SQLDateTime & o);
@@ -63,8 +65,6 @@ public:
 	tm to_tm() const;
 	time_t to_time_t() const;
 
-private:
-	SQLDateTime_priv * priv;
 };
 
 }

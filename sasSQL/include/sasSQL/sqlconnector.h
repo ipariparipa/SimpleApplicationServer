@@ -21,7 +21,8 @@
 #include "config.h"
 #include <sasCore/object.h>
 
-#define SAS_OBJECT_TYPE_SQL__CONNECTOR "sql_connector"
+#define SAS_OBJECT_TYPE__SQL_CONNECTOR "sql_connector"
+#define SAS_OBJECT_TYPE_SQL__CONNECTOR SAS_OBJECT_TYPE__SQL_CONNECTOR
 
 namespace SAS {
 
