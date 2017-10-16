@@ -15,8 +15,8 @@
     along with sasMySQL.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef MYSQLRESULT_H_
-#define MYSQLRESULT_H_
+#ifndef sasMySQL__mysqlresult_h
+#define sasMySQL__mysqlresult_h
 
 #include "config.h"
 #include <sasSQL/sqlresult.h>
@@ -26,10 +26,10 @@ namespace SAS {
 
 class MySQLConnector;
 
-struct MySQLResult_priv;
-
 class MySQLResult : public SQLResult
 {
+	struct Priv;
+	Priv * priv;
 public:
 	MySQLResult(MySQLConnector * conn, MYSQL_RES * res);
 	virtual ~MySQLResult();
@@ -41,11 +41,8 @@ public:
 	virtual bool fetch(std::vector<SQLVariant> &, ErrorCollector & ec) final;
 
 	static SQLDataType toDataType(enum_field_types type);
-
-private:
-	MySQLResult_priv * priv;
 };
 
 }
 
-#endif /* MYSQLRESULT_H_ */
+#endif sasMySQL__mysqlresult_h

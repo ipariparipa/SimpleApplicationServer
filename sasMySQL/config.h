@@ -15,8 +15,8 @@
     along with sasMySQL.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef SASMYSQL_CONFIG_H
-#define SASMYSQL_CONFIG_H
+#ifndef sasMySQL__config_h
+#define sasMySQL__config_h
 
 #include <sasCore/config.h>
 
@@ -35,4 +35,4 @@
 #  endif
 #endif
 
-#endif // SASMYSQL_CONFIG_H
+#endif // sasMySQL__config_h
