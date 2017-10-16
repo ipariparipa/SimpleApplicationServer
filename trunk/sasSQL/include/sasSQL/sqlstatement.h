@@ -20,6 +20,9 @@
 
 #include "sqlresult.h"
 
+#include <vector>
+#include <string>
+
 namespace SAS {
 
 	class SAS_SQL__CLASS SQLStatement : public SQLResult
@@ -31,6 +34,7 @@ public:
 	virtual bool prepare(const std::string & statement, ErrorCollector & ec) = 0;
 	virtual unsigned long paramNum() = 0;
 	virtual bool bindParam(const std::vector<SQLVariant> & params, ErrorCollector & ec) = 0;
+	virtual bool bindParam(const std::vector<std::pair<std::string /*name*/, SQLVariant>> & params, ErrorCollector & ec) = 0;
 	virtual bool execDML(ErrorCollector & ec) = 0;
 	virtual bool exec(ErrorCollector & ec) = 0;
 	virtual bool getLastGeneratedId(const std::string & schema, const std::string & table, const std::string & field, SQLVariant & ret, ErrorCollector & ec) = 0;
