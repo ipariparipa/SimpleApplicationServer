@@ -15,8 +15,8 @@
     along with sasMySQL.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef MYSQLSTATEMENT_H_
-#define MYSQLSTATEMENT_H_
+#ifndef sasMySQL__mysqlstatement_h
+#define sasMySQL__mysqlstatement_h
 
 #include "config.h"
 #include <sasSQL/sqlstatement.h>
@@ -26,10 +26,10 @@ namespace SAS {
 
 class MySQLConnector;
 
-struct MySQLStatement_priv;
-
 class MySQLStatement : public SQLStatement
 {
+	struct Priv;
+	Priv * priv;
 public:
 	MySQLStatement(MYSQL_STMT * stmt, MySQLConnector * conn);
 	virtual ~MySQLStatement();
@@ -37,6 +37,7 @@ public:
 	virtual bool prepare(const std::string & statement, ErrorCollector & ec) final;
 	virtual unsigned long paramNum() final;
 	virtual bool bindParam(const std::vector<SQLVariant> & params, ErrorCollector & ec) final;
+	virtual bool bindParam(const std::vector<std::pair<std::string /*name*/, SQLVariant>> & params, ErrorCollector & ec) final;
 	virtual bool execDML(ErrorCollector & ec) final;
 	virtual bool exec(ErrorCollector & ec) final;
 	virtual bool getLastGeneratedId(const std::string & schema, const std::string & table, const std::string & field, SQLVariant & ret, ErrorCollector & ec) final;
@@ -47,10 +48,8 @@ public:
 	virtual bool fetch(std::vector<SQLVariant> &, ErrorCollector & ec) final;
 
 	virtual bool getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec) final;
-private:
-	MySQLStatement_priv * priv;
 };
 
 }
 
-#endif /* MYSQLSTATEMENT_H_ */
+#endif // sasMySQL__mysqlstatement_h

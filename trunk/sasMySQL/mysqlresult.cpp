@@ -24,7 +24,7 @@
 
 namespace SAS {
 
-struct MySQLResult_priv
+struct MySQLResult::Priv
 {
 	MySQLConnector * conn;
 	MYSQL_RES * res;
@@ -32,7 +32,7 @@ struct MySQLResult_priv
 	std::mutex mut;
 };
 
-MySQLResult::MySQLResult(MySQLConnector * conn, MYSQL_RES * res) : SQLResult(), priv(new MySQLResult_priv)
+MySQLResult::MySQLResult(MySQLConnector * conn, MYSQL_RES * res) : SQLResult(), priv(new Priv)
 {
 	priv->conn = conn;
 	priv->res = res;

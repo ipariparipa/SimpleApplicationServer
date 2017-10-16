@@ -31,9 +31,12 @@
 
 namespace SAS {
 
-struct MySQLStatement_priv
+struct MySQLStatement::Priv
 {
-	MySQLStatement_priv(MYSQL_STMT * stmt_, MySQLConnector * conn_) : conn(conn_), conn_mut(conn_->mutex()), stmt(stmt_)
+	Priv(MYSQL_STMT * stmt_, MySQLConnector * conn_) : 
+		conn(conn_), 
+		conn_mut(conn_->mutex()), 
+		stmt(stmt_)
 	{ }
 
 
@@ -228,7 +231,7 @@ struct MySQLStatement_priv
 	std::vector<MYSQL_BIND> param_binders;
 };
 
-MySQLStatement::MySQLStatement(MYSQL_STMT * stmt, MySQLConnector * conn) : priv(new MySQLStatement_priv(stmt, conn))
+MySQLStatement::MySQLStatement(MYSQL_STMT * stmt, MySQLConnector * conn) : priv(new Priv(stmt, conn))
 { }
 
 MySQLStatement::~MySQLStatement()
@@ -326,7 +329,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 			b.buffer_type = MYSQL_TYPE_VAR_STRING;
 			if(!p.isNull())
 			{
-				auto _v = new MySQLStatement_priv::ParamHelper<std::string>(p.asString());
+				auto _v = new Priv::ParamHelper<std::string>(p.asString());
 				v.reset(_v);
 				b.buffer = (void*)_v->data.c_str();
 				b.buffer_length = _v->data.length();
@@ -338,7 +341,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 			b.buffer_type = MYSQL_TYPE_LONGLONG;
 			if(!p.isNull())
 			{
-				auto _v = new MySQLStatement_priv::ParamHelper<long long>(p.asNumber());
+				auto _v = new Priv::ParamHelper<long long>(p.asNumber());
 				v.reset(_v);
 				b.buffer = (void*)&_v->data;
 //				b.buffer_length = sizeof(long long);
@@ -354,7 +357,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 			b.buffer_type = MYSQL_TYPE_DOUBLE;
 			if(!p.isNull())
 			{
-				auto _v = new MySQLStatement_priv::ParamHelper<double>(p.asReal());
+				auto _v = new Priv::ParamHelper<double>(p.asReal());
 				v.reset(_v);
 				b.buffer = (void*)&_v->data;
 //				b.buffer_length = sizeof(double);
@@ -402,7 +405,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 
 			if(!p.isNull())
 			{
-				auto _v = new MySQLStatement_priv::ParamHelper<MYSQL_TIME>();
+				auto _v = new Priv::ParamHelper<MYSQL_TIME>();
 				v.reset(_v);
 
 				auto & dt = p.asDateTime();
@@ -454,7 +457,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 			b.buffer_type = MYSQL_TYPE_BLOB;
 			if(!p.isNull())
 			{
-				auto _v = new MySQLStatement_priv::ParamHelper<SQLVariant>(p);
+				auto _v = new Priv::ParamHelper<SQLVariant>(p);
 				v.reset(_v);
 				size_t tmp_size;
 				b.buffer = _v->data.asBlob(tmp_size);
@@ -483,6 +486,16 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 	}
 
 	return true;
+}
+
+bool MySQLStatement::bindParam(const std::vector<std::pair<std::string /*name*/, SQLVariant>> & params, ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+
+	auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "binding of named parameters is not supported by MySQL connector");
+	SAS_LOG_ERROR(priv->conn->logger(), err);
+
+	return false;
 }
 
 bool MySQLStatement::execDML(ErrorCollector & ec)
@@ -537,27 +550,27 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 			break;
 
 		case MYSQL_TYPE_TINY:
-			h.reset(MySQLStatement_priv::N_ResultHelper<char>::init(b.buffer));
+			h.reset(Priv::N_ResultHelper<char>::init(b.buffer));
 			break;
 		case MYSQL_TYPE_LONG:
 		case MYSQL_TYPE_INT24:
-			h .reset(MySQLStatement_priv::N_ResultHelper<int>::init(b.buffer));
+			h.reset(Priv::N_ResultHelper<int>::init(b.buffer));
 			break;
 		case MYSQL_TYPE_LONGLONG:
-			h.reset(MySQLStatement_priv::N_ResultHelper<long long>::init(b.buffer));
+			h.reset(Priv::N_ResultHelper<long long>::init(b.buffer));
 			break;
 		case MYSQL_TYPE_FLOAT:
-			h.reset(MySQLStatement_priv::N_ResultHelper<float>::init(b.buffer));
+			h.reset(Priv::N_ResultHelper<float>::init(b.buffer));
 			break;
 		case MYSQL_TYPE_DOUBLE:
-			h.reset(MySQLStatement_priv::N_ResultHelper<double>::init(b.buffer));
+			h.reset(Priv::N_ResultHelper<double>::init(b.buffer));
 			break;
 		case MYSQL_TYPE_VARCHAR:
 		case MYSQL_TYPE_VAR_STRING:
 		case MYSQL_TYPE_STRING:
 		case MYSQL_TYPE_NEWDECIMAL:
 		case MYSQL_TYPE_DECIMAL:
-			h.reset(MySQLStatement_priv::Str_ResultHelper::init(
+			h.reset(Priv::Str_ResultHelper::init(
 					priv->conn->settings().max_buffer_size > f->length ? f->length : priv->conn->settings().max_buffer_size,
 					b.buffer, b.buffer_length));
 			break;
@@ -566,13 +579,13 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 		case MYSQL_TYPE_LONG_BLOB:
 		case MYSQL_TYPE_BLOB:
 		case MYSQL_TYPE_BIT:
-			h.reset(MySQLStatement_priv::BLOB_ResultHelper::init(
+			h.reset(Priv::BLOB_ResultHelper::init(
 					priv->conn->settings().max_buffer_size > f->length ? f->length : priv->conn->settings().max_buffer_size,
 					b.buffer, b.buffer_length));
 			break;
 		case MYSQL_TYPE_YEAR:
 		case MYSQL_TYPE_SHORT:
-			h.reset(MySQLStatement_priv::N_ResultHelper<short>::init(b.buffer));
+			h.reset(Priv::N_ResultHelper<short>::init(b.buffer));
 			break;
 		case MYSQL_TYPE_NEWDATE:
 		case MYSQL_TYPE_DATE:
@@ -584,7 +597,7 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 		case MYSQL_TYPE_TIMESTAMP2:
 		case MYSQL_TYPE_DATETIME2:
 #endif
-			h.reset(MySQLStatement_priv::DateTime_ResultHelper::init(b.buffer));
+			h.reset(Priv::DateTime_ResultHelper::init(b.buffer));
 			break;
 #if MYSQL_VERSION_ID >= 50700
 		case MYSQL_TYPE_JSON:
@@ -722,7 +735,7 @@ bool MySQLStatement::fetch(std::vector<SQLVariant> & ret, ErrorCollector & ec)
 		break;
 	case MYSQL_REPORT_DATA_TRUNCATION:
 	{
-		auto err = ec.add(SAS_SQL__ERROR__UNSUPPORTED_FEATURE, "mysql_stmt_fetch has returned with MYSQL_REPORT_DATA_TRUNCATION");
+		auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "mysql_stmt_fetch has returned with MYSQL_REPORT_DATA_TRUNCATION");
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		break;
 	}

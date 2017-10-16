@@ -37,9 +37,9 @@
 
 namespace SAS {
 
-struct MySQLConnector_priv
+struct MySQLConnector::Priv
 {
-	MySQLConnector_priv(Application * app_, const std::string & name_) :
+	Priv(Application * app_, const std::string & name_) :
 		app(app_),
 		name(name_),
 		logger(Logging::getLogger("SAS.MySQLConnector." + name_)),
@@ -232,7 +232,7 @@ struct MySQLConnector_priv
 };
 
 
-MySQLConnector::MySQLConnector(const std::string & name, Application * app) : SQLConnector(), priv(new MySQLConnector_priv(app, name))
+MySQLConnector::MySQLConnector(const std::string & name, Application * app) : SQLConnector(), priv(new Priv(app, name))
 { }
 
 MySQLConnector::~MySQLConnector()

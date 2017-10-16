@@ -15,8 +15,8 @@
     along with sasMySQL.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef MYSQLCONNECTOR_H_
-#define MYSQLCONNECTOR_H_
+#ifndef sasMySQL__mysqlconnector_h
+#define sasMySQL__mysqlconnector_h
 
 #include "config.h"
 #include <sasSQL/sqlconnector.h>
@@ -27,8 +27,6 @@
 namespace SAS {
 
 class Application;
-
-struct MySQLConnector_priv;
 
 struct MySQL_Settings
 {
@@ -41,6 +39,8 @@ struct MySQL_Settings
 
 class MySQLConnector : public SQLConnector
 {
+	struct Priv;
+	Priv * priv;
 public:
 	MySQLConnector(const std::string & name, Application * app);
 	virtual ~MySQLConnector();
@@ -72,11 +72,8 @@ public:
 	virtual bool startTransaction(ErrorCollector & ec) final;
 	virtual bool commit(ErrorCollector & ec) final;
 	virtual bool rollback(ErrorCollector & ec) final;
-
-private:
-	MySQLConnector_priv * priv;
 };
 
 }
 
-#endif /* MYSQLCONNECTOR_H_ */
+#endif // sasMySQL__mysqlconnector_h
