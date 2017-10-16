@@ -29,12 +29,17 @@
 #include <list>
 #include <memory>
 
+#include <stdlib.h>
+#include <time.h>
+
 namespace SAS {
 
 struct Application_priv
 {
 	Application_priv() : logger(Logging::getLogger("SAS.Application")), argc(0), argv(nullptr)
-	{ }
+	{
+		srand(time(0));
+	}
 
 	ObjectRegistry objectRegistry;
 	std::vector<ComponentLoader*> componentLoaders;
