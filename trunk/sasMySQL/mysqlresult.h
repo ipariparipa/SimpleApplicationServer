@@ -45,4 +45,4 @@ public:
 
 }
 
-#endif sasMySQL__mysqlresult_h
+#endif //sasMySQL__mysqlresult_h
