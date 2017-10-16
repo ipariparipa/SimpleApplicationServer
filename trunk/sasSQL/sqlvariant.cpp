@@ -22,9 +22,9 @@
 
 namespace SAS {
 
-struct SQLVariant_priv
+struct SQLVariant::Priv
 {
-	SQLVariant_priv() : type(SQLDataType::None), dtSubType(SQLVariant::DateTimeSubType::None),
+	Priv() : type(SQLDataType::None), dtSubType(SQLVariant::DateTimeSubType::None),
 			isNull(false), number(0), real(0), buffer(nullptr), buffer_size(0)
 	{ }
 
@@ -41,72 +41,72 @@ struct SQLVariant_priv
 	size_t buffer_size;
 };
 
-SQLVariant::SQLVariant(const SQLVariant & o) : priv(new SQLVariant_priv(*o.priv))
+SQLVariant::SQLVariant(const SQLVariant & o) : priv(new Priv(*o.priv))
 { }
 
-SQLVariant::SQLVariant() : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant() : priv(new Priv)
 {
 	priv->type = SQLDataType::None;
 	priv->isNull = true;
 }
 
-SQLVariant::SQLVariant(SQLDataType type, DateTimeSubType dtSubType) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(SQLDataType type, DateTimeSubType dtSubType) : priv(new Priv)
 {
 	priv->type = type;
 	priv->dtSubType = dtSubType;
 	priv->isNull = true;
 }
 
-SQLVariant::SQLVariant(const std::string & string, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(const std::string & string, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::String;
 	priv->string = string;
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(const char * string, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(const char * string, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::String;
 	priv->string = string;
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(long long number, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(long long number, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Number;
 	priv->number = number;
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(int number, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(int number, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Number;
 	priv->number = number;
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(short number, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(short number, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Number;
 	priv->number = number;
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(char number, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(char number, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Number;
 	priv->number = number;
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(double real, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(double real, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Real;
 	priv->real = real;
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(const SQLDateTime & datetime, DateTimeSubType dtSubType, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(const SQLDateTime & datetime, DateTimeSubType dtSubType, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::DateTime;
 	if(dtSubType == DateTimeSubType::None)
@@ -125,7 +125,7 @@ SQLVariant::SQLVariant(const SQLDateTime & datetime, DateTimeSubType dtSubType, 
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(const std::vector<unsigned char> & blob, size_t size, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(const std::vector<unsigned char> & blob, size_t size, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Blob;
 	priv->blob.resize(size);
@@ -133,14 +133,14 @@ SQLVariant::SQLVariant(const std::vector<unsigned char> & blob, size_t size, boo
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(const std::vector<unsigned char> & blob, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(const std::vector<unsigned char> & blob, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Blob;
 	priv->blob = blob;
 	priv->isNull = isNull;
 }
 
-SQLVariant::SQLVariant(unsigned char * buffer, size_t size, bool isNull) : priv(new SQLVariant_priv)
+SQLVariant::SQLVariant(unsigned char * buffer, size_t size, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Blob;
 	priv->buffer  = buffer;
@@ -176,21 +176,96 @@ bool SQLVariant::isNull() const
 
 const std::string & SQLVariant::asString() const
 {
+	auto that_priv = (Priv*)priv;
+	switch(priv->type)
+	{
+	case SQLDataType::None:
+	case SQLDataType::String:
+		break;
+	case SQLDataType::Number:
+		return that_priv->string = std::to_string(priv->number);
+	case SQLDataType::Real:
+		return that_priv->string = std::to_string(priv->real);
+	case SQLDataType::DateTime:
+		return that_priv->string = priv->datetime.toString();
+	case SQLDataType::Blob:
+		that_priv->string.clear();
+		if(priv->buffer)
+			that_priv->string.append((char *)priv->buffer, priv->buffer_size);
+		else
+			that_priv->string.append((char *)priv->blob.data(), priv->blob.size());
+		break;
+	}
 	return priv->string;
 }
 
 const long long & SQLVariant::asNumber() const
 {
+	auto that_priv = (Priv*)priv;
+	switch(priv->type)
+	{
+	case SQLDataType::None:
+	case SQLDataType::Number:
+		break;
+	case SQLDataType::String:
+		try { return that_priv->number = std::stoll(priv->string);}
+		catch(...) { break; }
+	case SQLDataType::Real:
+		return that_priv->number = priv->real;
+	case SQLDataType::DateTime:
+		return that_priv->number = priv->datetime.to_time_t();
+	case SQLDataType::Blob:
+		if(priv->buffer)
+			that_priv->number = priv->buffer_size;
+		else
+			that_priv->number = priv->blob.size();
+		break;
+	}
 	return priv->number;
 }
 
 const double & SQLVariant::asReal() const
 {
+	auto that_priv = (Priv*)priv;
+	switch(priv->type)
+	{
+	case SQLDataType::None:
+	case SQLDataType::Real:
+		break;
+	case SQLDataType::String:
+		try { return that_priv->real = std::stod(priv->string);}
+		catch(...) { break; }
+	case SQLDataType::Number:
+		return that_priv->real = priv->number;
+	case SQLDataType::DateTime:
+		return that_priv->real = priv->datetime.to_time_t();
+	case SQLDataType::Blob:
+		if(priv->buffer)
+			that_priv->real = priv->buffer_size;
+		else
+			that_priv->real = priv->blob.size();
+		break;
+	}
 	return priv->real;
 }
 
 const SQLDateTime & SQLVariant::asDateTime() const
 {
+	auto that_priv = (Priv*)priv;
+	switch(priv->type)
+	{
+	case SQLDataType::None:
+	case SQLDataType::DateTime:
+		break;
+	case SQLDataType::String:
+		return that_priv->datetime = priv->string;
+	case SQLDataType::Real:
+		return that_priv->datetime = (time_t)priv->real;
+	case SQLDataType::Number:
+		return that_priv->datetime = (time_t)that_priv->number;
+	case SQLDataType::Blob:
+		break;
+	}
 	return priv->datetime;
 }
 

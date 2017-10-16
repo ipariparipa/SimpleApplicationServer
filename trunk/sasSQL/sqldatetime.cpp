@@ -20,23 +20,48 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
+#include <ctime>
+
+#include <time.h>
+
+#if SAS_OS == SAS_OS_WINDOWS
+extern "C" char* strptime(const char* s,
+	const char* f, struct tm* tm) {
+	// Isn't the C++ standard lib nice? std::get_time is defined such that its
+	// format parameters are the exact same as strptime. Of course, we have to
+	// create a string stream first, and imbue it with the current C locale, and
+	// we also have to make sure we return the right things if it fails, or
+	// if it succeeds, but this is still far simpler an implementation than any
+	// of the versions in any of the C standard libraries.
+	std::istringstream input(s);
+	input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+	input >> std::get_time(tm, f);
+	if (input.fail()) {
+		return nullptr;
+	}
+
+	auto tmp = (int)input.tellg();
+	static const char _end('\0');
+	return (char*)(tmp < 0 ? &_end : s + tmp);
+}
+#endif
 
 namespace SAS {
 
-struct SQLDateTime_priv
+struct SQLDateTime::Priv
 {
-	bool isNull;
+	bool isNull = true;
 
-	unsigned int years;
-	unsigned int months;
-	unsigned int days;
-	unsigned int hours;
-	unsigned int minutes;
-	unsigned int seconds;
-	int msecs;
-	bool daylightSaveTime;
-	bool negative;
-	short ms_precision;
+	unsigned int years = 0;
+	unsigned int months = 0;
+	unsigned int days = 0;
+	unsigned int hours = 0;
+	unsigned int minutes = 0;
+	unsigned int seconds = 0;
+	int msecs = 0;
+	bool daylightSaveTime = false;
+	bool negative = false;
+	short ms_precision = 0;
 
 	void set_tm(tm & ret)
 	{
@@ -49,13 +74,36 @@ struct SQLDateTime_priv
 		ret.tm_sec = seconds;
 		ret.tm_isdst = daylightSaveTime;
 	}
+
+	static bool to_tm(const char * str, tm & ret)
+	{
+		std::memset(&ret, 0, sizeof(tm));
+		auto tmp = strptime(str, "%Y-%m-%dT%H:%M:%S", &ret);
+		if (!tmp && !*tmp)
+			return false;
+		ret.tm_isdst = -1;
+		std::mktime(&ret);
+		return true;
+	}
+
+	static std::string to_string(const tm & v)
+	{
+		std::stringstream ss;
+		ss << std::setfill('0') << std::setw(4) << v.tm_year + 1900 << "-";
+		ss << std::setfill('0') << std::setw(2) << v.tm_mon + 1 << "-";
+		ss << std::setfill('0') << std::setw(2) << v.tm_mday << "T";
+		ss << std::setfill('0') << std::setw(2) << v.tm_hour << ":";
+		ss << std::setfill('0') << std::setw(2) << v.tm_min << ":";
+		ss << std::setfill('0') << std::setw(2) << v.tm_sec;
+		return ss.str();
+	}
 };
 
 
-SQLDateTime::SQLDateTime(const SQLDateTime & o) : priv(new SQLDateTime_priv(*o.priv))
+SQLDateTime::SQLDateTime(const SQLDateTime & o) : priv(new Priv(*o.priv))
 { }
 
-SQLDateTime::SQLDateTime() : priv(new SQLDateTime_priv)
+SQLDateTime::SQLDateTime() : priv(new Priv)
 {
 	priv->years = priv->months = priv->days = priv->hours = priv->minutes = priv->seconds = 0;
 	priv->msecs = -1;
@@ -65,7 +113,7 @@ SQLDateTime::SQLDateTime() : priv(new SQLDateTime_priv)
 	priv->ms_precision = 0;
 }
 
-SQLDateTime::SQLDateTime(time_t t) : priv(new SQLDateTime_priv)
+SQLDateTime::SQLDateTime(time_t t) : priv(new Priv)
 {
 	tm tmp;
 #if SAS_OS == SAS_OS_LINUX
@@ -89,7 +137,7 @@ SQLDateTime::SQLDateTime(time_t t) : priv(new SQLDateTime_priv)
 	priv->ms_precision = 0;
 }
 
-SQLDateTime::SQLDateTime(const tm * t) : priv(new SQLDateTime_priv)
+SQLDateTime::SQLDateTime(const tm * t) : priv(new Priv)
 {
 	priv->years = t->tm_year + 1900;
 	priv->months = t->tm_mon + 1;
@@ -106,7 +154,7 @@ SQLDateTime::SQLDateTime(const tm * t) : priv(new SQLDateTime_priv)
 	priv->ms_precision = 0;
 }
 
-SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, bool negative, short ms_precision) : priv(new SQLDateTime_priv)
+SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, bool negative, short ms_precision) : priv(new Priv)
 {
 	priv->years = years;
 	priv->months = months;
@@ -125,6 +173,28 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
 	tmp.tm_isdst = -1;
 	mktime(&tmp);
 	priv->daylightSaveTime = tmp.tm_isdst != 0;
+}
+
+
+SQLDateTime::SQLDateTime(const std::string & str) : priv(new Priv)
+{
+	tm t;
+	if(Priv::to_tm(str.c_str(), t))
+	{
+		priv->years = t.tm_year + 1900;
+		priv->months = t.tm_mon + 1;
+		priv->days = t.tm_mday;
+		priv->hours = t.tm_hour;
+		priv->minutes = t.tm_min;
+		priv->seconds = t.tm_sec;
+		priv->msecs = -1;
+		priv->daylightSaveTime = t.tm_isdst != 0;
+
+		priv->negative = false;
+		priv->isNull = false;
+
+		priv->ms_precision = 0;
+	}
 }
 
 SQLDateTime::~SQLDateTime()

@@ -33,9 +33,10 @@ enum class SQLDataType
 	None, String, Number, Real, DateTime, Blob
 };
 
-struct SQLVariant_priv;
 class SAS_SQL__CLASS SQLVariant
 {
+	struct Priv;
+	Priv * priv;
 public:
 	enum class DateTimeSubType
 	{
@@ -72,9 +73,6 @@ public:
 	unsigned char asBlobByte(size_t idx) const;
 
 	std::string toString() const;
-
-private:
-	SQLVariant_priv * priv;
 };
 
 }
