@@ -352,7 +352,6 @@ namespace SAS {
 	bool MQTTConnector::init(const std::string & path, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-		priv->options.clientId = priv->name;
 		if(!priv->options.build(path, priv->app->configReader(), ec))
 			return false;
 

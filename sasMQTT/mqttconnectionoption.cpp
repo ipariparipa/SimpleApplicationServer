@@ -19,14 +19,18 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 
 #include <sasCore/errorcollector.h>
 #include <sasCore/configreader.h>
+#include <sasCore/tools.h>
+#include <sasCore/logging.h>
 
 namespace SAS {
 
 	bool MQTTConnectionOptions::build(const std::string & config_path, ConfigReader * cr, ErrorCollector & ec)
 	{
+		SAS_LOG_NDC();
+
 		long long ll_tmp;
 
-		if(!cr->getStringEntry(config_path + "/CLIENT_ID", this->clientId, this->clientId, ec))
+		if(!cr->getStringEntry(config_path + "/CLIENT_ID", this->clientId, genRandomString(32), ec))
 			return false;
 
 		if(!cr->getStringEntry(config_path + "/SERVER_URI", this->serverUri, "localhost:1883", ec))

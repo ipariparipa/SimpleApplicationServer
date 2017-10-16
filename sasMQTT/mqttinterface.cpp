@@ -401,7 +401,6 @@ namespace SAS {
 		SAS_LOG_NDC();
 
 		MQTTConnectionOptions options;
-		options.clientId = priv->name;
 
 		if(!options.build(config_path, priv->app->configReader(), ec))
 			return false;
