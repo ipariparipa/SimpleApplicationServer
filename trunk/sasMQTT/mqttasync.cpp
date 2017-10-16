@@ -64,6 +64,7 @@ struct MQTTAsync_priv
 		}
 
 		int rc;
+		SAS_LOG_TRACE(logger, "MQTTAsync_subscribeMany");
 		if((rc = MQTTAsync_subscribeMany(mqtt_handle, _count, &_topic[0], _qos.data(), NULL) != MQTTASYNC_SUCCESS))
 		{
 			auto err = ec.add(-1, "could not subscribe for MQTT topics ("+std::to_string(rc)+")");
@@ -87,6 +88,7 @@ struct MQTTAsync_priv
 		conn_opts.onFailure = MQTTAsync_priv::_onConnectionFailed;
 		conn_opts.maxInflight = 100;
 		int rc;
+		SAS_LOG_TRACE(logger, "MQTTAsync_connect");
 		if ((rc = MQTTAsync_connect(mqtt_handle, &conn_opts)) != MQTTASYNC_SUCCESS)
 		{
 			auto err = ec.add(-1, "could not connect to MQTT server (" + std::to_string(rc) + ")");
@@ -129,7 +131,9 @@ struct MQTTAsync_priv
 		memcpy(_payload.data(), message->payload, message->payloadlen);
 		bool ret = priv->that->messageArrived(_topic, _payload, message->qos);
 
+		SAS_LOG_TRACE(priv->logger, "MQTTAsync_freeMessage");
 		MQTTAsync_freeMessage(&message);
+		SAS_LOG_TRACE(priv->logger, "MQTTAsync_free");
 		MQTTAsync_free(topicName);
 
 		return (int)ret;
@@ -185,7 +189,11 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 {
 	SAS_LOG_NDC();
 
+	SAS_LOG_VAR(priv->logger, conn_opts.serverUri);
+	SAS_LOG_VAR(priv->logger, conn_opts.clientId);
+
 	int rc;
+	SAS_LOG_TRACE(priv->logger, "MQTTAsync_create");
 	if((rc = MQTTAsync_create(&priv->mqtt_handle, conn_opts.serverUri.c_str(), conn_opts.clientId.c_str(), MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTASYNC_SUCCESS)
 	{
 		auto err = ec.add(-1, "could not initialize MQTT ("+std::to_string(rc)+")");
@@ -193,6 +201,7 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 		return false;
 	}
 
+	SAS_LOG_TRACE(priv->logger, "MQTTAsync_setCallbacks, MQTTAsync_setConnected");
 	if ((rc = MQTTAsync_setCallbacks(priv->mqtt_handle, priv.get(), MQTTAsync_priv::_connectionLost, MQTTAsync_priv::_messageArrived, MQTTAsync_priv::_deliveryComplete)) != MQTTASYNC_SUCCESS ||
 	    (rc = MQTTAsync_setConnected(priv->mqtt_handle, priv.get(), MQTTAsync_priv::_connected)) != MQTTASYNC_SUCCESS)
 	{
@@ -227,6 +236,7 @@ bool MQTTAsync::disconnect(ErrorCollector & ec)
 	SAS_LOG_NDC();
 
 	int rc;
+	SAS_LOG_TRACE(priv->logger, "MQTTAsync_disconnect");
 	if((rc = MQTTAsync_disconnect(priv->mqtt_handle, NULL)) != MQTTASYNC_SUCCESS)
 	{
 		auto err = ec.add(-1, "could not disconnect from MQTT server (" + std::to_string(rc) + ")");
@@ -240,6 +250,7 @@ bool MQTTAsync::subscribe(const std::vector<std::string> & topics, int qos, Erro
 {
 	SAS_LOG_NDC();
 
+	SAS_LOG_TRACE(priv->logger, "MQTTAsync_isConnected");
 	if(!MQTTAsync_isConnected(priv->mqtt_handle) && !connect(ec))
 		return false;
 
@@ -258,6 +269,7 @@ bool MQTTAsync::unsubscribe(ErrorCollector & ec)
 		_topic[i] = (char *)priv->topics[i].c_str();
 
 	int rc;
+	SAS_LOG_TRACE(priv->logger, "MQTTAsync_unsubscribeMany");
 	if((rc = MQTTAsync_unsubscribeMany(priv->mqtt_handle, _count, &_topic[0], NULL) != MQTTASYNC_SUCCESS))
 	{
 		auto err = ec.add(-1, "could not cancel subscribtion for MQTT topics ("+std::to_string(rc)+")");
@@ -278,6 +290,7 @@ bool MQTTAsync::send(const std::string & topic, const std::vector<char> & payloa
 	MQTTAsync_responseOptions resp = MQTTAsync_responseOptions_initializer;
 
 	int rc;
+	SAS_LOG_TRACE(priv->logger, "MQTTAsync_send");
 	if((rc = MQTTAsync_send(priv->mqtt_handle, topic.c_str(), payload.size()-1, (void*)payload.data(), qos, 0, &resp)) != MQTTASYNC_SUCCESS)
 	{
 		auto err = ec.add(-1, "could not send MQTT message ("+std::to_string(rc)+")");
@@ -285,12 +298,15 @@ bool MQTTAsync::send(const std::string & topic, const std::vector<char> & payloa
 		return false;
 	}
 	if (priv->options.publish_timeout > 0)
+	{
+		SAS_LOG_TRACE(priv->logger, "MQTTAsync_waitForCompletion");
 		if ((rc = MQTTAsync_waitForCompletion(priv->mqtt_handle, resp.token, priv->options.publish_timeout) != MQTTASYNC_SUCCESS))
 		{
 			auto err = ec.add(-1, "MQTT message is lost (" + std::to_string(rc) + ")");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
+	}
 
 	return true;
 }
