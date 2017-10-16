@@ -34,6 +34,7 @@ namespace SAS {
 		virtual void stop() override;
 
 		void setInterval(long milliseconds);
+		long interval() const;
 
 	protected:
 		virtual void begun() override;

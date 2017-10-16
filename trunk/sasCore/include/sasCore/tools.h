@@ -67,6 +67,9 @@ namespace SAS  {
 		str_join(elems, delim, s);
 		return s;
 	}
+
+	extern SAS_CORE__FUNCTION std::string genRandomString(size_t len);
+
 }
 
 #endif // sasCore__tools_h

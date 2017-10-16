@@ -50,6 +50,11 @@ namespace SAS {
 		priv->milliseconds = milliseconds;
 	}
 
+	long TimerThread::interval() const
+	{
+		return priv->milliseconds;
+	}
+
 	void TimerThread::stop()
 	{
 		Thread::stop();

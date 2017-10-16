@@ -81,4 +81,20 @@ namespace SAS {
 		return elems;
 	}
 
+	extern SAS_CORE__FUNCTION  std::string genRandomString(size_t len)
+	{
+		static const char alphanum[] =
+		"0123456789"
+		//"!@#$%^&*"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz";
+
+		std::vector<char> str(len);
+		for(size_t i(0); i < len; ++i)
+			str[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+		std::string ret;
+		ret.append(str.data(), len);
+		return ret;
+	}
+
 }
