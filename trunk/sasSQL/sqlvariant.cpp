@@ -211,7 +211,7 @@ const long long & SQLVariant::asNumber() const
 		try { return that_priv->number = std::stoll(priv->string);}
 		catch(...) { break; }
 	case SQLDataType::Real:
-		return that_priv->number = priv->real;
+		return that_priv->number = (long long)priv->real;
 	case SQLDataType::DateTime:
 		return that_priv->number = priv->datetime.to_time_t();
 	case SQLDataType::Blob:
@@ -236,9 +236,9 @@ const double & SQLVariant::asReal() const
 		try { return that_priv->real = std::stod(priv->string);}
 		catch(...) { break; }
 	case SQLDataType::Number:
-		return that_priv->real = priv->number;
+		return that_priv->real = (double)priv->number;
 	case SQLDataType::DateTime:
-		return that_priv->real = priv->datetime.to_time_t();
+		return that_priv->real = (double)priv->datetime.to_time_t();
 	case SQLDataType::Blob:
 		if(priv->buffer)
 			that_priv->real = priv->buffer_size;
