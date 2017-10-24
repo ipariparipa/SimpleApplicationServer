@@ -503,16 +503,19 @@ bool CorbaInterface::init(const CORBA::ORB_var & orb, const std::string & config
 	if(info.use_name_service)
 	{
 		SAS_LOG_TRACE(_logger, "get name server binding information");
-		if(!_app->configReader()->getStringEntry(config_path + "/SERVICE_NAME", info.service_name, ec) || !info.service_name.length())
+
+		if (!_app->configReader()->getStringEntry("SAS/CORBA/SERVICE_NAME", info.service_name, "SAS", ec) ||
+			!_app->configReader()->getStringEntry(config_path + "/SERVICE_NAME", info.service_name, info.service_name, ec))
+			return false;
+
+		if (!info.service_name.length())
 		{
-			SAS_LOG_TRACE(_logger, "service name is not defined for interface, get default value");
-			if(!_app->configReader()->getStringEntry("SAS/CORBA/SERVICE_NAME", info.service_name, ec) || !info.service_name.length())
-			{
-				SAS_LOG_DEBUG(_logger, "default service name is not set in configuration");
-				info.service_name = "SAS";
-			}
-			info.interface_name = _name;
+			auto err = ec.add(SAS_CORE__ERROR__INTERFACE__CANNOT_REGISTER_SERVER, "service name os not configured");
+			SAS_LOG_ERROR(_logger, err);
+			return false;
 		}
+
+		info.interface_name = _name;
 	}
 
 	_app->configReader()->getStringEntry(config_path + "/IOR_FILE", info.ior_file, ec);
