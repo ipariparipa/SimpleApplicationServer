@@ -35,9 +35,9 @@ namespace SAS {
 	}
 
 
-struct SQLTransactionProtector_priv
+struct SQLTransactionProtector::Priv
 {
-	SQLTransactionProtector_priv(SQLConnector * conn_, bool auto_commit_) :
+	Priv(SQLConnector * conn_, bool auto_commit_) :
 		conn(conn_),
 		auto_commit(auto_commit_),
 		ended(false)
@@ -54,7 +54,7 @@ struct SQLTransactionProtector_priv
 };
 
 SQLTransactionProtector::SQLTransactionProtector(SQLConnector * conn, bool auto_commit) :
-		priv(new SQLTransactionProtector_priv(conn, auto_commit))
+		priv(new Priv(conn, auto_commit))
 {
 	SAS_LOG_NDC();
 	priv->conn->lock();
@@ -93,6 +93,5 @@ bool SQLTransactionProtector::rollback(ErrorCollector & ec)
 	priv->ended = true;
 	return true;
 }
-
 
 }

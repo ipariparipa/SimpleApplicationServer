@@ -23,6 +23,7 @@
 #include <ctime>
 
 #include <time.h>
+#include <chrono>
 
 #if SAS_OS == SAS_OS_WINDOWS
 extern "C" char* strptime(const char* s,
@@ -75,6 +76,17 @@ struct SQLDateTime::Priv
 		ret.tm_isdst = daylightSaveTime;
 	}
 
+	static void to_tm(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, tm & ret)
+	{
+		std::memset(&ret, 0, sizeof(tm));
+		ret.tm_year = years - 1900;
+		ret.tm_mon = months - 1;
+		ret.tm_mday = days;
+		ret.tm_hour = hours;
+		ret.tm_min = minutes;
+		ret.tm_sec = seconds;
+	}
+
 	static bool to_tm(const char * str, tm & ret)
 	{
 		std::memset(&ret, 0, sizeof(tm));
@@ -97,6 +109,27 @@ struct SQLDateTime::Priv
 		ss << std::setfill('0') << std::setw(2) << v.tm_sec;
 		return ss.str();
 	}
+
+	void from_tm(const tm * t)
+	{
+		years = t->tm_year + 1900;
+		months = t->tm_mon + 1;
+		days = t->tm_mday;
+		hours = t->tm_hour;
+		minutes = t->tm_min;
+		seconds = t->tm_sec;
+		daylightSaveTime = t->tm_isdst != 0;
+	}
+
+	static void to_tm(time_t t, tm & ret)
+	{
+#if SAS_OS == SAS_OS_LINUX
+		gmtime_r(&t, &ret);
+#else
+		gmtime_s(&ret, &t);
+#endif
+	}
+
 };
 
 
@@ -116,42 +149,33 @@ SQLDateTime::SQLDateTime() : priv(new Priv)
 SQLDateTime::SQLDateTime(time_t t) : priv(new Priv)
 {
 	tm tmp;
-#if SAS_OS == SAS_OS_LINUX
-	gmtime_r(&t, &tmp);
-#else
-	gmtime_s(&tmp, &t);
-#endif
 
-	priv->years = tmp.tm_year + 1900;
-	priv->months = tmp.tm_mon + 1;
-	priv->days = tmp.tm_mday;
-	priv->hours = tmp.tm_hour;
-	priv->minutes = tmp.tm_min;
-	priv->seconds = tmp.tm_sec;
-	priv->msecs = -1;
-	priv->daylightSaveTime = tmp.tm_isdst != 0;
-
-	priv->negative = false;
-	priv->isNull = false;
+	Priv::to_tm(t, tmp);
+	priv->from_tm(&tmp);
 
 	priv->ms_precision = 0;
 }
 
 SQLDateTime::SQLDateTime(const tm * t) : priv(new Priv)
 {
-	priv->years = t->tm_year + 1900;
-	priv->months = t->tm_mon + 1;
-	priv->days = t->tm_mday;
-	priv->hours = t->tm_hour;
-	priv->minutes = t->tm_min;
-	priv->seconds = t->tm_sec;
+	priv->from_tm(t);
+
 	priv->msecs = -1;
-	priv->daylightSaveTime = t->tm_isdst != 0;
+	priv->negative = false;
+	priv->isNull = false;
+	priv->ms_precision = 0;
+}
+
+SQLDateTime::SQLDateTime(const tm * t, unsigned int milliseconds, short ms_precision)
+{
+	priv->from_tm(t);
 
 	priv->negative = false;
 	priv->isNull = false;
 
-	priv->ms_precision = 0;
+	priv->msecs = milliseconds;
+	priv->ms_precision = ms_precision;
+
 }
 
 SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, bool negative, short ms_precision) : priv(new Priv)
@@ -175,24 +199,47 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
 	priv->daylightSaveTime = tmp.tm_isdst != 0;
 }
 
+SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, int tzHours, int TzMinutes, bool negative, short ms_precision)
+{
+	std::tm tm;
+	Priv::to_tm(years, months, days, hours, minutes, seconds, tm);
+	auto tp = std::chrono::system_clock::from_time_t(mktime(&tm));
+	tp += std::chrono::hours(tzHours);
+	tp += std::chrono::minutes(TzMinutes);
+	if (msecs >= 0)
+		tp += std::chrono::milliseconds(msecs);
+
+	auto t = std::chrono::system_clock::to_time_t(tp);
+	Priv::to_tm(t, tm);
+	priv->from_tm(&tm);
+	
+	if (msecs >= 0)
+	{
+		priv->msecs = (int) (tp - std::chrono::system_clock::from_time_t(t)).count();
+	}
+
+	priv->ms_precision = ms_precision;
+
+/*
+	std::tm tmp;
+	priv->set_tm(tmp);
+	tmp.tm_isdst = -1;
+	mktime(&tmp);
+	priv->daylightSaveTime = tmp.tm_isdst != 0;
+*/
+}
+
 
 SQLDateTime::SQLDateTime(const std::string & str) : priv(new Priv)
 {
 	tm t;
 	if(Priv::to_tm(str.c_str(), t))
 	{
-		priv->years = t.tm_year + 1900;
-		priv->months = t.tm_mon + 1;
-		priv->days = t.tm_mday;
-		priv->hours = t.tm_hour;
-		priv->minutes = t.tm_min;
-		priv->seconds = t.tm_sec;
-		priv->msecs = -1;
-		priv->daylightSaveTime = t.tm_isdst != 0;
+		priv->from_tm(&t);
 
+		priv->msecs = -1;
 		priv->negative = false;
 		priv->isNull = false;
-
 		priv->ms_precision = 0;
 	}
 }
