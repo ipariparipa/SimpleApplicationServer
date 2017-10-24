@@ -45,6 +45,13 @@ public:
 	OraConnector(dpiContext * ctx, const std::string & name, Application * app);
 	virtual ~OraConnector();
 
+	virtual const char * getServerType() const final
+	{ return "oracle"; }
+
+	virtual bool getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec) final;
+
+	virtual bool hasFeature(Feature f, std::string & explanation) final;
+
 	bool init(const std::string & configPath, ErrorCollector & ec);
 
 	virtual bool connect(ErrorCollector & ec) final;

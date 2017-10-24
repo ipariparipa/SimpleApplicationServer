@@ -234,6 +234,72 @@ OraConnector::~OraConnector()
 std::string OraConnector::name() const
 { return priv->name; }
 
+bool OraConnector::getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	auto conn = priv->connectionManager.connection(ec);
+	if (!conn)
+		return false;
+
+	std::unique_lock<std::mutex> __locker(conn->mut);
+	
+	dpiVersionInfo info;
+	const char * rstr;
+	uint32_t rstr_len;
+	if (dpiConn_getServerVersion(conn->conn, &rstr, &rstr_len, &info) != DPI_SUCCESS)
+	{
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_CONNECT_TO_DB_SEVICE, "could not get server info: " + OraTools::toString(priv->ctx));
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+
+	//DPI_ORACLE_VERSION_TO_NUMBER
+	auto _ver = info.versionNum;
+	auto  _versionNum = _ver / 100000000;
+	_ver -= _versionNum;
+	auto  _releaseNum = _ver / 1000000;
+	_ver -= _releaseNum;
+	auto _updateNum = _ver / 10000;
+	_ver -= _updateNum;
+	auto _portReleaseNum = _ver / 100;
+	_ver -= _portReleaseNum;
+	auto _portUpdateNum = _ver;
+
+	generation = std::to_string(_versionNum);
+
+	std::stringstream ss;
+	ss << _versionNum << "." << _releaseNum << "." << _updateNum << "." << _portReleaseNum << "." << _portUpdateNum;
+
+	version = ss.str();
+	
+	return true;
+}
+
+bool OraConnector::hasFeature(Feature f, std::string & explanation)
+{
+	switch (f)
+	{
+	case SQLConnector::Feature::GetServerInfo:
+	case SQLConnector::Feature::MultiThreading:
+	case SQLConnector::Feature::Tarnsaction:
+	case SQLConnector::Feature::GetSysDate:
+	case SQLConnector::Feature::Statement:
+	case SQLConnector::Feature::BindingByPos:
+	case SQLConnector::Feature::BindingByName:
+		return true;
+	case SQLConnector::Feature::SimpleQuery:
+		explanation = "this feature is not natively supported by ODPI library, but implemented as using SQLStatement.";
+		return true;
+	case SQLConnector::Feature::GetLastGeneratedId:
+		explanation = "use oracle specific solution instead";
+		return false;
+	default:
+		explanation = "unknown feature: '" + std::to_string((int)f) + "'.";
+	}
+
+	return false;
+}
+
 bool OraConnector::init(const std::string & configPath, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
