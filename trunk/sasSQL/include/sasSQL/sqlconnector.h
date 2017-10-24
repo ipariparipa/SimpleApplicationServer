@@ -21,6 +21,8 @@
 #include "config.h"
 #include <sasCore/object.h>
 
+#include <string>
+
 #define SAS_OBJECT_TYPE__SQL_CONNECTOR "sql_connector"
 #define SAS_OBJECT_TYPE_SQL__CONNECTOR SAS_OBJECT_TYPE__SQL_CONNECTOR
 
@@ -36,10 +38,36 @@ class SAS_SQL__CLASS SQLConnector : public Object
 protected:
 	inline SQLConnector() { }
 public:
+
+	enum class Feature
+	{
+		GetServerInfo,
+		MultiThreading,
+		SimpleQuery,
+		Tarnsaction,
+		GetSysDate,
+		GetLastGeneratedId,
+		Statement,
+		BindingByPos,
+		BindingByName
+	};
+
 	virtual inline ~SQLConnector() { }
 
 	virtual inline std::string type() const final
 			{ return SAS_OBJECT_TYPE_SQL__CONNECTOR; }
+
+	bool hasFeature(Feature f)
+	{
+		std::string expl;
+		return hasFeature(f, expl);
+	}
+
+	virtual bool getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec) = 0;
+
+	virtual const char * getServerType() const = 0;
+
+	virtual bool hasFeature(Feature f, std::string & explanation) = 0;
 
 	virtual bool connect(ErrorCollector & ec) = 0;
 
@@ -63,10 +91,12 @@ public:
 };
 
 
-struct SQLTransactionProtector_priv;
 class SAS_SQL__CLASS SQLTransactionProtector
 {
 	SAS_COPY_PROTECTOR(SQLTransactionProtector)
+
+	struct Priv;
+	Priv * priv;
 public:
 	SQLTransactionProtector(SQLConnector * conn, bool auto_commit = false);
 	~SQLTransactionProtector();
@@ -74,8 +104,6 @@ public:
 	bool commit(ErrorCollector & ec);
 	bool rollback(ErrorCollector & ec);
 
-private:
-	SQLTransactionProtector_priv * priv;
 };
 
 }

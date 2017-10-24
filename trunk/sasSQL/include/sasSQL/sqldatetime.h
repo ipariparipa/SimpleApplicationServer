@@ -34,7 +34,9 @@ public:
 	SQLDateTime();
 	SQLDateTime(time_t t);
 	SQLDateTime(const tm * t);
-	SQLDateTime(unsigned int year, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs = -1, bool negative = false, short ms_precision = 6);
+	SQLDateTime(const tm * t, unsigned int milliseconds, short ms_precision = 6);
+	SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs = -1, bool negative = false, short ms_precision = 6);
+	SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, int tzHours, int TzMinutes, bool negative = false, short ms_precision = 6);
 	SQLDateTime(const std::string & str);
 	virtual ~SQLDateTime();
 
