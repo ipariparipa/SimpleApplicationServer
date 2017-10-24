@@ -220,7 +220,9 @@ struct OraStatement::Priv
 				d->value.asTimestamp.hour,
 				d->value.asTimestamp.minute,
 				d->value.asTimestamp.second,
-				d->value.asTimestamp.fsecond), SQLVariant::DateTimeSubType::TimeStamp);
+				d->value.asTimestamp.fsecond,
+				d->value.asTimestamp.tzHourOffset,
+				d->value.asTimestamp.tzMinuteOffset), SQLVariant::DateTimeSubType::TimeStamp);
 			return true;
 		case DPI_NATIVE_TYPE_INTERVAL_DS:
 		{
@@ -506,10 +508,8 @@ bool OraStatement::getLastGeneratedId(const std::string & schema, const std::str
 {
 	SAS_LOG_NDC();
 
-	if (schema.length() ||table.length() || field.length())
-		SAS_LOG_TRACE(priv->conn->logger(), "usage of schema, table and field is not supported by this version of MySQL connector. arguments are skipped, but keep it to use because of the compatibility to another SQL connector");
-
-	//TODO
+	auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "this functionality is not supported by oracle");
+	SAS_LOG_ERROR(priv->logger, err);
 
 	return false;
 }
