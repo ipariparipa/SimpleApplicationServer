@@ -240,6 +240,57 @@ MySQLConnector::~MySQLConnector()
 	delete priv;
 }
 
+bool MySQLConnector::getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	auto conn = priv->connectionManager.connection(ec);
+	if (!conn)
+		return false;
+
+	std::unique_lock<std::mutex> __locker(conn->mut);
+
+	auto _ver = mysql_get_server_info(conn->my);
+	auto _num_ver = mysql_get_server_version(conn->my);
+	if (!_ver || ! _num_ver)
+	{
+		auto err = ec.add(SAS_SQL__ERROR__CANNOT_EXECUTE_STATEMENT, std::string("get server info: ") + mysql_error(conn->my));
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+	version = _ver;
+	auto _major = _num_ver / 10000;
+	_num_ver -= _major;
+	auto _minor = _num_ver / 100;
+	generation = std::to_string(_major) + "." + std::to_string(_minor);
+	return true;
+}
+
+bool MySQLConnector::hasFeature(Feature f, std::string & explanation)
+{
+	switch(f)
+	{
+	case SQLConnector::Feature::GetServerInfo:
+	case SQLConnector::Feature::MultiThreading:
+	case SQLConnector::Feature::Tarnsaction:
+	case SQLConnector::Feature::GetSysDate:
+	case SQLConnector::Feature::Statement:
+	case SQLConnector::Feature::BindingByPos:
+		return true;
+	case SQLConnector::Feature::SimpleQuery:
+		explanation = "data types of results are not handled properly by MySQL connector. for complex SQL statement this is suggested to use SQLStatement instead.";
+		return true;
+	case SQLConnector::Feature::BindingByName:
+		return false;
+	case SQLConnector::Feature::GetLastGeneratedId:
+		explanation = "the related schema, table and field cannot be specified.";
+		return true;
+	default:
+		explanation = "unknown feature: '" + std::to_string((int)f) + "'.";
+	}
+
+	return false;
+}
+
 std::string MySQLConnector::name() const
 { return priv->name; }
 
