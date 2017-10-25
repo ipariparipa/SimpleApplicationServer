@@ -23,18 +23,18 @@ namespace SAS {
 
 	struct TimerThread_priv
 	{
-		Notifier not;
+		Notifier timer_not;
 		long milliseconds;
 	};
 
 	TimerThread::TimerThread() : priv(new TimerThread_priv)
 	{
-		priv->not.notify();
+		priv->timer_not.notify();
 	}
 
 	TimerThread::~TimerThread()
 	{
-		priv->not.notifyAll();
+		priv->timer_not.notifyAll();
 		delete priv;
 	}
 
@@ -42,7 +42,7 @@ namespace SAS {
 	{
 		wait();
 		priv->milliseconds = milliseconds;
-		priv->not.wait();
+		priv->timer_not.wait();
 		return Thread::start();
 	}
 
@@ -59,7 +59,7 @@ namespace SAS {
 	void TimerThread::stop()
 	{
 		Thread::stop();
-		priv->not.notify();
+		priv->timer_not.notify();
 	}
 
 	void TimerThread::begun()
@@ -72,7 +72,7 @@ namespace SAS {
 
 	void TimerThread::execute()
 	{
-		while(!priv->not.wait(priv->milliseconds) && status() != Thread::Status::Stopped)
+		while(!priv->timer_not.wait(priv->milliseconds) && status() != Thread::Status::Stopped)
 			shot();
 	}
 
