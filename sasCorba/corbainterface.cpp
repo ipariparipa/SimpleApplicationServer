@@ -518,7 +518,7 @@ bool CorbaInterface::init(const CORBA::ORB_var & orb, const std::string & config
 		info.interface_name = _name;
 	}
 
-	_app->configReader()->getStringEntry(config_path + "/IOR_FILE", info.ior_file, ec);
+	_app->configReader()->getStringEntry(config_path + "/IOR_FILE", info.ior_file, std::string(), ec);
 
 	return _runner->init(orb, info, ec);
 }

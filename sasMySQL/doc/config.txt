@@ -1,0 +1,9 @@
+SAS/MYSQL/CONNECTORS: string list, optional (empty)
+SAS/MYSQL/<connector>/MAX_CONNECTIONS: number, optional (5)
+SAS/MYSQL/<connector>/HOST: string, mandatory
+SAS/MYSQL/<connector>/USER: string, mandatory
+SAS/MYSQL/<connector>/PASSWD: string, mandatory
+SAS/MYSQL/<connector>/DB: string, mandatory
+SAS/MYSQL/<connector>/MAX_BUFFER_SIZE: number, optional (33554432), bytes
+SAS/MYSQL/<connector>/PORT: number, optional (default)
+SAS/MYSQL/<connector>/UNIX_SOCKET: string, optional (empty)

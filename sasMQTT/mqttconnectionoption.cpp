@@ -36,7 +36,7 @@ namespace SAS {
 		if(!cr->getStringEntry(config_path + "/SERVER_URI", this->serverUri, "localhost:1883", ec))
 			return false;
 
-		if(!cr->getStringEntry(config_path + "/UERNAME", this->username, std::string(), ec))
+		if(!cr->getStringEntry(config_path + "/USERNAME", this->username, std::string(), ec))
 			return false;
 
 		if(!cr->getStringEntry(config_path + "/PASSWORD", this->password, std::string(), ec))
