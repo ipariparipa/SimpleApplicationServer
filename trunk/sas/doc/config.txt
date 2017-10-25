@@ -1,0 +1,7 @@
+command line arguments:
+see also: sasBasics - logging settings
+--help
+--version
+-ec-stdout
+-ec-stderr	(default)
+-ec-file <path_to_file_of_error>

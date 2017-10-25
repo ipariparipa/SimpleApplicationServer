@@ -171,7 +171,7 @@ extern SAS_BASICS__FUNCTION void writeUsage(std::ostream & os)
 	os << "\t-log-stdout" << std::endl;
 	os << "\t-log-stderr" << std::endl;
 	os << "\t-log-file <log file>" << std::endl;
-	os << "\t-log-min_prio <trace|debug|info|warn|error|fatal>" << std::endl;
+	os << "\t-log-min_prio {trace|debug|info|warn|error|fatal}" << std::endl;
 #endif // SAS_LOG4CXX_ENABLED
 }
 

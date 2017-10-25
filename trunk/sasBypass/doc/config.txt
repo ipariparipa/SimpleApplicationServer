@@ -1,0 +1,3 @@
+SAS/BYPASS/LOOPBACK_CONNECTORS: string list, optional
+SAS/BYPASS/MODULES: string list, optional
+SAS/BYPASS/<module>/CONNECTOR: string, mandatory

@@ -1,0 +1,11 @@
+command line arguments:
+log4cxx:
+-log4cxx-xml-config <path_to_xml_config_file>
+-log4cxx-property-config <path_to_property_config_file>
+-log4cxx-basic-config
+
+embedded logging:
+-log-stdout
+-log-stderr
+-log-file <path_to_log_file>
+-log-min-prio {trace|debug|info|warn|error|fatal}

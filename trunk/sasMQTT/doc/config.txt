@@ -1,0 +1,15 @@
+SAS/MQTT/INTERFACES: string list, optional (empty)
+SAS/MQTT/CONNECTORS: string list, optional (empty)
+
+SAS/MQTT/{<interface>|<connector>}/CLIENT_ID: string, optional (generated random value)
+SAS/MQTT/{<interface>|<connector>}/SERVER_URI: string, optional ("localhost:1883")
+SAS/MQTT/{<interface>|<connector>}/USERNAME: string, optional ("")
+SAS/MQTT/{<interface>|<connector>}/PASSWORD: string, optional ("")
+SAS/MQTT/{<interface>|<connector>}/CLEAN_SESSION: bool, optional (true)
+SAS/MQTT/{<interface>|<connector>}/KEEPALIVE: number, optional (100), secs
+SAS/MQTT/{<interface>|<connector>}/CONNECT_TIMEOUT: number, optional (30), secs
+SAS/MQTT/{<interface>|<connector>}/RETRY_INTERVAL: number, optional (20), secs
+SAS/MQTT/{<interface>|<connector>}/PUBLISH_TIMEOUT: number, optional (1000), msecs
+SAS/MQTT/{<interface>|<connector>}/RECEIVE_TIMEOUT: number, optional (1000), msecs
+
+SAS/MQTT/<connector>/RECEIVE_COUNT: number, optional (10)

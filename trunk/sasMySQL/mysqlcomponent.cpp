@@ -45,6 +45,14 @@ public:
 
 		this->app = app;
 
+		SAS_LOG_TRACE(logger, "mysql_library_init");
+		if (mysql_library_init(app->argc(), app->argv(), nullptr))
+		{
+			auto err = ec.add(SAS_SQL__ERROR__CANNOT_INIT_CONNECTOR_LIB, "could not initialize MySQL library");
+			SAS_LOG_ERROR(logger, err);
+			return false;
+		}
+
 		std::vector<std::string> connector_names;
 		if(app->configReader()->getStringListEntry("SAS/MYSQL/CONNECTORS", connector_names, ec))
 		{
@@ -64,13 +72,6 @@ public:
 			return app->objectRegistry()->registerObjects(connectors, ec);
 		}
 		SAS_LOG_INFO(logger, "no connectros are defined");
-
-		if (mysql_library_init(app->argc(), app->argv(), nullptr))
-		{
-			auto err = ec.add(SAS_SQL__ERROR__CANNOT_INIT_CONNECTOR_LIB, "could not initialize MySQL library");
-			SAS_LOG_ERROR(logger, err);
-			return false;
-		}
 
 		return true;
 	}

@@ -1,0 +1,6 @@
+SAS/ORACLE/CONNECTORS: string list, optional (empty)
+SAS/ORACLE/<connector>/MAX_CONNECTIONS: number, optional (5)
+SAS/ORACLE/<connector>/USER: string, mandatory
+SAS/ORACLE/<connector>/PASSWD: string, mandatory
+SAS/ORACLE/<connector>/CONNSTR: string, mandatory
+SAS/ORACLE/<connector>/MAX_BUFFER_SIZE: number, optional (33554432), bytes

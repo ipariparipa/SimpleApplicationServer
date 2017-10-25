@@ -1,0 +1,13 @@
+SAS/CORBA/OPTIONS: string list, optional (empty)
+SAS/CORBA/SERVICE_NAME: string, optional ("SAS")
+SAS/CORBA/INTERFACES: string list, optional (empty)
+SAS/CORBA/CONNECTORS: string list, optional (empty)
+SAS/CORBA/{<interface>|<connector>}/USE_NAME_SERVER: bool, optional (true)
+SAS/CORBA/{<interface>|<connector>}/SERVICE_NAME: string, optional (-> SAS/CORBA/SERVICE_NAME)
+SAS/CORBA/<interface>/IOR_FILE: string, optional
+SAS/CORBA/<connector>/INTERFACE_NAME: string, mandatory
+SAS/CORBA/<connector>/IOR: string, mandatory when USE_NAME_SERVER is false
+SAS/CORBA/<connector>/MAX_RECONNECT_NUM: number, optional (10)
+SAS/CORBA/<connector>/MAX_RECONNECT_MAX_RECALL: number, optional (MAX_RECONNECT_NUM)
+SAS/CORBA/<connector>/RECONNECT_DELAY: number, optional (5), secs 
+
