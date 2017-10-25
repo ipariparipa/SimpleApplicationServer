@@ -79,7 +79,7 @@ struct MQTTAsync_priv
 		SAS_LOG_NDC();
 		MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
 		conn_opts.keepAliveInterval = options.keepalive;
-		conn_opts.automaticReconnect = 1;
+		conn_opts.automaticReconnect = 0;
 		conn_opts.cleansession = (int)options.cleanSession;
 		conn_opts.username = options.username.c_str();
 		conn_opts.password = options.password.c_str();
@@ -87,6 +87,7 @@ struct MQTTAsync_priv
 		conn_opts.onSuccess = MQTTAsync_priv::_onConnected;
 		conn_opts.onFailure = MQTTAsync_priv::_onConnectionFailed;
 		conn_opts.maxInflight = 100;
+		conn_opts.connectTimeout = options.connectTimeout;
 		int rc;
 		SAS_LOG_TRACE(logger, "MQTTAsync_connect");
 		if ((rc = MQTTAsync_connect(mqtt_handle, &conn_opts)) != MQTTASYNC_SUCCESS)
@@ -96,7 +97,8 @@ struct MQTTAsync_priv
 			return false;
 		}
 
-		conn_not.wait();
+		if (!conn_not.wait(2000 * options.connectTimeout))
+			return false;
 
 		return true;
 	}
