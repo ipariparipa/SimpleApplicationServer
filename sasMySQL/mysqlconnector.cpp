@@ -271,7 +271,7 @@ bool MySQLConnector::hasFeature(Feature f, std::string & explanation)
 	{
 	case SQLConnector::Feature::GetServerInfo:
 	case SQLConnector::Feature::MultiThreading:
-	case SQLConnector::Feature::Tarnsaction:
+	case SQLConnector::Feature::Transaction:
 	case SQLConnector::Feature::GetSysDate:
 	case SQLConnector::Feature::Statement:
 	case SQLConnector::Feature::BindingByPos:
