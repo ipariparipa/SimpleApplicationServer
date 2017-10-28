@@ -44,7 +44,7 @@ public:
 		GetServerInfo,
 		MultiThreading,
 		SimpleQuery,
-		Tarnsaction,
+		Transaction,
 		GetSysDate,
 		GetLastGeneratedId,
 		Statement,
