@@ -251,17 +251,19 @@ bool MySQLConnector::getServerInfo(std::string & generation, std::string & versi
 
 	std::unique_lock<std::mutex> __locker(conn->mut);
 
+	SAS_LOG_TRACE(priv->logger, "mysql_get_server_info");
 	auto _ver = mysql_get_server_info(conn->my);
+	SAS_LOG_TRACE(priv->logger, "mysql_get_server_version");
 	auto _num_ver = mysql_get_server_version(conn->my);
 	if (!_ver || ! _num_ver)
 	{
-		auto err = ec.add(SAS_SQL__ERROR__CANNOT_EXECUTE_STATEMENT, std::string("get server info: ") + mysql_error(conn->my));
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, std::string("get server info: ") + mysql_error(conn->my));
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
 	version = _ver;
 	auto _major = _num_ver / 10000;
-	_num_ver -= _major;
+	_num_ver -= _major * 10000;
 	auto _minor = _num_ver / 100;
 	generation = std::to_string(_major) + "." + std::to_string(_minor);
 	return true;
