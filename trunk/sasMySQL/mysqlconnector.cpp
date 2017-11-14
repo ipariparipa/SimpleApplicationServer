@@ -168,6 +168,7 @@ struct MySQLConnector::Priv
 				{
 					auto err = ec.add(SAS_SQL__ERROR__CANNOT_CONNECT_TO_DB_SEVICE, std::string("could not connect to MySQL service: ") + mysql_error(conn->my));
 					SAS_LOG_ERROR(logger, err);
+					connection_repo_mut.unlock();
 					detach();
 					return nullptr;
 				}
@@ -219,6 +220,7 @@ struct MySQLConnector::Priv
 					auto & c = connection_repo[conn];
 					if (c < 2)
 					{
+						conn->mut.unlock();
 						connection_repo.erase(conn);
 						delete conn;
 					}
