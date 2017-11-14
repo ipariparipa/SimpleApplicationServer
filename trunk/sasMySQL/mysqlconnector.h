@@ -37,6 +37,7 @@ struct MySQL_Settings
 	size_t max_connections;
 };
 
+
 class MySQLConnector : public SQLConnector
 {
 	struct Priv;
@@ -52,8 +53,6 @@ public:
 
 	virtual bool hasFeature(Feature f, std::string & explanation) final;
 
-	bool init(const std::string & configPath, ErrorCollector & ec);
-
 	virtual bool connect(ErrorCollector & ec) final;
 
 	virtual SQLStatement * createStatement(ErrorCollector & ec) final;
@@ -66,6 +65,8 @@ public:
 	virtual void detach() final;
 
 	Logging::LoggerPtr logger() const;
+
+	bool init(const std::string & configPath, ErrorCollector & ec);
 
 	const MySQL_Settings & settings() const;
 
