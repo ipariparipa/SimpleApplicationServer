@@ -72,7 +72,7 @@ bool EnvConfigReader::getEntryAsString(const std::string & path, std::string & r
 	std::string env_name = to_env(path);
 	SAS_LOG_VAR(_logger, env_name);
 #if SAS_OS == SAS_OS_LINUX
-	char * tmp;
+	const char * tmp;
 	ret = (tmp = getenv(env_name.c_str())) ? tmp : defaultValue;
 #elif SAS_OS == SAS_OS_WINDOWS
 	if (!win_getEnv(env_name, ret))
