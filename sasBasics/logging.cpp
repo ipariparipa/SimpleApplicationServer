@@ -145,7 +145,7 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
 			std::ofstream fs;
 		};
 		auto logging = new FileLogging(min_prio);
-		logging->fs.open(filename, std::ios::out | std::ios_base::app);
+		logging->fs.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
 		if(logging->fs.fail())
 		{
 			ec.add(SAS_BASICS__ERROR__LOGGING__CANNOT_OPEN_LOGFILE, "could not open log file.");
