@@ -105,32 +105,37 @@ struct MySQLConnector::Priv
 		{
 			SAS_LOG_NDC();
 
-			std::unique_lock<std::mutex> __locker(connection_repo_mut);
-			auto & conn = connection_registry[Thread::getThreadId()];
-			if (!conn)
+			Connection * conn = nullptr;
 			{
-				if (settings.max_connections && connection_repo.size() >= settings.max_connections)
+				std::unique_lock<std::mutex> __locker(connection_repo_mut);
+				auto & _conn = connection_registry[Thread::getThreadId()];
+				if (!_conn)
 				{
-					SAS_LOG_TRACE(logger, "reuse already existing mysql connection");
-					size_t min_conn_num = SIZE_MAX;
-					for (auto & c : connection_repo)
+					if (settings.max_connections && connection_repo.size() >= settings.max_connections)
 					{
-						if (c.second < min_conn_num)
+						SAS_LOG_TRACE(logger, "reuse already existing mysql connection");
+						size_t min_conn_num = SIZE_MAX;
+						for (auto & c : connection_repo)
 						{
-							conn = c.first;
-							min_conn_num = c.second;
+							if (c.second < min_conn_num)
+							{
+								conn = _conn = c.first;
+								min_conn_num = c.second;
+							}
 						}
+						if (!_conn)
+							conn = _conn = connection_repo.begin()->first;
+						++connection_repo[conn];
 					}
-					if (!conn)
-						conn = connection_repo.begin()->first;
-					++connection_repo[conn];
+					else
+					{
+						SAS_LOG_INFO(logger, "create new mysql connection (#" + std::to_string(connection_repo.size() + 1) + ")");
+						connection_repo[conn = new Connection] = 1;
+					}
+					connection_registry[Thread::getThreadId()] = conn;
 				}
 				else
-				{
-					SAS_LOG_INFO(logger, "create new mysql connection (#"+std::to_string(connection_repo.size()+1)+")");
-					connection_repo[conn = new Connection] = 1;
-				}
-				connection_registry[Thread::getThreadId()] = conn;
+					conn = _conn;
 			}
 			assert(conn);
 
@@ -168,7 +173,7 @@ struct MySQLConnector::Priv
 				{
 					auto err = ec.add(SAS_SQL__ERROR__CANNOT_CONNECT_TO_DB_SEVICE, std::string("could not connect to MySQL service: ") + mysql_error(conn->my));
 					SAS_LOG_ERROR(logger, err);
-					connection_repo_mut.unlock();
+					__locker.unlock();
 					detach();
 					return nullptr;
 				}
@@ -220,7 +225,6 @@ struct MySQLConnector::Priv
 					auto & c = connection_repo[conn];
 					if (c < 2)
 					{
-						conn->mut.unlock();
 						connection_repo.erase(conn);
 						delete conn;
 					}
