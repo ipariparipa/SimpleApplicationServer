@@ -81,13 +81,11 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="orastatement.h" />
     <ClInclude Include="oraconnector.h" />
-    <ClInclude Include="oraresult.h" />
     <ClInclude Include="oratools.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="opracomponent.cpp" />
+    <ClCompile Include="oracomponent.cpp" />
     <ClCompile Include="oraconnector.cpp" />
-    <ClCompile Include="oraresult.cpp" />
     <ClCompile Include="orastatement.cpp" />
     <ClCompile Include="oratools.cpp" />
   </ItemGroup>

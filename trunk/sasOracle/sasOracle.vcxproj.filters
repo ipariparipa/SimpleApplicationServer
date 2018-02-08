@@ -21,9 +21,6 @@
     <ClInclude Include="oraconnector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="oraresult.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="oratools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -32,19 +29,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="opracomponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="oraconnector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="oraresult.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="orastatement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="oratools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="oracomponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

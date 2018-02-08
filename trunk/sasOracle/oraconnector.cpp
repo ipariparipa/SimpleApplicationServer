@@ -24,8 +24,8 @@
 #include <sasSQL/errorcodes.h>
 #include <sasSQL/sqlstatement.h>
 #include <sasSQL/sqldatetime.h>
+#include <sasSQL/sqlresult.h>
 
-#include "oraresult.h"
 #include "orastatement.h"
 #include "oratools.h"
 #include <sasCore/thread.h>
@@ -286,6 +286,7 @@ bool OraConnector::hasFeature(Feature f, std::string & explanation)
 	case SQLConnector::Feature::Statement:
 	case SQLConnector::Feature::BindingByPos:
 	case SQLConnector::Feature::BindingByName:
+	case SQLConnector::Feature::GetNumRowsAffected:
 		return true;
 	case SQLConnector::Feature::SimpleQuery:
 		explanation = "this feature is not natively supported by ODPI library, but implemented as using SQLStatement.";
@@ -389,7 +390,7 @@ bool OraConnector::exec(const std::string & statement, SQLResult *& res, ErrorCo
 	    !stmt->exec(ec))
 		return false;
 
-	res = new OraResult(stmt);
+	res = new SQLStatementResult(stmt);
 
 	return true;
 }
