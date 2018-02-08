@@ -49,7 +49,8 @@ public:
 		GetLastGeneratedId,
 		Statement,
 		BindingByPos,
-		BindingByName
+		BindingByName,
+		GetNumRowsAffected
 	};
 
 	virtual inline ~SQLConnector() { }

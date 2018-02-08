@@ -156,6 +156,17 @@ SQLDateTime::SQLDateTime(time_t t) : priv(new Priv)
 	priv->ms_precision = 0;
 }
 
+SQLDateTime::SQLDateTime(time_t t, unsigned int milliseconds, short ms_precision) : priv(new Priv)
+{
+	tm tmp;
+
+	Priv::to_tm(t, tmp);
+	priv->from_tm(&tmp);
+
+	priv->msecs = milliseconds;
+	priv->ms_precision = ms_precision;
+}
+
 SQLDateTime::SQLDateTime(const tm * t) : priv(new Priv)
 {
 	priv->from_tm(t);
@@ -332,6 +343,11 @@ unsigned int SQLDateTime::seconds() const
 int SQLDateTime::msecs() const
 {
 	return priv->msecs < 0 ? 0 : priv->msecs;
+}
+
+short SQLDateTime::ms_precision() const
+{
+	return priv->ms_precision;
 }
 
 bool SQLDateTime::daylightSaveTime() const
