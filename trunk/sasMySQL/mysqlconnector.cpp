@@ -283,6 +283,7 @@ bool MySQLConnector::hasFeature(Feature f, std::string & explanation)
 	case SQLConnector::Feature::GetSysDate:
 	case SQLConnector::Feature::Statement:
 	case SQLConnector::Feature::BindingByPos:
+	case SQLConnector::Feature::GetNumRowsAffected:
 		return true;
 	case SQLConnector::Feature::SimpleQuery:
 		explanation = "data types of results are not handled properly by MySQL connector. for complex SQL statement this is suggested to use SQLStatement instead.";
