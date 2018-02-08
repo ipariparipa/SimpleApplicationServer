@@ -30,6 +30,7 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <cctype>
 
 namespace SAS  {
 
@@ -66,6 +67,38 @@ namespace SAS  {
 		typename std__container::value_type s;
 		str_join(elems, delim, s);
 		return s;
+	}
+
+	template<typename str_type>
+	void str_tolower(const str_type & str, str_type & ret)
+	{
+		ret = str;
+		for (auto & c : ret)
+			c = std::tolower(c);
+	}
+
+	template<typename str_type>
+	str_type str_tolower(const str_type & str)
+	{
+		str_type ret;
+		str_tolower(str, ret);
+		return ret;
+	}
+
+	template<typename str_type>
+	void str_toupper(const str_type & str, str_type & ret)
+	{
+		ret = str;
+		for (auto & c : ret)
+			c = std::toupper(c);
+	}
+
+	template<typename str_type>
+	str_type str_toupper(const str_type & str)
+	{
+		auto ret;
+		str_toupper(str, ret);
+		return ret;
 	}
 
 	extern SAS_CORE__FUNCTION std::string genRandomString(size_t len);
