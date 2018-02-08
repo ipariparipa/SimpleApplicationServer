@@ -38,7 +38,7 @@ struct Application_priv
 {
 	Application_priv() : logger(Logging::getLogger("SAS.Application")), argc(0), argv(nullptr)
 	{
-		srand(time(0));
+		srand((unsigned int)time(0));
 	}
 
 	ObjectRegistry objectRegistry;
