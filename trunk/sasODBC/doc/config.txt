@@ -1,0 +1,16 @@
+SAS/ODBC/CONNECTORS: string list, optional (empty)
+SAS/ODBC/<connector>/USER: string, mandatory
+SAS/ODBC/<connector>/PASSWD: string, mandatory
+SAS/ODBC/<connector>/DSN: string, mandatory
+SAS/ODBC/<connector>/MAX_BUFFER_SIZE: number, optional (32M)
+SAS/ODBC/<connector>/ACCESS_MODE: string, optional (not set) {"READ_ONLY", "READ_WRITE"}
+SAS/ODBC/<connector>/CONNECTION_TIMEOUT: number, optional (not set)
+SAS/ODBC/<connector>/LOGIN_TIMEOUT: number, optional (not set)
+SAS/ODBC/<connector>/CURRENT_CATALOG: number, optional (not set)
+SAS/ODBC/<connector>/METADATA_ID: string, optional (not set) {"TRUE", "FALSE"}
+SAS/ODBC/<connector>/PACKET_SIZE: number, optional (not set)
+SAS/ODBC/<connector>/TRACEFILE: number, optional (not set)
+SAS/ODBC/<connector>/TRACE: string, optional (not set) {"OFF", "ON"}
+SAS/ODBC/<connector>/CONNECTION_POOLING: string, optional (not set) {"OFF", "ONE_PER_DRIVER", "ONE_PER_HENV", "DEFAULT"}
+SAS/ODBC/<connector>/CP_MATCH: string, optional (not set) {"STRICT_MATCH", "RELAXED_MATCH", "MATCH_DEFAULT"}
+SAS/ODBC/<connector>/LONG_LONG_BIND_SUPPORTED: bool, optional (true)
