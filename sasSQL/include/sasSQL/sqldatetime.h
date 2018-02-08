@@ -33,6 +33,7 @@ public:
 	SQLDateTime(const SQLDateTime & o);
 	SQLDateTime();
 	SQLDateTime(time_t t);
+	SQLDateTime(time_t t, unsigned int milliseconds, short ms_precision = 6);
 	SQLDateTime(const tm * t);
 	SQLDateTime(const tm * t, unsigned int milliseconds, short ms_precision = 6);
 	SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs = -1, bool negative = false, short ms_precision = 6);
@@ -59,6 +60,7 @@ public:
 	unsigned int minutes() const;
 	unsigned int seconds() const;
 	int msecs() const;
+	short ms_precision() const;
 	bool daylightSaveTime() const;
 	bool negative() const;
 

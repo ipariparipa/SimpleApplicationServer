@@ -73,6 +73,9 @@ public:
 	unsigned char asBlobByte(size_t idx) const;
 
 	std::string toString() const;
+	long long toNumber() const;
+	double toReal() const;
+	SQLDateTime toDateTime() const;
 };
 
 }

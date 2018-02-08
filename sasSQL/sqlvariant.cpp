@@ -25,7 +25,7 @@ namespace SAS {
 struct SQLVariant::Priv
 {
 	Priv() : type(SQLDataType::None), dtSubType(SQLVariant::DateTimeSubType::None),
-			isNull(false), number(0), real(0), buffer(nullptr), buffer_size(0)
+		isNull(false), number(0), real(0), buffer(nullptr), buffer_size(0)
 	{ }
 
 	SQLDataType type;
@@ -109,11 +109,11 @@ SQLVariant::SQLVariant(double real, bool isNull) : priv(new Priv)
 SQLVariant::SQLVariant(const SQLDateTime & datetime, DateTimeSubType dtSubType, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::DateTime;
-	if(dtSubType == DateTimeSubType::None)
+	if (dtSubType == DateTimeSubType::None)
 	{
-		if(!datetime.hours() && !datetime.minutes() && !datetime.seconds())
+		if (!datetime.hours() && !datetime.minutes() && !datetime.seconds())
 			priv->dtSubType = DateTimeSubType::Date;
-		else if(!datetime.years() && !datetime.months() && !datetime.days())
+		else if (!datetime.years() && !datetime.months() && !datetime.days())
 			priv->dtSubType = datetime.has_msecs() ? DateTimeSubType::TimeStamp_Time : DateTimeSubType::Time;
 		else
 			priv->dtSubType = datetime.has_msecs() ? DateTimeSubType::TimeStamp : DateTimeSubType::DateTime;
@@ -143,8 +143,8 @@ SQLVariant::SQLVariant(const std::vector<unsigned char> & blob, bool isNull) : p
 SQLVariant::SQLVariant(unsigned char * buffer, size_t size, bool isNull) : priv(new Priv)
 {
 	priv->type = SQLDataType::Blob;
-	priv->buffer  = buffer;
-	priv->buffer_size  = size;
+	priv->buffer = buffer;
+	priv->buffer_size = size;
 	priv->isNull = isNull;
 }
 
@@ -177,7 +177,7 @@ bool SQLVariant::isNull() const
 const std::string & SQLVariant::asString() const
 {
 	auto that_priv = (Priv*)priv;
-	switch(priv->type)
+	switch (priv->type)
 	{
 	case SQLDataType::None:
 	case SQLDataType::String:
@@ -190,7 +190,7 @@ const std::string & SQLVariant::asString() const
 		return that_priv->string = priv->datetime.toString();
 	case SQLDataType::Blob:
 		that_priv->string.clear();
-		if(priv->buffer)
+		if (priv->buffer)
 			that_priv->string.append((char *)priv->buffer, priv->buffer_size);
 		else
 			that_priv->string.append((char *)priv->blob.data(), priv->blob.size());
@@ -202,20 +202,20 @@ const std::string & SQLVariant::asString() const
 const long long & SQLVariant::asNumber() const
 {
 	auto that_priv = (Priv*)priv;
-	switch(priv->type)
+	switch (priv->type)
 	{
 	case SQLDataType::None:
 	case SQLDataType::Number:
 		break;
 	case SQLDataType::String:
-		try { return that_priv->number = std::stoll(priv->string);}
-		catch(...) { break; }
+		try { return that_priv->number = std::stoll(priv->string); }
+		catch (...) { break; }
 	case SQLDataType::Real:
 		return that_priv->number = (long long)priv->real;
 	case SQLDataType::DateTime:
 		return that_priv->number = priv->datetime.to_time_t();
 	case SQLDataType::Blob:
-		if(priv->buffer)
+		if (priv->buffer)
 			that_priv->number = priv->buffer_size;
 		else
 			that_priv->number = priv->blob.size();
@@ -227,20 +227,20 @@ const long long & SQLVariant::asNumber() const
 const double & SQLVariant::asReal() const
 {
 	auto that_priv = (Priv*)priv;
-	switch(priv->type)
+	switch (priv->type)
 	{
 	case SQLDataType::None:
 	case SQLDataType::Real:
 		break;
 	case SQLDataType::String:
-		try { return that_priv->real = std::stod(priv->string);}
-		catch(...) { break; }
+		try { return that_priv->real = std::stod(priv->string); }
+		catch (...) { break; }
 	case SQLDataType::Number:
 		return that_priv->real = (double)priv->number;
 	case SQLDataType::DateTime:
 		return that_priv->real = (double)priv->datetime.to_time_t();
 	case SQLDataType::Blob:
-		if(priv->buffer)
+		if (priv->buffer)
 			that_priv->real = priv->buffer_size;
 		else
 			that_priv->real = priv->blob.size();
@@ -252,7 +252,7 @@ const double & SQLVariant::asReal() const
 const SQLDateTime & SQLVariant::asDateTime() const
 {
 	auto that_priv = (Priv*)priv;
-	switch(priv->type)
+	switch (priv->type)
 	{
 	case SQLDataType::None:
 	case SQLDataType::DateTime:
@@ -271,7 +271,7 @@ const SQLDateTime & SQLVariant::asDateTime() const
 
 unsigned char * SQLVariant::asBlob(size_t & size) const
 {
-	if(priv->buffer)
+	if (priv->buffer)
 	{
 		priv->buffer_size = size;
 		return priv->buffer;
@@ -284,16 +284,16 @@ unsigned char SQLVariant::asBlobByte(size_t idx) const
 {
 	size_t size;
 	auto bl = asBlob(size);
-	if(idx >= size)
+	if (idx >= size)
 		return 0;
 	return bl[idx];
 }
 
 std::string SQLVariant::toString() const
 {
-	if(priv->isNull)
+	if (priv->isNull)
 		return "(null)";
-	switch(priv->type)
+	switch (priv->type)
 	{
 	case SQLDataType::None:
 		return "(none)";
@@ -309,6 +309,85 @@ std::string SQLVariant::toString() const
 		return std::to_string(priv->number);
 	}
 	return "(unknown)";
+}
+
+long long SQLVariant::toNumber() const
+{
+	if (priv->isNull)
+		return 0;
+	switch (priv->type)
+	{
+	case SQLDataType::None:
+		return 0;
+	case SQLDataType::Blob:
+		return priv->blob.size();
+	case SQLDataType::DateTime:
+		return priv->datetime.to_time_t();
+	case SQLDataType::String:
+		try
+		{
+			return std::stoll(priv->string);
+		}
+		catch (...)
+		{
+			return 0;
+		}
+	case SQLDataType::Real:
+		return (long long)priv->real;
+	case SQLDataType::Number:
+		return priv->number;
+	}
+	return 0;
+}
+
+double SQLVariant::toReal() const
+{
+	if (priv->isNull)
+		return 0;
+	switch (priv->type)
+	{
+	case SQLDataType::None:
+		return 0;
+	case SQLDataType::Blob:
+		return priv->blob.size();
+	case SQLDataType::DateTime:
+		return (double)priv->datetime.to_time_t() + ((double)priv->datetime.msecs() / (double)priv->datetime.ms_precision());
+	case SQLDataType::String:
+		try
+		{
+			return std::stod(priv->string);
+		}
+		catch (...)
+		{
+			return 0;
+		}
+	case SQLDataType::Real:
+		return priv->real;
+	case SQLDataType::Number:
+		return (double)priv->number;
+	}
+	return 0;
+}
+
+SQLDateTime SQLVariant::toDateTime() const
+{
+	if (priv->isNull)
+		return SQLDateTime();
+	switch (priv->type)
+	{
+	case SQLDataType::None:
+	case SQLDataType::Blob:
+		return SQLDateTime();
+	case SQLDataType::DateTime:
+		return priv->datetime;
+	case SQLDataType::String:
+		return SQLDateTime(priv->string);
+	case SQLDataType::Real:
+		return SQLDateTime((time_t)priv->real, (unsigned int)(priv->real - (long long)priv->real * 1000000), 6);
+	case SQLDataType::Number:
+		return SQLDateTime((time_t)priv->number);
+	}
+	return SQLDateTime();
 }
 
 }

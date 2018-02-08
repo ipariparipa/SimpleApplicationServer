@@ -25,6 +25,7 @@
 #include <vector>
 #include <tuple>
 #include <string>
+#include <memory>
 
 namespace SAS {
 
@@ -41,6 +42,24 @@ public:
 	virtual bool fields(std::vector<std::tuple<std::string /*db/scheme*/, std::string /*table*/, std::string /*field name*/, SQLDataType>> & ret, ErrorCollector & ec) = 0;
 	virtual unsigned long long rowNum() = 0;
 	virtual bool fetch(std::vector<SQLVariant> &, ErrorCollector & ec) = 0;
+};
+
+class SQLStatement;
+
+class SAS_SQL__CLASS SQLStatementResult : public SQLResult
+{
+	SAS_COPY_PROTECTOR(SQLStatementResult)
+
+	struct Priv;
+	Priv * priv;
+public:
+	SQLStatementResult(const std::shared_ptr<SQLStatement> & stmt);
+	virtual inline ~SQLStatementResult();
+
+	virtual bool fieldNum(size_t & ret, ErrorCollector & ec) final;
+	virtual bool fields(std::vector<std::tuple<std::string /*db/scheme*/, std::string /*table*/, std::string /*field name*/, SQLDataType>> & ret, ErrorCollector & ec) final;
+	virtual unsigned long long rowNum() final;
+	virtual bool fetch(std::vector<SQLVariant> &, ErrorCollector & ec) final;
 };
 
 }
