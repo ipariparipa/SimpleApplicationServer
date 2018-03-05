@@ -96,13 +96,17 @@ public:
 		switch(session->invoke(invoker, tmp, out, ec))
     	{
     	case Invoker::Status::FatalError:
+			session->unlock();
     		throw CorbaSAS::ErrorHandling::FatalErrorException(module_name, invoker, toErrorSequence(errs));
     	case Invoker::Status::Error:
-    		throw CorbaSAS::ErrorHandling::ErrorException(module_name, invoker, toErrorSequence(errs));
+			session->unlock();
+			throw CorbaSAS::ErrorHandling::ErrorException(module_name, invoker, toErrorSequence(errs));
     	case Invoker::Status::NotImplemented:
-    		throw CorbaSAS::ErrorHandling::NotImplementedException(module_name, invoker, toErrorSequence(errs));
+			session->unlock();
+			throw CorbaSAS::ErrorHandling::NotImplementedException(module_name, invoker, toErrorSequence(errs));
     	case Invoker::Status::OK:
-    		break;
+			session->unlock();
+			break;
     	}
     	CorbaTools::toOctetSequence(out, out_msg);
 	}
@@ -151,6 +155,7 @@ public:
 		if (!(session = module->getSession(sid, ec)))
 			throw CorbaSAS::ErrorHandling::ErrorException(module_name, CORBA::string_dup(""), toErrorSequence(errs));
 		session_id = session->id();
+		session->unlock();
 	}
 
 private:

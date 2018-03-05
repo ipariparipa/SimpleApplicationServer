@@ -27,6 +27,9 @@
 #include "include/sasCore/timerthread.h"
 #include "include/sasCore/logging.h"
 
+#include <iostream>
+#include <sstream>
+
 namespace SAS {
 
 	struct SessionManager_priv
@@ -64,20 +67,27 @@ namespace SAS {
 			void shot() override
 			{
 				SAS_LOG_NDC();
-				std::unique_lock<std::mutex> __mutex_locker(priv->depot.mutex);
 
 				std::list<std::pair<SessionID, Session*>> to_be_deleted;
 
-				for(auto & it : priv->depot.data)
 				{
-					if(!it.second.session->isActive() &&
-							(std::chrono::high_resolution_clock::now() - it.second.lastTached) >= it.second.max_idletime)
-						to_be_deleted.push_back(std::pair<SessionID, Session*>(it.first, it.second.session));
+					std::unique_lock<std::mutex> __mutex_locker(priv->depot.mutex);
+					for (auto & it : priv->depot.data)
+					{
+						if (it.second.session->try_lock())
+						{
+							if (std::chrono::high_resolution_clock::now() - it.second.lastTached >= it.second.max_idletime)
+								to_be_deleted.push_back(std::pair<SessionID, Session*>(it.first, it.second.session));
+							it.second.session->unlock();
+						}
+					}
+					for (auto & s : to_be_deleted)
+						priv->depot.data.erase(s.first);
 				}
+
 				for(auto & s : to_be_deleted)
 				{
-					SAS_LOG_DEBUG(logger, "remove old session: " + std::to_string(s.first));
-					priv->depot.data.erase(s.first);
+					SAS_LOG_DEBUG(logger, "delete old session: " + std::to_string(s.first));
 					delete s.second;
 				}
 			}
@@ -118,8 +128,12 @@ namespace SAS {
 		SAS_LOG_TRACE(priv->logger, "session cleaner thread has been ended");
 		std::unique_lock<std::mutex> __mutex_locker(priv->depot.mutex);
 		SAS_LOG_TRACE(priv->logger, "remove all sessions");
-		for(auto it : priv->depot.data)
+		for (auto it : priv->depot.data)
+		{
+			it.second.session->lock();
+			it.second.session->unlock();
 			delete it.second.session;
+		}
 		priv->depot.data.clear();
 	}
 
@@ -136,7 +150,7 @@ namespace SAS {
 			if(priv->depot.data.count(sid))
 			{
 				SAS_LOG_TRACE(priv->logger, "session is found for ID: " + std::to_string(sid));
-				it =  &priv->depot.data[sid];
+				it = &priv->depot.data[sid];
 			}
 			else
 			{
@@ -161,7 +175,8 @@ namespace SAS {
 			sid = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
 			SAS_LOG_VAR(priv->logger, sid);
 			it = &priv->depot.data[sid];
-			if(!(it->session = createSession(sid, ec)))
+			SAS_LOG_TRACE(priv->logger, "create new session");
+			if (!(it->session = createSession(sid, ec)))
 			{
 				SAS_LOG_TRACE(priv->logger, "could not create new session");
 				priv->depot.data.erase(sid);
@@ -170,7 +185,10 @@ namespace SAS {
 			SAS_LOG_TRACE(priv->logger, "new session has been created");
 			it->max_idletime = priv->default_max_idletime;
 		}
+
 		it->lastTached = now;
+		SAS_LOG_TRACE(priv->logger, "lock session");
+		it->session->lock();
 		return it->session;
 	}
 
@@ -182,8 +200,12 @@ namespace SAS {
 		SAS_LOG_VAR(priv->logger, sid);
 		if(priv->depot.data.count(sid))
 		{
-			SAS_LOG_DEBUG(priv->logger, "destroy session");
-			delete priv->depot.data[sid].session;
+			auto sess = priv->depot.data[sid].session;
+			SAS_LOG_TRACE(priv->logger, "lock session");
+			sess->lock();
+			sess->unlock();
+			SAS_LOG_TRACE(priv->logger, "destroy session");
+			delete sess;
 			priv->depot.data.erase(sid);
 		}
 	}
