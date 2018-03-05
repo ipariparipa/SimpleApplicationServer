@@ -26,7 +26,7 @@ using namespace msclr;
 namespace SAS {
 	namespace Client {
 
-		struct SASObjectObj_priv
+		ref struct SASObjectObj_priv
 		{
 			SASObjectObj_priv(SAS::Object * obj_) : obj(obj_)
 			{ }
@@ -34,13 +34,8 @@ namespace SAS {
 			SAS::Object * obj;
 		};
 
-		SASObjectObj::SASObjectObj(SAS::Object * obj) : priv(new SASObjectObj_priv(obj))
+		SASObjectObj::SASObjectObj(SAS::Object * obj) : priv(gcnew SASObjectObj_priv(obj))
 		{ }
-
-		SASObjectObj::!SASObjectObj()
-		{ 
-			delete priv;
-		}
 
 		//property 
 		System::String ^ SASObjectObj::Type::get()

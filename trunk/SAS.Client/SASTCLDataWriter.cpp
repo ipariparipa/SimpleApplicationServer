@@ -20,38 +20,29 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 #include "SASBinData.h"
 #include "errorcodes.h"
 
-#include <msclr/gcroot.h>
-
 #include "macros.h"
 #include <vector>
 #include <string>
 #include <algorithm>
 
-using namespace msclr;
-
 namespace SAS {
 	namespace Client {
 
-		struct SASTCLDataWriter_priv
+		ref struct SASTCLDataWriter_priv
 		{
-			gcroot<SASBinData^> data;
+			SASTCLDataWriter_priv(short ver_) : data(gcnew SASBinData()), ver(ver_)
+			{ }
+
+			SASBinData ^ data;
 			short ver;
 		};
 
-		SASTCLDataWriter::SASTCLDataWriter(short ver) : priv(new SASTCLDataWriter_priv)
+		SASTCLDataWriter::SASTCLDataWriter(short ver) : priv(gcnew SASTCLDataWriter_priv(ver))
 		{
-			priv->data = gcnew SASBinData();
-			priv->ver = ver;
-
 			auto & in = priv->data->data();
 			in.resize(2);
 			uint16_t tmp_16 = ver;
 			memcpy(in.data(), &tmp_16, sizeof(uint16_t));
-		}
-
-		SASTCLDataWriter::!SASTCLDataWriter()
-		{
-			delete priv;
 		}
 
 		bool SASTCLDataWriter::AddScript(System::String ^ script_, ISASErrorCollector ^ ec)

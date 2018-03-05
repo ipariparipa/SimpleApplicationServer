@@ -22,12 +22,12 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 namespace SAS {
 	namespace Client {
 
-		struct SASTCLList_priv;
+		ref struct SASTCLList_priv;
+
 		public ref class SASTCLList
 		{
 		public:
 			SASTCLList(System::String ^ str);
-			!SASTCLList();
 
 			bool fromString(System::String ^ str);
 
@@ -39,7 +39,7 @@ namespace SAS {
 			void Add(SASTCLList ^ lst);
 
 		private:
-			SASTCLList_priv * priv;
+			SASTCLList_priv ^ priv;
 		};
 
 	}

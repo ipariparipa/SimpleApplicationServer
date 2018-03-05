@@ -27,12 +27,11 @@ namespace SAS {
 
 	namespace Client {
 
-		struct SASServer_priv;
+		ref struct SASServer_priv;
 		public ref class SASServer abstract : public ISASApplication
 		{
 		public:
 			SASServer(array<System::String^> ^ args);
-			!SASServer();
 			
 			property SASObjectRegistry ^ ObjectRegistry { virtual SASObjectRegistry ^ get(); }
 
@@ -46,7 +45,7 @@ namespace SAS {
 
 			virtual void run();
 		private:
-			SASServer_priv * priv;
+			SASServer_priv ^ priv;
 		};
 	}
 }

@@ -15,33 +15,30 @@ You should have received a copy of the GNU Lesser General Public License
 along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#pragma once
-#pragma warning( push )
-#pragma warning( disable: 4461 )
+#include "SASLogging.h"
+#include <sasBasics/logging.h>
 
-#include "SASApplication.h"
+#include "SASErrorCollector.h"
 
-namespace SAS {
+#include "macros.h"
 
-	namespace Client {
+namespace SAS { namespace Client {
 
-		ref struct SASBasicApplication_priv;
-		public ref class SASBasicApplication : public SASApplication
+	//static 
+	bool SASLogging::Init(array<System::String^> ^ argv, ISASErrorCollector ^ ec)
+	{
+		std::vector<std::string> _argv_buffer(argv->Length);
+		std::vector<char*> _argv(argv->Length);
+		for (int i = 0, l = argv->Length; i < l; ++i)
 		{
-		public:
-			SASBasicApplication(array<System::String^> ^ args);
-			SASBasicApplication();
+			auto & s = _argv_buffer[i];
+			auto str = argv[i];
+			s = TO_STR(str);
+			_argv[i] = (char*)s.c_str();
+		}
 
-			virtual bool Init(ISASErrorCollector ^ ec) override;
-
-			property ISASConfigReader ^ ConfigReader { virtual ISASConfigReader ^  get() override; }
-
-		private:
-			SASBasicApplication_priv ^ priv;
-		};
-
-
+		WErrorCollector _ec(ec);
+		return Logging::init(_argv.size(), _argv.data(), _ec);
 	}
-}
 
-#pragma warning( pop ) 
+}}

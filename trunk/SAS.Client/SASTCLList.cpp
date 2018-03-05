@@ -18,26 +18,19 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 #include "SASTCLList.h"
 #include "macros.h"
 
-#include <msclr/gcroot.h>
-
 using namespace msclr;
 
 namespace SAS {
 	namespace Client{
 
-		struct SASTCLList_priv
+		ref struct SASTCLList_priv
 		{
-			gcroot<System::Collections::Generic::List<System::String ^> ^ > elements;
+			System::Collections::Generic::List<System::String ^> ^ elements;
 		};
 
-		SASTCLList::SASTCLList(System::String ^ str) : priv(new SASTCLList_priv)
+		SASTCLList::SASTCLList(System::String ^ str) : priv(gcnew SASTCLList_priv())
 		{
 			fromString(str);
-		}
-
-		SASTCLList::!SASTCLList()
-		{
-			delete priv;
 		}
 
 		bool SASTCLList::fromString(System::String ^ str)

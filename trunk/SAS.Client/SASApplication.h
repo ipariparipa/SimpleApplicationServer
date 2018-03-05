@@ -29,7 +29,7 @@ namespace SAS {
 		interface class ISASErrorCollector;
 		interface class ISASConfigReader;
 
-		struct SASApplication_priv;
+		ref struct SASApplication_priv;
 
 		public interface class ISASApplication
 		{
@@ -51,7 +51,6 @@ namespace SAS {
 		public:
 			SASApplication(array<System::String^> ^ args);
 			SASApplication();
-			!SASApplication();
 
 			property SASObjectRegistry ^ ObjectRegistry { virtual SASObjectRegistry ^ get(); }
 
@@ -63,7 +62,7 @@ namespace SAS {
 
 			property ISASConfigReader ^ ConfigReader { virtual ISASConfigReader ^ get() abstract; }
 		private:
-			SASApplication_priv * priv;
+			SASApplication_priv ^ priv;
 		};
 
 	}

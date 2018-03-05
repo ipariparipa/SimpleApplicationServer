@@ -85,6 +85,7 @@
     <ClInclude Include="SASBinData.h" />
     <ClInclude Include="SASConfigReader.h" />
     <ClInclude Include="SASConnector.h" />
+    <ClInclude Include="SASLogging.h" />
     <ClInclude Include="SASServer.h" />
     <ClInclude Include="SASTextWriterErrorCollector.h" />
     <ClInclude Include="SASErrorCollector.h" />
@@ -101,6 +102,7 @@
     <ClCompile Include="SASConfigReader.cpp" />
     <ClCompile Include="SASConnector.cpp" />
     <ClCompile Include="SASApplication.cpp" />
+    <ClCompile Include="SASLogging.cpp" />
     <ClCompile Include="SASServer.cpp" />
     <ClCompile Include="SASTextWriterErrorCollector.cpp" />
     <ClCompile Include="SASErrorCollector.cpp" />

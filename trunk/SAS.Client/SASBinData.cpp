@@ -15,6 +15,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 */
 
+#pragma warning( push )
+#pragma warning( disable: 4461 )
+
 #include "SASBinData.h"
 
 #include <vector>
@@ -23,62 +26,72 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 
 #include "macros.h"
 
+#include <iostream>
+
 namespace SAS 
 {
 	namespace Client {
 
-		struct SASBinData_priv
+		struct SASBinData_um_priv
 		{
 			std::vector<char> data;
 		};
 
-		SASBinData::SASBinData(const std::vector<char> & data) : priv(new SASBinData_priv)
+		ref struct SASBinData_priv
 		{
-			priv->data = data;
+			SASBinData_priv() : um(new SASBinData_um_priv)
+			{ }
+
+			!SASBinData_priv()
+			{ delete um; }
+
+			SASBinData_um_priv * um;
+		};
+
+		SASBinData::SASBinData(const std::vector<char> & data) : priv(gcnew SASBinData_priv)
+		{
+			priv->um->data = data;
 		}
 
-		SASBinData::SASBinData() : priv(new SASBinData_priv)
+		SASBinData::SASBinData() : priv(gcnew SASBinData_priv)
 		{ }
 
-		SASBinData::SASBinData(array<System::Byte> ^ data) : priv(new SASBinData_priv)
+		SASBinData::SASBinData(array<System::Byte> ^ data) : priv(gcnew SASBinData_priv)
 		{
-			priv->data.resize(data->Length);
+			priv->um->data.resize(data->Length);
 			for (int i(0), l(data->Length); i < l; ++i)
-				priv->data[i] = data[i];
+				priv->um->data[i] = data[i];
 		}
 
-		SASBinData::SASBinData(System::String ^ data) : priv(new SASBinData_priv)
+		SASBinData::SASBinData(System::String ^ data) : priv(gcnew SASBinData_priv)
 		{
 			auto str = TO_STR(data);
-			priv->data.resize(str.size());
-			std::copy(str.begin(), str.end(), priv->data.begin());
-		}
-
-		SASBinData::!SASBinData()
-		{
-			delete priv;
+			priv->um->data.resize(str.size());
+			std::copy(str.begin(), str.end(), priv->um->data.begin());
 		}
 
 		//property 
 		array<System::Byte> ^ SASBinData::AsByteArray::get()
 		{
-			auto ret = gcnew array<System::Byte>(priv->data.size());
-			for (int i(0), l(priv->data.size()); i < l; ++i)
-				ret[i] = priv->data[i];
+			auto ret = gcnew array<System::Byte>(priv->um->data.size());
+			for (int i(0), l(priv->um->data.size()); i < l; ++i)
+				ret[i] = priv->um->data[i];
 			return ret;
 		}
 
 		System::String ^ SASBinData::ToString()
 		{
 			std::string str;
-			str.append(priv->data.data(), priv->data.size());
+			str.append(priv->um->data.data(), priv->um->data.size());
 			return str.length() ? gcnew System::String(str.c_str()) : System::String::Empty;
 		}
 
 		std::vector<char> & SASBinData::data()
 		{
-			return priv->data;
+			return priv->um->data;
 		}
 
 	}
 }
+
+#pragma warning( pop )
