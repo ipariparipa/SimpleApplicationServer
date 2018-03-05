@@ -32,6 +32,8 @@ namespace SAS {
 
 		Module * module;
 		std::string invoker_name;
+
+		std::mutex session_id_mut;
 		SessionID session_id;
 	};
 
@@ -49,16 +51,28 @@ namespace SAS {
 
 	Invoker::Status LoopbackConnection::invoke(const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec)
 	{
-		auto sess = priv->module->getSession(priv->session_id, ec);
-		if(!sess)
-			return Invoker::Status::Error;
-		priv->session_id = sess->id();
-		return sess->invoke(priv->invoker_name, input, output, ec);
+		SAS::Session * sess;
+		{
+			std::unique_lock<std::mutex> __locker(priv->session_id_mut);
+			sess = priv->module->getSession(priv->session_id, ec);
+			if (!sess)
+				return Invoker::Status::Error;
+			priv->session_id = sess->id();
+		}
+		auto ret = sess->invoke(priv->invoker_name, input, output, ec);
+		sess->unlock();
+		return ret;
 	}
 
 	bool LoopbackConnection::getSession(ErrorCollector & ec)
 	{
-		return priv->module->getSession(priv->session_id, ec) != nullptr;
+		std::unique_lock<std::mutex> __locker(priv->session_id_mut);
+		Session * sess;
+		if (!(sess = priv->module->getSession(priv->session_id, ec)))
+			return false;
+		priv->session_id = sess->id();
+		sess->unlock();
+		return true;
 	}
 
 

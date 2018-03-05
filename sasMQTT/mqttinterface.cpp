@@ -143,17 +143,18 @@ namespace SAS {
 							{
 								SessionID sid = std::stoull(args[0]);
 								Session * session;
-								if (!(session = _module->getSession(sid, ec)))
-								{
-									resp_res = "error";
-									outType = Out_Error;
-								}
-								else
+								if ((session = _module->getSession(sid, ec)))
 								{
 									resp_args.resize(1);
 									resp_args[0] = std::to_string(session->id());
 									resp_res = "ok";
 									outType = Out_OK;
+									session->unlock();
+								}
+								else
+								{
+									resp_res = "error";
+									outType = Out_Error;
 								}
 							}
 						}
@@ -217,37 +218,38 @@ namespace SAS {
 							{
 								SessionID sid = std::stoull(args[0]);
 								Session * session;
-								if (!(session = _module->getSession(sid, ec)))
-								{
-									resp_res = "error";
-									outType = Out_Error;
-								}
-								else
+								if ((session = _module->getSession(sid, ec)))
 								{
 									out_doc.AddMember("session_id", session->id(), out_doc.GetAllocator());
 									resp_res = "result";
 									outType = Out_JSon;
-								}
 
-								switch (session->invoke(args[1], task->payload, resp_payload, ec))
+									switch (session->invoke(args[1], task->payload, resp_payload, ec))
+									{
+									case Invoker::Status::FatalError:
+										resp_res = "fatal";
+										outType = Out_Error;
+										break;
+									case Invoker::Status::Error:
+										resp_res = "error";
+										outType = Out_Error;
+										break;
+									case Invoker::Status::NotImplemented:
+										resp_res = "not_implemented";
+										outType = Out_Error;
+										break;
+									case Invoker::Status::OK:
+										resp_res = "ok";
+										resp_args.push_back(std::to_string(session->id()));
+										outType = Out_OK;
+										break;
+									}
+									session->unlock();
+								}
+								else
 								{
-								case Invoker::Status::FatalError:
-									resp_res = "fatal";
-									outType = Out_Error;
-									break;
-								case Invoker::Status::Error:
 									resp_res = "error";
 									outType = Out_Error;
-									break;
-								case Invoker::Status::NotImplemented:
-									resp_res = "not_implemented";
-									outType = Out_Error;
-									break;
-								case Invoker::Status::OK:
-									resp_res = "ok";
-									resp_args.push_back(std::to_string(session->id()));
-									outType = Out_OK;
-									break;
 								}
 							}
 						}

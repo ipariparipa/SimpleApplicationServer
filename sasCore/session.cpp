@@ -46,8 +46,6 @@ namespace SAS {
 
 	Invoker::Status Session::invoke(const std::string & invoker_name, const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec)
 	{
-		std::unique_lock<std::mutex> __locker_(priv->active_mutex);
-
 		Invoker * inv;
 		if(!(inv = getInvoker(invoker_name, ec)))
 			return Invoker::Status::FatalError;
@@ -65,6 +63,21 @@ namespace SAS {
 	SessionID Session::id() const
 	{
 		return priv->id;
+	}
+
+	bool Session::try_lock()
+	{
+		return priv->active_mutex.try_lock();
+	}
+
+	void Session::lock()
+	{
+		priv->active_mutex.lock();
+	}
+
+	void Session::unlock()
+	{
+		priv->active_mutex.unlock();
 	}
 
 }

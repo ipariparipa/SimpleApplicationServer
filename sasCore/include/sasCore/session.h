@@ -45,6 +45,10 @@ namespace SAS {
 
 		SessionID id() const;
 
+		bool try_lock();
+		void lock();
+		void unlock();
+
 	protected:
 		virtual Invoker * getInvoker(const std::string & name, ErrorCollector & ec) = 0;
 
