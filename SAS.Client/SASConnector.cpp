@@ -15,6 +15,9 @@
     along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
  */
 
+#pragma warning( push )
+#pragma warning( disable: 4461 )
+
 #include "SASConnector.h"
 #include "SASErrorCollector.h"
 #include "SASBinData.h"
@@ -26,40 +29,51 @@
 namespace SAS {
 	namespace Client {
 
-
-		struct SASConnectionObj_priv
+		struct SASConnectionObj_um_priv
 		{
-			SASConnectionObj_priv(Connection * obj_) : obj(obj_)
+			SASConnectionObj_um_priv(Connection * obj_) : obj(obj_)
 			{ }
 
 			std::unique_ptr<Connection> obj;
 		};
 
-		SASConnectionObj::SASConnectionObj(Connection * obj) : priv(new SASConnectionObj_priv(obj))
-		{ }
-
-		SASConnectionObj::!SASConnectionObj()
+		ref struct SASConnectionObj_priv
 		{
-			delete priv;
-		}
+			SASConnectionObj_priv(Connection * obj_) : um(new SASConnectionObj_um_priv(obj_))
+			{ }
+
+			!SASConnectionObj_priv()
+			{
+				delete um;
+			}
+
+			SASConnectionObj_um_priv * um;
+		};
+
+		SASConnectionObj::SASConnectionObj(Connection * obj) : priv(gcnew SASConnectionObj_priv(obj))
+		{ }
 
 		ISASInvoker::Status SASConnectionObj::Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec)
 		{
 			output = gcnew SASBinData();
 
-			auto tmp_ret = priv->obj->invoke(input->data(), output->data(), WErrorCollector(ec));
+			auto tmp_ret = priv->um->obj->invoke(input->data(), output->data(), WErrorCollector(ec));
 			if (tmp_ret != Invoker::Status::OK)
 				output = nullptr;
 			
+			System::GC::KeepAlive(input);
+			System::GC::KeepAlive(ec);
+
 			return (ISASInvoker::Status)tmp_ret;
 		}
 
 		bool SASConnectionObj::GetSession(ISASErrorCollector ^ ec)
 		{
-			return priv->obj->getSession(WErrorCollector(ec));
+			return priv->um->obj->getSession(WErrorCollector(ec));
 		}
 
-		struct SASConnectorObj_priv
+
+		ref struct SASConnectorObj_priv
 		{
 			SASConnectorObj_priv(Connector * obj_) : obj(obj_)
 			{ }
@@ -67,13 +81,8 @@ namespace SAS {
 			Connector * obj;
 		};
 
-		SASConnectorObj::SASConnectorObj(Connector * obj) : priv(new SASConnectorObj_priv(obj))
+		SASConnectorObj::SASConnectorObj(Connector * obj) : priv(gcnew SASConnectorObj_priv(obj))
 		{ }
-
-		SASConnectorObj::!SASConnectorObj()
-		{
-			delete priv;
-		}
 
 		//property 
 		System::String ^ SASConnectorObj::Type::get()
@@ -112,3 +121,5 @@ namespace SAS {
 
 	}
 }
+
+#pragma warning( pop )

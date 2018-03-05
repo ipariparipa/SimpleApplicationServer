@@ -27,21 +27,18 @@ namespace SAS {
 
 		interface class ISASErrorCollector;
 
-
-		struct SASAppSettingsReader_priv;
-
+		ref struct SASAppSettingsReader_priv;
 		public ref class SASAppSettingsReader : public SASConfigReader
 		{
 		public:
 			SASAppSettingsReader();
-			!SASAppSettingsReader();
 
 			bool Init(ISASErrorCollector ^ ec);
 			
 			bool GetEntryAsStringList(System::String ^ path, [System::Runtime::InteropServices::OutAttribute] array<System::String ^> ^% ret, ISASErrorCollector ^ ec) override;
 
 		private:
-			SASAppSettingsReader_priv * priv;
+			SASAppSettingsReader_priv ^ priv;
 		};
 	}
 }

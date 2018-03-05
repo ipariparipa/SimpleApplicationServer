@@ -25,12 +25,11 @@ namespace SAS {
 		interface class ISASErrorCollector;
 		ref class SASBinData;
 
-		struct SASTCLDataWriter_priv;
+		ref struct SASTCLDataWriter_priv;
 		public ref class SASTCLDataWriter
 		{
 		public:
 			SASTCLDataWriter(short ver);
-			!SASTCLDataWriter();
 
 			bool AddScript(System::String ^ script, ISASErrorCollector ^ ec);
 			bool AddBlobSetter(System::String ^ blob_name, array<System::Byte> ^ data, ISASErrorCollector ^ ec);
@@ -42,7 +41,7 @@ namespace SAS {
 			property SASBinData ^ BinData { SASBinData ^  get(); }
 
 		private:
-			SASTCLDataWriter_priv * priv;
+			SASTCLDataWriter_priv ^ priv;
 		};
 
 	}

@@ -15,6 +15,9 @@
     along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
  */
 
+#pragma warning( push )
+#pragma warning( disable: 4461 )
+
 #include "SASApplication.h"
 #include "SASObjectRegistry.h"
 #include "SASErrorCollector.h"
@@ -33,31 +36,50 @@ using namespace msclr;
 namespace SAS {
 	namespace Client {
 
-
-		struct SASApplication_priv
+		struct SASApplication_um_priv
 		{
-			SASApplication_priv(SASApplication ^ mobj, array<System::String^> ^ args) : _args(args), obj(mobj, _args.argv.size(), (char**)_args.argv.data()), objectRegistry(gcnew SASObjectRegistry(obj.objectRegistry()))
+			SASApplication_um_priv(SASApplication ^ mobj, array<System::String^> ^ args) :
+				_args(args), 
+				obj(mobj, _args.argv.size(), 
+				(char**)_args.argv.data())
 			{ }
 
-			SASApplication_priv(SASApplication ^ mobj) : obj(mobj), objectRegistry(gcnew SASObjectRegistry(obj.objectRegistry()))
+			SASApplication_um_priv(SASApplication ^ mobj) :
+				obj(mobj)
 			{ }
 
 			ArgsHelper _args;
 
 			WApplication obj;
-			gcroot<SASObjectRegistry^> objectRegistry;
 		};
 
-		SASApplication::SASApplication(array<System::String^> ^ args) : priv(new SASApplication_priv(this, args))
-		{ }
-
-		SASApplication::SASApplication() : priv(new SASApplication_priv(this))
-		{ }
-
-		SASApplication::!SASApplication()
+		ref struct SASApplication_priv
 		{
-			delete priv;
-		}
+			SASApplication_priv(SASApplication ^ mobj, array<System::String^> ^ args) :
+				um(new SASApplication_um_priv(mobj, args)),
+				objectRegistry(gcnew SASObjectRegistry(um->obj.objectRegistry()))
+			{ }
+
+			SASApplication_priv(SASApplication ^ mobj) :
+				um(new SASApplication_um_priv(mobj)),
+				objectRegistry(gcnew SASObjectRegistry(um->obj.objectRegistry()))
+			{ }
+
+			!SASApplication_priv()
+			{ delete um; }
+
+			SASApplication_um_priv * um;
+
+			SASObjectRegistry ^  objectRegistry;
+		};
+
+		SASApplication::SASApplication(array<System::String^> ^ args) : 
+			priv(gcnew SASApplication_priv(this, args))
+		{ }
+
+		SASApplication::SASApplication() : 
+			priv(gcnew SASApplication_priv(this))
+		{ }
 
 		//property 
 		SASObjectRegistry ^ SASApplication::ObjectRegistry::get()
@@ -73,12 +95,12 @@ namespace SAS {
 
 		bool SASApplication::Init(ISASErrorCollector ^ ec)
 		{
-			return priv->obj.init(WErrorCollector(ec));
+			return priv->um->obj.init(WErrorCollector(ec));
 		}
 
 		void SASApplication::Deinit()
 		{
-			priv->obj.deinit();
+			priv->um->obj.deinit();
 		}
 	}
 
@@ -129,3 +151,5 @@ namespace SAS {
 	}
 
 }
+
+#pragma warning( pop )

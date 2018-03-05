@@ -20,36 +20,27 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 #include "SASBinData.h"
 #include "errorcodes.h"
 
-#include <msclr/gcroot.h>
-
 #include "macros.h"
 #include <vector>
 #include <string>
 #include <algorithm>
 
-using namespace msclr;
-
 namespace SAS {
 	namespace Client {
 
-		struct SASTCLDataReader_priv
+		ref struct SASTCLDataReader_priv
 		{
-			gcroot<SASBinData^> data;
+			SASBinData ^ data;
 			short version;
-			gcroot<System::Collections::Generic::List<System::String^>^> tclResults;
-			gcroot<System::Collections::Generic::Dictionary<System::String^, array<System::Byte>^>^> blobs;
+			System::Collections::Generic::List<System::String^> ^ tclResults;
+			System::Collections::Generic::Dictionary<System::String^, array<System::Byte>^> ^ blobs;
 		};
 
-		SASTCLDataReader::SASTCLDataReader() : priv(new SASTCLDataReader_priv)
+		SASTCLDataReader::SASTCLDataReader() : priv(gcnew SASTCLDataReader_priv)
 		{
 			priv->version = 0;
 			priv->tclResults = gcnew System::Collections::Generic::List<System::String^>();
 			priv->blobs = gcnew System::Collections::Generic::Dictionary<System::String^, array<System::Byte>^>();
-		}
-
-		SASTCLDataReader::!SASTCLDataReader()
-		{
-			delete priv;
 		}
 
 		bool SASTCLDataReader::Read(SASBinData ^ data, ISASErrorCollector ^ec)

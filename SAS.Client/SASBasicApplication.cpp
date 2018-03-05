@@ -18,31 +18,22 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 #include "SASBasicApplication.h"
 #include "SASAppSettingsConfigReader.h"
 
-#include <msclr/gcroot.h>
-
-using namespace msclr;
-
 namespace SAS {
 	namespace Client{
 
-		struct SASBasicApplication_priv
+		ref struct SASBasicApplication_priv
 		{
-			gcroot<SASAppSettingsReader ^ > configReader;
+			SASAppSettingsReader ^ configReader;
 		};
 
-		SASBasicApplication::SASBasicApplication(array<System::String^> ^ args) : SASApplication(args), priv(new SASBasicApplication_priv)
+		SASBasicApplication::SASBasicApplication(array<System::String^> ^ args) : SASApplication(args), priv(gcnew SASBasicApplication_priv)
 		{
 			priv->configReader = gcnew SASAppSettingsReader();
 		}
 
-		SASBasicApplication::SASBasicApplication() : SASApplication(), priv(new SASBasicApplication_priv)
+		SASBasicApplication::SASBasicApplication() : SASApplication(), priv(gcnew SASBasicApplication_priv)
 		{
 			priv->configReader = gcnew SASAppSettingsReader();
-		}
-
-		SASBasicApplication::!SASBasicApplication()
-		{
-			delete priv;
 		}
 
 		bool SASBasicApplication::Init(ISASErrorCollector ^ ec)

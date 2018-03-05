@@ -28,7 +28,7 @@
 namespace SAS {
 	namespace Client {
 
-		struct SASObjectRegistry_priv
+		ref struct SASObjectRegistry_priv
 		{
 			SASObjectRegistry_priv(ObjectRegistry * obj_) : obj(obj_)
 			{ }
@@ -36,13 +36,8 @@ namespace SAS {
 			ObjectRegistry * obj;
 		};
 		
-		SASObjectRegistry::SASObjectRegistry(ObjectRegistry * obj) : priv(new SASObjectRegistry_priv(obj))
+		SASObjectRegistry::SASObjectRegistry(ObjectRegistry * obj) : priv(gcnew SASObjectRegistry_priv(obj))
 		{ }
-
-		SASObjectRegistry::!SASObjectRegistry()
-		{
-			delete priv;
-		}
 
 		ISASObject ^ SASObjectRegistry::getObject(System::String ^ type, System::String ^ name, ISASErrorCollector ^ ec)
 		{

@@ -48,16 +48,15 @@ namespace SAS {
 		};
 
 
-		struct SASConnectionObj_priv;
+		ref struct SASConnectionObj_priv;
 		ref class SASConnectionObj : public ISASConnection
 		{
 		public:
 			SASConnectionObj(Connection * obj);
-			!SASConnectionObj();
 			virtual ISASInvoker::Status Invoke(SASBinData ^ input, [System::Runtime::InteropServices::OutAttribute] SASBinData ^% output, ISASErrorCollector ^ ec);
 			virtual bool GetSession(ISASErrorCollector ^ ec);
 		private:
-			SASConnectionObj_priv * priv;
+			SASConnectionObj_priv ^ priv;
 		};
 
 
@@ -71,12 +70,11 @@ namespace SAS {
 		};
 
 
-		struct SASConnectorObj_priv;
+		ref struct SASConnectorObj_priv;
 		ref class SASConnectorObj : public ISASConnector
 		{
 		public:
 			SASConnectorObj(Connector * obj);
-			!SASConnectorObj();
 
 			property System::String ^ Type { virtual System::String ^ get(); }
 			property System::String ^ Name { virtual System::String ^ get(); }
@@ -87,7 +85,7 @@ namespace SAS {
 
 			virtual ISASConnection ^ CreateConnection(System::String ^ module_name, System::String ^ invoker_name, ISASErrorCollector ^ ec);
 		private:
-			SASConnectorObj_priv * priv;
+			SASConnectorObj_priv ^ priv;
 		};
 	}
 }

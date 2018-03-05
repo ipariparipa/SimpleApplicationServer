@@ -30,19 +30,18 @@ namespace SAS {
 			virtual void Add(long errorCode, System::String ^ errorText) abstract;
 		};
 
-		struct SASErrorCollectorObj_priv;
+		ref struct SASErrorCollectorObj_priv;
 
 		ref class SASErrorCollectorObj : public ISASErrorCollector
 		{
 		internal:
 			SASErrorCollectorObj(ErrorCollector & obj);
 		public:
-			!SASErrorCollectorObj();
 
 			virtual void Add(long errorCode, System::String ^ errorText);
 
 		private:
-			SASErrorCollectorObj_priv * priv;
+			SASErrorCollectorObj_priv ^ priv;
 		};
 
 	}

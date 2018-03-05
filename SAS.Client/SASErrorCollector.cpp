@@ -26,7 +26,7 @@ using namespace msclr;
 namespace SAS {
 	namespace Client {
 
-		struct SASErrorCollectorObj_priv
+		ref struct SASErrorCollectorObj_priv
 		{
 			SASErrorCollectorObj_priv(ErrorCollector & obj_) : obj(obj_)
 			{ }
@@ -34,13 +34,8 @@ namespace SAS {
 			ErrorCollector & obj;
 		};
 
-		SASErrorCollectorObj::SASErrorCollectorObj(ErrorCollector & obj) : priv(new SASErrorCollectorObj_priv(obj))
+		SASErrorCollectorObj::SASErrorCollectorObj(ErrorCollector & obj) : priv(gcnew SASErrorCollectorObj_priv(obj))
 		{ }
-
-		SASErrorCollectorObj::!SASErrorCollectorObj()
-		{
-			delete priv;
-		}
 
 		void SASErrorCollectorObj::Add(long errorCode, System::String ^ errorText)
 		{

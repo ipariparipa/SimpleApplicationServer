@@ -17,27 +17,19 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 
 #include "SASTextWriterErrorCollector.h"
 
-#include <msclr/gcroot.h>
-
-using namespace msclr;
-
 namespace SAS {
 
 	namespace Client {
 
-		struct SASTextWriterErrorCollector_priv
+		ref struct SASTextWriterErrorCollector_priv
 		{
-			gcroot<System::IO::TextWriter ^ > writer;
+			System::IO::TextWriter ^ writer;
 		};
 
-		SASTextWriterErrorCollector::SASTextWriterErrorCollector(System::IO::TextWriter ^ writer) : priv(new SASTextWriterErrorCollector_priv)
+		SASTextWriterErrorCollector::SASTextWriterErrorCollector(System::IO::TextWriter ^ writer) : 
+			priv(gcnew SASTextWriterErrorCollector_priv)
 		{
 			priv->writer = writer;
-		}
-
-		SASTextWriterErrorCollector::!SASTextWriterErrorCollector()
-		{
-			delete priv;
 		}
 
 		void SASTextWriterErrorCollector::Add(long errorCode, System::String ^ errorText)

@@ -20,8 +20,6 @@
 
 #include "macros.h"
 
-#include <msclr/gcroot.h>
-
 using namespace msclr;
 
 namespace SAS {

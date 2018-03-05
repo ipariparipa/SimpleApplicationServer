@@ -16,32 +16,18 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 */
 
 #pragma once
-#pragma warning( push )
-#pragma warning( disable: 4461 )
 
-namespace SAS{
-	namespace Client{
+namespace SAS {
+
+	namespace Client {
 
 		interface class ISASErrorCollector;
-		ref class SASBinData;
 
-		ref struct SASTCLDataReader_priv;
-		public ref class SASTCLDataReader
+		public ref class SASLogging abstract sealed
 		{
 		public:
-			SASTCLDataReader();
+			static bool Init(array<System::String^> ^ argv, ISASErrorCollector ^ ec);
 
-			bool Read(SASBinData ^ data, ISASErrorCollector ^ec);
-
-			property short Version { short get(); }
-			property System::Collections::Generic::List<System::String^> ^ TclResults { System::Collections::Generic::List<System::String^> ^ get(); }
-			property System::Collections::Generic::Dictionary<System::String^, array<System::Byte>^> ^ Blobs{ System::Collections::Generic::Dictionary<System::String^, array<System::Byte>^> ^ get(); }
-
-		private:
-			SASTCLDataReader_priv ^ priv;
 		};
-
 	}
 }
-
-#pragma warning( pop ) 

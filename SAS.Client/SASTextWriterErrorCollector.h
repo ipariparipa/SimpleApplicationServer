@@ -25,16 +25,16 @@ namespace SAS {
 
 	namespace Client {
 
-		struct SASTextWriterErrorCollector_priv;
+		ref struct SASTextWriterErrorCollector_priv;
 
 		public ref class SASTextWriterErrorCollector : public ISASErrorCollector
 		{
 		public:
 			SASTextWriterErrorCollector(System::IO::TextWriter ^ writer);
-			!SASTextWriterErrorCollector();
+
 			virtual void Add(long errorCode, System::String ^ errorText);
 		private:
-			SASTextWriterErrorCollector_priv * priv;
+			SASTextWriterErrorCollector_priv ^ priv;
 		};
 	}
 }

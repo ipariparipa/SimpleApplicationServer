@@ -24,7 +24,7 @@ along with SAS.Client.  If not, see <http://www.gnu.org/licenses/>
 namespace SAS {
 	namespace Client {
 
-		struct SASBinData_priv;
+		ref struct SASBinData_priv;
 		public ref class SASBinData
 		{
 		internal:
@@ -33,7 +33,6 @@ namespace SAS {
 			SASBinData();
 			SASBinData(array<System::Byte> ^ data);
 			SASBinData(System::String ^ data);
-			!SASBinData();
 
 			property array<System::Byte> ^ AsByteArray { array<System::Byte> ^  get(); }
 
@@ -41,8 +40,9 @@ namespace SAS {
 
 		internal:
 			std::vector<char> & data();
+
 		private:
-			SASBinData_priv * priv;
+			SASBinData_priv ^ priv;
 		};
 
 	}

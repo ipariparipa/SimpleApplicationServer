@@ -63,6 +63,9 @@
     <ClInclude Include="errorcodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SASLogging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SASApplication.cpp">
@@ -105,6 +108,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SASServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SASLogging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
