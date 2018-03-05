@@ -20,16 +20,16 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 	
-	struct TCLErrorCollector_priv
+	struct TCLErrorCollector::Priv
 	{
-		TCLErrorCollector_priv(Tcl_Interp * interp_) : interp(interp_), lst(interp_)
+		Priv(Tcl_Interp * interp_) : interp(interp_), lst(interp_)
 		{ }
 
 		Tcl_Interp * interp;
 		TCLListHandler lst;
 	};
 
-	TCLErrorCollector::TCLErrorCollector(Tcl_Interp * interp) : ErrorCollector(), priv(new TCLErrorCollector_priv(interp))
+	TCLErrorCollector::TCLErrorCollector(Tcl_Interp * interp) : ErrorCollector(), priv(new Priv(interp))
 	{ }
 
 	TCLErrorCollector::~TCLErrorCollector()

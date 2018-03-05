@@ -27,6 +27,8 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
+	class TCLExecutorPool;
+
 	class TCLBlobHandler
 	{
 	public:
@@ -43,16 +45,17 @@ namespace SAS {
 		virtual void removeAll() = 0;
 	};
 
-	struct TCLInvoker_priv;
 	class SAS_TCL__CLASS TCLInvoker : public Invoker, protected TCLInterpInitializer
 	{
+		struct Priv;
+		Priv * priv;
+
 		friend struct TCLInvoker_priv;
 
 		SAS_COPY_PROTECTOR(TCLInvoker)
 	public:
 		typedef TCLBlobHandler BlobHandler;
-		TCLInvoker(const std::string & name, Tcl_Interp * interp);
-		TCLInvoker(const std::string & name);
+		TCLInvoker(const std::string & name, TCLExecutorPool * exec_pool);
 		virtual ~TCLInvoker();
 
 		bool init(ErrorCollector & ec);
@@ -65,9 +68,6 @@ namespace SAS {
 		virtual void init(Tcl_Interp *interp) override;
 
 		virtual BlobHandler * createBlobHandler() const;
-
-	private:
-		TCLInvoker_priv * priv;
 	};
 }
 

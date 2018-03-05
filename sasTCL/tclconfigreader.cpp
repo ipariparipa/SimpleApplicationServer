@@ -30,14 +30,14 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
-	struct TCLConfigReader_priv : protected TCLInterpInitializer
+	struct TCLConfigReader::Priv : public TCLInterpInitializer
 	{
-		TCLConfigReader_priv() :
+		Priv() :
 			logger(Logging::getLogger("SAS.TCLConfigReader")),
-			exec("TCLConfigReader", this)
+			exec("TCLConfigReader")
 		{ }
 
-		virtual ~TCLConfigReader_priv() { }
+		virtual ~Priv() { }
 
 		Logging::LoggerPtr logger;
 		TCLExecutor exec;
@@ -54,7 +54,7 @@ namespace SAS {
 		{
 			SAS_LOG_NDC();
 
-			auto obj = static_cast<TCLConfigReader_priv*>(obj_);
+			auto obj = static_cast<Priv*>(obj_);
 			SAS::TCLErrorCollector ec(interp);
 
 			if (argc < 2)
@@ -84,7 +84,7 @@ namespace SAS {
 	};
 
 
-	TCLConfigReader::TCLConfigReader() : priv(new TCLConfigReader_priv)
+	TCLConfigReader::TCLConfigReader() : priv(new Priv)
 	{ }
 
 	TCLConfigReader::~TCLConfigReader()
@@ -106,11 +106,16 @@ namespace SAS {
 			return false;
 		}
 		priv->getter_function = getter_function;
-		if (!priv->exec.start())
-		{
-			auto err = ec.add(SAS_TCL__ERROR__CONFIG_READER__UNEXPECTED_ERROR, "could not start TCL executor");
-			SAS_LOG_ERROR(priv->logger, err);
+		if (!priv->exec.start(ec))
 			return false;
+
+		{
+			TCLExecutor::Run run;
+			run.operation = TCLExecutor::Run::Init;
+			run.initer = priv;
+			run.ec = &ec;
+			if (!priv->exec.run(&run, ec))
+				return false;
 		}
 
 		std::ifstream file;
@@ -126,7 +131,8 @@ namespace SAS {
 		run.script.assign(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
 		file.close();
 		run.ec =  &ec;
-		priv->exec.run(&run);
+		if (!priv->exec.run(&run, ec))
+			return false;
 
 		return run.isOK;
 	}
@@ -139,7 +145,8 @@ namespace SAS {
 		TCLList lst;
 		lst << priv->getter_function << path;
 		run.script = lst.toString();
-		priv->exec.run(&run);
+		if (!priv->exec.run(&run, ec))
+			return false;
 		if (!run.isOK)
 			return false;
 		TCLList lst_res;
@@ -168,7 +175,8 @@ namespace SAS {
 		TCLList lst;
 		lst << priv->getter_function << path << lst_dv;
 		run.script = lst.toString();
-		priv->exec.run(&run);
+		if (!priv->exec.run(&run, ec))
+			return false;
 		if (!run.isOK)
 			return false;
 		TCLList lst_res;
@@ -194,7 +202,8 @@ namespace SAS {
 		TCLList lst;
 		lst << priv->getter_function << path;
 		run.script = lst.toString();
-		priv->exec.run(&run);
+		if (!priv->exec.run(&run, ec))
+			return false;
 		if (!run.isOK)
 			return false;
 
@@ -211,7 +220,8 @@ namespace SAS {
 		TCLList lst;
 		lst << priv->getter_function << path << defaultValue;
 		run.script = lst.toString();
-		priv->exec.run(&run);
+		if (!priv->exec.run(&run, ec))
+			return false;
 		if (!run.isOK)
 			return false;
 

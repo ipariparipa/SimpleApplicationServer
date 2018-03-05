@@ -35,5 +35,9 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #  endif
 #endif
 
+#define SAS_TCL__EXECUTION_TIMEOUT 100000 //milliseconds
+#define SAS_TCL__START_TIMEOUT 100000 //milliseconds
+#define SAS_TCL__MAX_EXECUTORS 10
+
 #endif // sasTCL__config_h
 

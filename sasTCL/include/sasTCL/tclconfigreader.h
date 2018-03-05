@@ -23,10 +23,10 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
-	struct TCLConfigReader_priv;
-
 	class SAS_TCL__CLASS TCLConfigReader : public ConfigReader
 	{
+		struct Priv;
+		Priv * priv;
 	public:
 		TCLConfigReader();
 		virtual ~TCLConfigReader();
@@ -43,8 +43,6 @@ namespace SAS {
 	protected:
 		virtual bool toBool(const std::string & str, bool & ret, ErrorCollector & ec) const override;
 		virtual bool toString(bool v, std::string & ret, ErrorCollector & ec) const override;
-	private:
-		TCLConfigReader_priv * priv;
 	};
 
 }
