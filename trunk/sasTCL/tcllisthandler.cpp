@@ -19,35 +19,37 @@ along with sasTCLClient.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
-	struct TCLListHandler_priv
+	struct TCLListHandler::Priv
 	{
 		Tcl_Obj * obj;
 		Tcl_Interp * interp;
 	};
 
-	TCLListHandler::TCLListHandler() : priv(new TCLListHandler_priv)
+	TCLListHandler::TCLListHandler() : priv(new Priv)
 	{
 		priv->interp = nullptr;
 		priv->obj = nullptr;
 	}
 
-	TCLListHandler::TCLListHandler(Tcl_Interp * interp) : priv(new TCLListHandler_priv)
+	TCLListHandler::TCLListHandler(Tcl_Interp * interp) : priv(new Priv)
 	{
 		priv->obj = Tcl_NewListObj(0, NULL);
 		priv->interp = interp;
 	}
 
-	TCLListHandler::TCLListHandler(Tcl_Interp * interp, Tcl_Obj * obj) : priv(new TCLListHandler_priv)
+	TCLListHandler::TCLListHandler(Tcl_Interp * interp, Tcl_Obj * obj) : priv(new Priv)
 	{
 		priv->interp = interp;
 		priv->obj = obj;
 	}
 
-	TCLListHandler::TCLListHandler(const TCLListHandler & o) : priv(new TCLListHandler_priv(*o.priv))
+	TCLListHandler::TCLListHandler(const TCLListHandler & o) : priv(new Priv(*o.priv))
 	{ }
 
 	TCLListHandler::~TCLListHandler()
 	{
+		if (priv->obj)
+			Tcl_DecrRefCount(priv->obj);
 		delete priv;
 	}
 
@@ -139,10 +141,11 @@ namespace SAS {
 		return Tcl_GetString(priv->obj);
 	}
 
-	Tcl_Obj * TCLListHandler::obj() const
+	Tcl_Obj * TCLListHandler::obj()
 	{
+		if (priv->obj)
+			Tcl_IncrRefCount(priv->obj);
 		return priv->obj;
 	}
-
 
 }

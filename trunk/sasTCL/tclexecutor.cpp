@@ -28,125 +28,254 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
-	struct TCLExecutor_priv
+	struct TCLExecutor::Priv
 	{
-		TCLExecutor_priv(const std::string & name, Tcl_Interp * interp_, TCLInterpInitializer * initer_) :
-			current_run(nullptr), interp(interp_), initer(initer_), logger(Logging::getLogger("SAS.TCLExecutor." + name))
+		Priv(const std::string & name, Tcl_Interp * interp_) :
+			current_run(nullptr),
+			interp(interp_),
+			logger(Logging::getLogger("SAS.TCLExecutor." + name))
 		{ }
 
-		std::mutex susp_mut, wait_mut, run_mut;
-		std::condition_variable susp_cv, wait_cv, run_cv;
+		Notifier run_not, start_not;
 
+		std::mutex run_mut;
 		TCLExecutor::Run * current_run;
 
 		Tcl_Interp * interp;
-		TCLInterpInitializer * initer;
 
 		Logging::LoggerPtr logger;
 	};
 
-	TCLExecutor::TCLExecutor(const std::string & name, Tcl_Interp * interp) : Thread(), priv(new TCLExecutor_priv(name, interp, nullptr))
-	{ }
-
-	TCLExecutor::TCLExecutor(const std::string & name, TCLInterpInitializer * initer) : Thread(), priv(new TCLExecutor_priv(name, nullptr, initer))
+	TCLExecutor::TCLExecutor(const std::string & name, Tcl_Interp * interp) : 
+		ControlledThread(), 
+		priv(new Priv(name, interp))
 	{ }
 
 	TCLExecutor::~TCLExecutor()
 	{
 		stop();
-		wait();
+		resume();
+		if (!wait(SAS_TCL__EXECUTION_TIMEOUT))
+			terminate();
 		delete priv;
 	}
 
-	void TCLExecutor::run(TCLExecutor::Run * run)
+	bool TCLExecutor::run(Run * run, ErrorCollector & ec)
 	{
-		std::unique_lock<std::mutex> __waiter_locker(priv->wait_mut);
+		SAS_LOG_NDC();
 		{
-			std::lock_guard<std::mutex> __susp_locker(priv->susp_mut);
+			std::unique_lock<std::mutex> __run_locker(priv->run_mut);
 			priv->current_run = run;
-			priv->susp_cv.notify_one();
+			resume();
 		}
-		priv->wait_cv.wait(__waiter_locker);
+		if (!priv->run_not.wait(SAS_TCL__EXECUTION_TIMEOUT))
+		{
+			auto err = ec.add(SAS_TCL__ERROR__RUN_TIMEOUT, "unexpected error: TCL executor timeout");
+			SAS_LOG_FATAL(priv->logger, err);
+			return false;
+		}
+		return true;
 	}
 
 	bool TCLExecutor::start()
 	{
-		std::unique_lock<std::mutex> __run_locker(priv->run_mut);
+		NullEC ec;
+		return start(ec);
+	}
+
+	bool TCLExecutor::start(ErrorCollector & ec)
+	{
+		SAS_LOG_NDC();
 		if (!Thread::start())
+		{
+			auto err = ec.add(SAS_TCL__ERROR__UNEXPECTED, "could not start TCL executor thread");
+			SAS_LOG_ERROR(priv->logger, err);
 			return false;
-		priv->run_cv.wait(__run_locker);
+		}
+		SAS_LOG_TRACE(priv->logger, "waiting for executor thread is started");
+		if (!priv->start_not.wait(SAS_TCL__START_TIMEOUT))
+		{
+			auto err = ec.add(SAS_TCL__ERROR__UNEXPECTED, "unexpected error: TCL executor starting timeout");
+			SAS_LOG_FATAL(priv->logger, err);
+			return false;
+		}
+		SAS_LOG_TRACE(priv->logger, "executor thread has been started properly");
 		return true;
 	}
 
 	void TCLExecutor::stop()
 	{
 		Thread::stop();
-		std::lock_guard<std::mutex> __susp_locker(priv->susp_mut);
-		priv->susp_cv.notify_one();
 	}
 
 	void TCLExecutor::execute()
 	{
-		Tcl_Interp * _my_interp = nullptr;
-		if (!priv->interp)
+		SAS_LOG_NDC();
+		Tcl_Interp * _local_interp = nullptr;
+		Tcl_Interp * _interp;
+		if (priv->interp)
+			_interp = priv->interp;
+		else
 		{
-			SAS_LOG_NDC();
 			SAS_LOG_TRACE(priv->logger, "Tcl_CreateInterp");
-			priv->interp = _my_interp = Tcl_CreateInterp();
-
-			if (priv->initer)
-				priv->initer->init(priv->interp);
+			_interp = _local_interp = Tcl_CreateInterp();
 		}
+		assert(_interp);
 
-		while (true)
+		priv->start_not.notifyAll();
+
+		SAS_LOG_TRACE(priv->logger, "enter to worker loop");
+		while (enterContolledSection() && status() != Thread::Status::Stopped)
 		{
 			std::unique_lock<std::mutex> __run_locker(priv->run_mut);
-			std::unique_lock<std::mutex> __susp_locker(priv->susp_mut);
-			__run_locker.unlock();
-			priv->run_cv.notify_one();
-			priv->susp_cv.wait(__susp_locker);
-			if (status() == Thread::Status::Stopped)
-				break;
-			std::lock_guard<std::mutex> __wait_locker(priv->wait_mut);
 
 			if (priv->current_run)
 			{
-				SAS_LOG_TRACE(priv->logger, "Tcl_GlobalEval");
-
-				if (Tcl_GlobalEval(priv->interp, priv->current_run->script.c_str()) == TCL_ERROR)
+				switch (priv->current_run->operation)
 				{
-					TCLListHandler lst(priv->interp, Tcl_GetObjResult(priv->interp));
-
-					for (int i(0), l(lst.length()); i < l; ++i)
+				case Run::Exec:
+					SAS_LOG_TRACE(priv->logger, "Tcl_GlobalEval");
+					if (Tcl_GlobalEval(_interp, priv->current_run->script.c_str()) == TCL_ERROR)
 					{
-						auto err = lst.getList(i);
-						if (err.length() == 2)
-							priv->current_run->ec->add(std::stol(err[0]), err[1]);
-						else
+						TCLListHandler lst(_interp, Tcl_GetObjResult(_interp));
+
+						for (int i(0), l(lst.length()); i < l; ++i)
 						{
-							priv->current_run->ec->add(SAS_TCL__ERROR__EXECUTOR__CANNOT_RUN_SCRIPT, "could not run script: '" + lst.toString() + "'");
-							break;
+							auto err = lst.getList(i);
+							if (err.length() == 2)
+								priv->current_run->ec->add(std::stol(err[0]), err[1]);
+							else
+							{
+								priv->current_run->ec->add(SAS_TCL__ERROR__EXECUTOR__CANNOT_RUN_SCRIPT, "could not run script: '" + lst.toString() + "'");
+								break;
+							}
 						}
+						priv->current_run->isOK = false;
 					}
-					priv->current_run->isOK = false;
-				}
-				else
-				{
-					std::string res;
-					priv->current_run->result = Tcl_GetStringResult(priv->interp);
+					else
+					{
+						std::string res;
+						priv->current_run->result = Tcl_GetStringResult(_interp);
+						priv->current_run->isOK = true;
+					}
+					priv->current_run->result = priv->current_run->script;
 					priv->current_run->isOK = true;
+					break;
+				case Run::Init:
+					if (priv->current_run->initer)
+					{
+						SAS_LOG_TRACE(priv->logger, "call initer");
+						priv->current_run->initer->init(_interp);
+					}
+					break;
 				}
+
 			}
 			priv->current_run = nullptr;
-			priv->wait_cv.notify_one();
+			suspend();
+			priv->run_not.notify();
 		}
+		SAS_LOG_TRACE(priv->logger, "worker loop is ended");
 
-
-		if (_my_interp)
+		if (_local_interp)
 		{
 			SAS_LOG_TRACE(priv->logger, "Tcl_DeleteInterp");
-			Tcl_DeleteInterp(priv->interp);
-			priv->interp = nullptr;
+			Tcl_DeleteInterp(_local_interp);
 		}
+	}
+
+	struct TCLExecutorPool::Priv
+	{
+		Priv(const std::string & name_, Tcl_Interp * interp_) :
+			name(name_),
+			interp(interp_),
+			logger(Logging::getLogger("SAS.TCLExecutorPool." + name_))
+		{ }
+
+		std::mutex mut;
+		std::map<TCLExecutor*, size_t /*used*/> pool;
+
+		std::string name;
+		Tcl_Interp * interp;
+		Logging::LoggerPtr logger;
+
+	};
+
+	TCLExecutorPool::TCLExecutorPool(const std::string & name, Tcl_Interp * interp) : priv(new Priv(name, interp))
+	{ }
+
+	TCLExecutorPool::~TCLExecutorPool()
+	{
+		{
+			std::unique_lock<std::mutex> __locker(priv->mut);
+			for (auto & o : priv->pool)
+				if (!o.second)
+					delete o.first;
+		}
+
+		delete priv;
+	}
+
+	TCLExecutor * TCLExecutorPool::consume(ErrorCollector & ec)
+	{
+		SAS_LOG_NDC();
+		std::unique_lock<std::mutex> __locker(priv->mut);
+		for (auto & o : priv->pool)
+			if (o.second == 0)
+			{
+				o.second = true;
+				SAS_LOG_TRACE(priv->logger, "reuse existing TCLExecutor");
+				return o.first;
+			}
+
+		SAS_LOG_TRACE(priv->logger, "no free executor is found in pool");
+
+		TCLExecutor * ret;
+		//if (priv->pool.size() >= SAS_TCL__MAX_EXECUTORS)
+		//{
+		//	SAS_LOG_TRACE(priv->logger, "maximum number of executors is reached, select one to reuse");
+		//	ret = nullptr;
+		//	size_t tmp = 0;
+		//	for (auto & o : priv->pool)
+		//		if (o.second < tmp || tmp == 0)
+		//		{
+		//			tmp = o.second;
+		//			ret = o.first;
+		//		}
+		//}
+		//else
+		{
+			SAS_LOG_TRACE(priv->logger, "create new TCLExecutor");
+			ret = new TCLExecutor(priv->name, priv->interp);
+			SAS_LOG_TRACE(priv->logger, "start TCL executor thread");
+			if (!ret->start(ec))
+			{
+				delete ret;
+				return nullptr;
+			}
+		}
+
+		SAS_LOG_ASSERT(priv->logger, ret, "executor object must be existing/created");
+
+		++priv->pool[ret];
+		return ret;
+	}
+
+	void TCLExecutorPool::release(TCLExecutor * exec)
+	{
+		SAS_LOG_NDC();
+		std::unique_lock<std::mutex> __locker(priv->mut);
+		if (!priv->pool.count(exec))
+		{
+			SAS_LOG_WARN(priv->logger, "unexpected: executor is not found in pool");
+			return;
+		}
+		auto & cnt = priv->pool[exec];
+		if (cnt == 0)
+		{
+			SAS_LOG_WARN(priv->logger, "unexpected: executor is already free");
+			return;
+		}
+		--cnt;
 	}
 }

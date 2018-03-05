@@ -28,9 +28,11 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
-	struct TCLErrorCollector_priv;
 	class SAS_TCL__CLASS TCLErrorCollector : public ErrorCollector
 	{
+		struct Priv;
+		Priv * priv;
+
 		SAS_COPY_PROTECTOR(TCLErrorCollector)
 	public:
 		TCLErrorCollector(Tcl_Interp * interp);
@@ -41,8 +43,6 @@ namespace SAS {
 	protected:
 		void append(long errorCode, const std::string & errorText);
 
-	private:
-		TCLErrorCollector_priv * priv;
 	};
 
 }

@@ -20,47 +20,70 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 #include "config.h"
 #include <sasCore/invoker.h>
-#include <sasCore/thread.h>
 #include SAS_TCL__TCL_H
 
 #include <string>
+
+#include <sasCore/controlledthread.h>
 
 namespace SAS {
 
 	class TCLInterpInitializer;
 
-	struct TCLExecutor_priv;
-
-	class SAS_TCL__CLASS TCLExecutor : protected Thread
+	class SAS_TCL__CLASS TCLExecutor : protected ControlledThread
 	{
+		struct Priv;
+		Priv * priv;
 	public:
-		TCLExecutor(const std::string & name, Tcl_Interp * interp);
-		TCLExecutor(const std::string & name, TCLInterpInitializer * initer = nullptr);
+		TCLExecutor(const std::string & name, Tcl_Interp * interp = nullptr);
 
 		virtual ~TCLExecutor();
 
 		struct Run
 		{
-			Run() : ec(nullptr), isOK(false)
-			{ }
+			ErrorCollector * ec = nullptr;
 
-			ErrorCollector * ec;
+			enum Operation
+			{
+				Exec,
+				Init,
+			} operation = Exec;
+
+			TCLInterpInitializer * initer = nullptr;
+
 			std::string script;
 			std::string result;
-			bool isOK;
+			bool isOK = false;
 		};
 
-		void run(Run * run);
+		bool run(Run * run, ErrorCollector & ec);
 
-		virtual bool start() override;
+		bool start(ErrorCollector & ec);
 
 		virtual void stop() override;
 
 	protected:
 		virtual void execute() override;
 
+
 	private:
-		TCLExecutor_priv * priv;
+		virtual bool start() override;
+
+
+	};
+
+	class SAS_TCL__CLASS TCLExecutorPool
+	{
+		struct Priv;
+		Priv * priv;
+	public:
+		TCLExecutorPool(const std::string & name, Tcl_Interp * interp = nullptr);
+
+		~TCLExecutorPool();
+
+		TCLExecutor * consume(ErrorCollector & ec);
+		void release(TCLExecutor * exec);
+
 	};
 
 }

@@ -35,23 +35,18 @@ along with sasTCLClient.  If not, see <http://www.gnu.org/licenses/>
 namespace SAS {
 
 
-	struct TCLInvoker_priv
+	struct TCLInvoker::Priv
 	{
-		TCLInvoker_priv(TCLInvoker * obj_, const std::string & name_, Tcl_Interp * interp_) :
-			obj(obj_), name(name_), exec(name_, interp_), 
+		Priv(TCLInvoker * obj_, const std::string & name_, TCLExecutorPool * exec_pool_) :
+			obj(obj_), name(name_), exec_pool(exec_pool_),
 			logger(Logging::getLogger("SAS.TCLInvoker."+name_))
 		{ }
-
-		TCLInvoker_priv(TCLInvoker * obj_, const std::string & name_) :
-			obj(obj_), name(name_), exec(name_, obj_),
-			logger(Logging::getLogger("SAS.TCLInvoker." + name_))
-		{ }
-
 
 		TCLInvoker * obj;
 		std::string name;
 
-		TCLExecutor exec;
+		TCLExecutorPool * exec_pool;
+		TCLExecutor * exec = nullptr;
 
 		std::mutex mut;
 		Logging::LoggerPtr logger;
@@ -148,30 +143,42 @@ namespace SAS {
 
 	};
 
-	TCLInvoker::TCLInvoker(const std::string & name, Tcl_Interp * interp) : Invoker(), priv(new TCLInvoker_priv(this, name, interp))
-	{
-	}
-
-	TCLInvoker::TCLInvoker(const std::string & name) : Invoker(), priv(new TCLInvoker_priv(this, name))
+	TCLInvoker::TCLInvoker(const std::string & name, TCLExecutorPool * exec_pool) : Invoker(), priv(new Priv(this, name, exec_pool))
 	{ }
 
 	TCLInvoker::~TCLInvoker()
 	{
+		SAS_LOG_NDC();
+		if (priv->exec)
+			priv->exec_pool->release(priv->exec);
 		delete priv;
 	}
 
 	bool TCLInvoker::init(ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-		priv->blobHandler.reset(createBlobHandler());
 
-		priv->exec.start();
+		if (!priv->exec && !(priv->exec = priv->exec_pool->consume(ec)))
+			return false;
+
+
+		SAS_LOG_TRACE(priv->logger, "run initer");
+		TCLExecutor::Run run;
+		run.ec = &ec;
+		run.operation = TCLExecutor::Run::Init;
+		run.initer = this;
+		if (!priv->exec->run(&run, ec))
+			return false;
+
+		SAS_LOG_TRACE(priv->logger, "create blob handler");
+		priv->blobHandler.reset(createBlobHandler());
 
 		return true;
 	}
 
-	inline void TCLInvoker::init(Tcl_Interp *interp)
-	{ 
+	//virtual 
+	void TCLInvoker::init(Tcl_Interp *interp) //override
+	{
 		//TODO: add embedded TCL functions (e.g. blob handling)
 	}
 
@@ -192,6 +199,8 @@ namespace SAS {
 		uint16_t version;
 		memcpy(&version, in_data, sizeof(uint16_t));
 		in_data += sizeof(uint16_t); in_size -= sizeof(uint16_t);
+
+		SAS_LOG_VAR(priv->logger, version);
 
 		switch (version)
 		{
@@ -239,7 +248,10 @@ namespace SAS {
 					{
 						if (run.script.length())
 						{
-							priv->exec.run(&run);
+							SAS_LOG_ASSERT(priv->logger, priv->exec, "executor must be set");
+							if (!priv->exec->run(&run, ec))
+								return TCLInvoker::Status::FatalError;
+							
 							if (!run.isOK)
 							{
 								has_script_error = true;
@@ -418,8 +430,7 @@ namespace SAS {
 	//virtual
 	TCLInvoker::BlobHandler * TCLInvoker::createBlobHandler() const
 	{
-		return new TCLInvoker_priv::DefaultBlobHandler(priv->name);
+		return new Priv::DefaultBlobHandler(priv->name);
 	}
 
 }
-

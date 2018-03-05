@@ -26,9 +26,11 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
-	struct TCLListHandler_priv;
 	class SAS_TCL__CLASS TCLListHandler
 	{
+		struct Priv;
+		Priv * priv;
+
 	public:
 		TCLListHandler();
 		TCLListHandler(Tcl_Interp * interp);
@@ -51,10 +53,7 @@ namespace SAS {
 
 		std::string toString() const;
 
-		Tcl_Obj * obj() const;
-
-	private:
-		TCLListHandler_priv * priv;
+		Tcl_Obj * obj();
 	};
 
 }
