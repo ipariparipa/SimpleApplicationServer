@@ -158,8 +158,6 @@ namespace SAS {
 						priv->current_run->result = Tcl_GetStringResult(_interp);
 						priv->current_run->isOK = true;
 					}
-					priv->current_run->result = priv->current_run->script;
-					priv->current_run->isOK = true;
 					break;
 				case Run::Init:
 					if (priv->current_run->initer)

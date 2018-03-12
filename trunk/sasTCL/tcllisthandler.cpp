@@ -33,18 +33,22 @@ namespace SAS {
 
 	TCLListHandler::TCLListHandler(Tcl_Interp * interp) : priv(new Priv)
 	{
-		priv->obj = Tcl_NewListObj(0, NULL);
+		Tcl_IncrRefCount(priv->obj = Tcl_NewListObj(0, NULL));
 		priv->interp = interp;
 	}
 
 	TCLListHandler::TCLListHandler(Tcl_Interp * interp, Tcl_Obj * obj) : priv(new Priv)
 	{
 		priv->interp = interp;
-		priv->obj = obj;
+		if ((priv->obj = obj))
+			Tcl_IncrRefCount(priv->obj);
 	}
 
 	TCLListHandler::TCLListHandler(const TCLListHandler & o) : priv(new Priv(*o.priv))
-	{ }
+	{
+		if (priv->obj)
+			Tcl_IncrRefCount(priv->obj);
+	}
 
 	TCLListHandler::~TCLListHandler()
 	{
@@ -143,8 +147,6 @@ namespace SAS {
 
 	Tcl_Obj * TCLListHandler::obj()
 	{
-		if (priv->obj)
-			Tcl_IncrRefCount(priv->obj);
 		return priv->obj;
 	}
 
