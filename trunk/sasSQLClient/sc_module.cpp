@@ -16,18 +16,22 @@
  */
 
 #include "sc_module.h"
+
 #include <sasCore/logging.h>
 #include <sasCore/application.h>
 #include <sasCore/configreader.h>
 #include <sasCore/objectregistry.h>
 #include <sasCore/session.h>
 #include <sasCore/invoker.h>
+
 #include <sasSQL/sqlconnector.h>
 #include <sasSQL/sqlstatement.h>
 #include <sasSQL/sqlvariant.h>
+
 #include <sasTCL/tclinvoker.h>
 #include <sasTCL/tclerrorcollector.h>
 #include <sasTCL/tcllisthandler.h>
+#include <sasTCL/tclexecutor.h>
 
 #include <memory>
 #include <sstream>
@@ -39,7 +43,8 @@ namespace SAS { namespace SQLClient {
 	class SQLTCLInvoker : public TCLInvoker
 	{
 	public:
-		inline SQLTCLInvoker(SQLConnector * conn_, const std::string & name) : TCLInvoker(name), conn(conn_)
+		inline SQLTCLInvoker(SQLConnector * conn_, const std::string & name, SAS::TCLExecutorPool * exec_pool) : 
+			TCLInvoker(name, exec_pool), conn(conn_)
 		{ }
 	protected:
 
@@ -158,9 +163,10 @@ namespace SAS { namespace SQLClient {
 class SC_Session_Invoker : public Session, public Invoker
 {
 public:
-	SC_Session_Invoker(SQLConnector * conn_, const std::string & mod_name_, SessionID id) : Session(id),
+	SC_Session_Invoker(SQLConnector * conn_, const std::string & mod_name_, SessionID id, SAS::TCLExecutorPool * exec_pool_) : Session(id),
 		mod_name(mod_name_), conn(conn_),
-		logger(Logging::getLogger("SAS.SQLClient.SC_Session_Invoker." + mod_name_))
+		logger(Logging::getLogger("SAS.SQLClient.SC_Session_Invoker." + mod_name_)),
+		exec_pool(exec_pool_)
 	{ }
 
 	virtual ~SC_Session_Invoker()
@@ -205,7 +211,7 @@ protected:
 		{
 			if (!tclinv.get())
 			{
-				tclinv.reset(new SQLTCLInvoker(conn, mod_name));
+				tclinv.reset(new SQLTCLInvoker(conn, mod_name, exec_pool));
 				if (!tclinv->init(ec))
 				{
 					tclinv.release();
@@ -225,22 +231,26 @@ private:
 	SQLConnector * conn;
 	Logging::LoggerPtr logger;
 	std::unique_ptr<TCLInvoker> tclinv;
+	SAS::TCLExecutorPool * exec_pool;
 };
 
 struct SC_Module_priv
 {
-	SC_Module_priv() : conn(nullptr)
+	SC_Module_priv(const std::string & name_) : 
+		name(name_), 
+		logger(Logging::getLogger("SAS.SQLClient.SC_Module." + name_)),
+		exec_pool(name_)
 	{ }
 
 	std::string name;
 	Logging::LoggerPtr logger;
-	SQLConnector * conn;
+	SQLConnector * conn = nullptr;
+
+	SAS::TCLExecutorPool exec_pool;
 };
 
-SC_Module::SC_Module(const std::string & name) : Module(), priv(new SC_Module_priv)
-{
-	priv->logger = Logging::getLogger("SAS.SQLClient.SC_Module." + (priv->name = name));
-}
+SC_Module::SC_Module(const std::string & name) : Module(), priv(new SC_Module_priv(name))
+{ }
 
 SC_Module::~SC_Module()
 {
@@ -292,7 +302,7 @@ bool SC_Module::init(Application * app, ErrorCollector & ec)
 
 Session * SC_Module::createSession(SessionID id, ErrorCollector & ec)
 {
-	return new SC_Session_Invoker(priv->conn, priv->name, id);
+	return new SC_Session_Invoker(priv->conn, priv->name, id, &priv->exec_pool);
 }
 
 }}
