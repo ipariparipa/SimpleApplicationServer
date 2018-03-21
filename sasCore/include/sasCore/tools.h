@@ -96,7 +96,7 @@ namespace SAS  {
 	template<typename str_type>
 	str_type str_toupper(const str_type & str)
 	{
-		auto ret;
+		str_type ret;
 		str_toupper(str, ret);
 		return ret;
 	}
