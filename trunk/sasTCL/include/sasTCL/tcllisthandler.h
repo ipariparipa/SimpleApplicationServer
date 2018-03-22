@@ -19,10 +19,12 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 #define sasTCL__tcllisthandler_h
 
 #include "config.h"
+#include "tclobjectref.h"
 #include <sasCore/defines.h>
 
 #include <string>
-#include SAS_TCL__TCL_H
+
+struct Tcl_Interp;
 
 namespace SAS {
 
@@ -34,7 +36,7 @@ namespace SAS {
 	public:
 		TCLListHandler();
 		TCLListHandler(Tcl_Interp * interp);
-		TCLListHandler(Tcl_Interp * interp, Tcl_Obj * ob);
+		TCLListHandler(Tcl_Interp * interp, const TCLObjectRef & obj);
 		TCLListHandler(const TCLListHandler & o);
 		~TCLListHandler();
 		TCLListHandler & operator = (const TCLListHandler & o);
@@ -42,7 +44,7 @@ namespace SAS {
 
 		bool append(const std::string & str);
 		bool append(const TCLListHandler & lst);
-		bool append(Tcl_Obj * obj);
+		bool append(const TCLObjectRef & obj);
 		int length() const;
 
 		bool fromString(const std::string & str);
@@ -53,7 +55,7 @@ namespace SAS {
 
 		std::string toString() const;
 
-		Tcl_Obj * obj();
+		TCLObjectRef obj() const;
 	};
 
 }

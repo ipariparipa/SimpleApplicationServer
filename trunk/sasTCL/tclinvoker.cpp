@@ -215,6 +215,7 @@ namespace SAS {
 			{
 				if (in_size < 4 + sizeof(uint32_t))
 				{
+					SAS_LOG_VAR(priv->logger, in_size);
 					auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "missing or invalid data header");
 					SAS_LOG_ERROR(priv->logger, err);
 					return TCLInvoker::Status::Error;
@@ -228,6 +229,7 @@ namespace SAS {
 				in_data += sizeof(uint32_t); in_size -= sizeof(uint32_t);
 				if (in_size < data_size)
 				{
+					SAS_LOG_VAR(priv->logger, in_size);
 					auto err = ec.add(SAS_TCL__ERROR__INVOKER__INVALID_DATA, "invalid size information in data header: '" + std::to_string(data_size) + "'");
 					SAS_LOG_ERROR(priv->logger, err);
 					return TCLInvoker::Status::Error;
