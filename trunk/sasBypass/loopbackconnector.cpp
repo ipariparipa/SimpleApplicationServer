@@ -22,6 +22,8 @@
 #include <sasCore/module.h>
 #include <sasCore/session.h>
 
+#include <mutex>
+
 namespace SAS {
 
 	struct LoopbackConnection_priv

@@ -17,7 +17,6 @@
 
 #include "orastatement.h"
 #include "oraconnector.h"
-#include "oraresult.h"
 #include "oratools.h"
 
 #include <sasCore/errorcollector.h>
