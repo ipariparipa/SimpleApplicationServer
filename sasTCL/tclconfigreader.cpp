@@ -78,7 +78,7 @@ namespace SAS {
 				val = argv[2];
 			}
 
-			Tcl_SetObjResult(interp, Tcl_NewStringObj(val, -1));
+			Tcl_SetObjResult(interp, SAS::TCLObjectRef(Tcl_NewStringObj(val, -1)));
 			return TCL_OK;
 		}
 	};

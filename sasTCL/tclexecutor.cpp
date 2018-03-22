@@ -137,7 +137,9 @@ namespace SAS {
 					SAS_LOG_TRACE(priv->logger, "Tcl_GlobalEval");
 					if (Tcl_GlobalEval(_interp, priv->current_run->script.c_str()) == TCL_ERROR)
 					{
-						TCLListHandler lst(_interp, Tcl_GetObjResult(_interp));
+						SAS_LOG_TRACE(priv->logger, "Tcl_GetObjResult");
+						auto obj_res = Tcl_GetObjResult(_interp);
+						TCLListHandler lst(_interp, obj_res);
 
 						for (int i(0), l(lst.length()); i < l; ++i)
 						{
@@ -154,10 +156,12 @@ namespace SAS {
 					}
 					else
 					{
-						std::string res;
+						SAS_LOG_TRACE(priv->logger, "Tcl_GetStringResult");
 						priv->current_run->result = Tcl_GetStringResult(_interp);
 						priv->current_run->isOK = true;
 					}
+					SAS_LOG_TRACE(priv->logger, "Tcl_FreeResult");
+					Tcl_FreeResult(_interp);
 					break;
 				case Run::Init:
 					if (priv->current_run->initer)
