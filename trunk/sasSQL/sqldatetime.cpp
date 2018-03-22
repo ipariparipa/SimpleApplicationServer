@@ -177,7 +177,7 @@ SQLDateTime::SQLDateTime(const tm * t) : priv(new Priv)
 	priv->ms_precision = 0;
 }
 
-SQLDateTime::SQLDateTime(const tm * t, unsigned int milliseconds, short ms_precision)
+SQLDateTime::SQLDateTime(const tm * t, unsigned int milliseconds, short ms_precision) : priv(new Priv)
 {
 	priv->from_tm(t);
 
@@ -210,7 +210,7 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
 	priv->daylightSaveTime = tmp.tm_isdst != 0;
 }
 
-SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, int tzHours, int TzMinutes, bool negative, short ms_precision)
+SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, int tzHours, int TzMinutes, bool negative, short ms_precision) : priv(new Priv)
 {
 	std::tm tm;
 	Priv::to_tm(years, months, days, hours, minutes, seconds, tm);
@@ -239,7 +239,6 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
 	priv->daylightSaveTime = tmp.tm_isdst != 0;
 */
 }
-
 
 SQLDateTime::SQLDateTime(const std::string & str) : priv(new Priv)
 {
