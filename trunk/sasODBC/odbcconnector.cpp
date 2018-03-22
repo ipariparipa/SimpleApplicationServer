@@ -157,7 +157,7 @@ struct ODBCConnector::Priv
 
 				SQLHDBC _conn;
 				if (!createODBCConnection(env, _conn, ec))
-					return false;
+					return nullptr;
 
 				connection_repo[conn = new Connection(env, _conn)] = 1;
 			}
@@ -255,7 +255,7 @@ struct ODBCConnector::Priv
 				}
 				else if (o.first == "CURRENT_CATALOG")
 				{
-					auto v = (SQLUINTEGER)std::stoul(o.second);
+					//auto v = (SQLUINTEGER)std::stoul(o.second);
 					rc = SQLSetConnectAttr(conn, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER)o.second.c_str(), o.second.size());
 				}
 				else if (o.first == "METADATA_ID")
@@ -276,12 +276,12 @@ struct ODBCConnector::Priv
 				}
 				else if (o.first == "PACKET_SIZE")
 				{
-					auto v = (SQLUINTEGER)std::stoul(o.second);
+					//auto v = (SQLUINTEGER)std::stoul(o.second);
 					rc = SQLSetConnectAttr(conn, SQL_ATTR_PACKET_SIZE, (SQLPOINTER)o.second.c_str(), o.second.size());
 				}
 				else if (o.first == "TRACEFILE")
 				{
-					auto v = (SQLUINTEGER)std::stoul(o.second);
+					//auto v = (SQLUINTEGER)std::stoul(o.second);
 					rc = SQLSetConnectAttr(conn, SQL_ATTR_TRACEFILE, (SQLPOINTER)o.second.c_str(), o.second.size());
 				}
 				else if (o.first == "TRACE")

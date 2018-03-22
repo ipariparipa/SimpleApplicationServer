@@ -77,14 +77,11 @@ public:
 				return false;
 			}
 
-			bool has_error(false);
 			std::vector<Object*> connectors(connector_names.size());
 			for(size_t i = 0, l = connector_names.size(); i < l; ++i)
 			{
 				auto conn = new ODBCConnector(env, connector_names[i], app);
-				if(!conn->init(std::string("SAS/ODBC/") + connector_names[i], ec))
-					has_error = true;
-				else
+				if(conn->init(std::string("SAS/ODBC/") + connector_names[i], ec))
 					connectors[i] = conn;
 			}
 

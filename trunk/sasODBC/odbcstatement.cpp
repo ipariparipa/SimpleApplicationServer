@@ -23,7 +23,9 @@ along with sasODBC.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/errorcollector.h>
 #include <sasSQL/errorcodes.h>
 #include <sasSQL/sqldatetime.h>
+
 #include <assert.h>
+#include <string.h>
 
 namespace SAS {
 
@@ -49,7 +51,7 @@ namespace SAS {
 			if (conn->settings().long_long_bind_supported)
 			{
 				SQLRETURN rc;
-				SQLINTEGER null_data_ind = SQL_NULL_DATA;
+				SAS_ODBC__PCB_VALUE_TYPE null_data_ind = SQL_NULL_DATA;
 
 				assert(idx < bind_buffer.size());
 				assert(stmt);
@@ -77,7 +79,7 @@ namespace SAS {
 		bool bindParam(size_t idx, long val, bool isNull, ErrorCollector & ec)
 		{
 			SQLRETURN rc;
-			SQLINTEGER null_data_ind = SQL_NULL_DATA;
+			SAS_ODBC__PCB_VALUE_TYPE null_data_ind = SQL_NULL_DATA;
 
 			assert(idx < bind_buffer.size());
 			assert(stmt);
@@ -102,7 +104,7 @@ namespace SAS {
 		bool bindParam(size_t idx, double val, bool isNull, ErrorCollector & ec)
 		{
 			SQLRETURN rc;
-			SQLINTEGER null_data_ind = SQL_NULL_DATA;
+			SAS_ODBC__PCB_VALUE_TYPE null_data_ind = SQL_NULL_DATA;
 
 			assert(idx < bind_buffer.size());
 			assert(stmt);
@@ -129,7 +131,7 @@ namespace SAS {
 			SAS_LOG_NDC();
 
 			SQLRETURN rc;
-			SQLINTEGER null_data_ind = SQL_NULL_DATA;
+			SAS_ODBC__PCB_VALUE_TYPE null_data_ind = SQL_NULL_DATA;
 
 			assert(idx < bind_buffer.size());
 			assert(stmt);
@@ -162,7 +164,7 @@ namespace SAS {
 		bool bindParam(size_t idx, size_t size, const unsigned char * buffer, bool isNull, ErrorCollector & ec)
 		{
 			SQLRETURN rc;
-			SQLINTEGER null_data_ind = isNull ? SQL_NULL_DATA : (SQLINTEGER)size;
+			SAS_ODBC__PCB_VALUE_TYPE null_data_ind = isNull ? SQL_NULL_DATA : (SQLINTEGER)size;
 
 			assert(idx < bind_buffer.size());
 			assert(stmt);
@@ -187,7 +189,7 @@ namespace SAS {
 		bool bindParam(size_t idx, const tm & val, long msecs, bool isNull, ErrorCollector & ec)
 		{
 			SQLRETURN rc;
-			SQLINTEGER null_data_ind = SQL_NULL_DATA;
+			SAS_ODBC__PCB_VALUE_TYPE null_data_ind = SQL_NULL_DATA;
 
 			assert(idx < bind_buffer.size());
 
@@ -266,7 +268,7 @@ namespace SAS {
 			ret.resize(res_col_num);
 
 			SQLSMALLINT type;
-			SQLUINTEGER size;
+			SAS_ODBC__SIZE_TYPE size;
 			SQLCHAR col_name[1024];
 			SQLSMALLINT col_name_length;
 			SQLSMALLINT dec_digits;
@@ -633,7 +635,7 @@ namespace SAS {
 			case SQLDataType::String:
 				{
 					std::vector<SQLCHAR> buff(std::get<2>(f));
-					SQLINTEGER len;
+					SAS_ODBC__LENGTH_TYPE len;
 					SAS_LOG_TRACE(priv->logger, "SQLGetData");
 					switch (rc = SQLGetData(priv->stmt, i + 1, SQL_C_CHAR, buff.data(), buff.size(), &len))
 					{
@@ -664,7 +666,7 @@ namespace SAS {
 			case SQLDataType::Number:
 				{
 					SQLBIGINT  buff;
-					SQLINTEGER len;
+					SAS_ODBC__LENGTH_TYPE len;
 					switch (rc = SQLGetData(priv->stmt, i + 1, SQL_C_SBIGINT, &buff, sizeof(buff), &len))
 					{
 					break;
@@ -689,7 +691,7 @@ namespace SAS {
 			case SQLDataType::Real:
 				{
 					SQLDOUBLE buff;
-					SQLINTEGER len;
+					SAS_ODBC__LENGTH_TYPE len;
 					switch (rc = SQLGetData(priv->stmt, i + 1, SQL_C_DOUBLE, &buff, sizeof(buff), &len))
 					{
 					case SQL_NO_DATA:
@@ -713,7 +715,7 @@ namespace SAS {
 			case SQLDataType::DateTime:
 				{
 					TIMESTAMP_STRUCT buff;
-					SQLINTEGER len;
+					SAS_ODBC__LENGTH_TYPE len;
 					switch (rc = SQLGetData(priv->stmt, i + 1, SQL_C_TIMESTAMP, &buff, 0, &len))
 					{
 					case SQL_NO_DATA:
@@ -745,7 +747,7 @@ namespace SAS {
 						buffer_size = 65536;
 
 					std::vector<SQLCHAR> buffer(buffer_size);
-					SQLINTEGER len;
+					SAS_ODBC__LENGTH_TYPE len;
 					size_t read = 0;
 
 					while ((rc = SQLGetData(priv->stmt, i + 1, SQL_C_BINARY, buffer.data() + read, buffer_size, &len)) == SQL_SUCCESS_WITH_INFO || rc == SQL_SUCCESS)

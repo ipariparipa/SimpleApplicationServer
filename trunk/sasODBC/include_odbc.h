@@ -21,10 +21,21 @@ along with sasODBC.  If not, see <http://www.gnu.org/licenses/>
 #include "config.h"
 
 #if SAS_OS == SAS_OS_LINUX 
-#  include <unixodbc.h>
+#  include <sql.h>
+#  include <sqlext.h>
+
+#  define SAS_ODBC__PCB_VALUE_TYPE SQLLEN
+#  define SAS_ODBC__SIZE_TYPE SQLULEN
+#  define SAS_ODBC__LENGTH_TYPE SQLLEN
+
 #elif SAS_OS == SAS_OS_WINDOWS 
 #  include <Windows.h>
 #  include <sqlext.h> 
+
+#  define SAS_ODBC__PCB_VALUE_TYPE SQLINTEGER
+#  define SAS_ODBC__SIZE_TYPE SQLUINTEGER
+#  define SAS_ODBC__LENGTH_TYPE SQLINTEGER
+
 #endif
 
 #endif // sasODBC__include_odbc_h
