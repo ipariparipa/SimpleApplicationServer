@@ -31,6 +31,51 @@
 
 namespace SAS {
 
+struct MYSQL_RES__ptr
+{
+	MYSQL_RES__ptr() : _res(nullptr)
+	{ }
+
+	MYSQL_RES__ptr(MYSQL_RES * res) : _res(res)
+	{ }
+
+	~MYSQL_RES__ptr()
+	{
+		if(_res)
+			mysql_free_result(_res);
+	}
+
+	MYSQL_RES__ptr & operator = (MYSQL_RES * res)
+	{
+		if(_res)
+			mysql_free_result(_res);
+
+		_res = res;
+		return *this;
+	}
+
+	operator bool () const
+	{
+		return _res;
+	}
+
+	MYSQL_RES * operator -> () const
+	{
+		return _res;
+	}
+
+	MYSQL_RES * operator * () const
+	{
+		return _res;
+	}
+
+private:
+	MYSQL_RES__ptr(const MYSQL_RES__ptr &);
+	MYSQL_RES__ptr & operator = (const MYSQL_RES__ptr &);
+
+	MYSQL_RES * _res;
+};
+
 struct MySQLStatement::Priv
 {
 	Priv(MYSQL_STMT * stmt_, MySQLConnector * conn_) : 
@@ -518,10 +563,11 @@ bool MySQLStatement::execDML(ErrorCollector & ec)
 bool MySQLStatement::exec(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
+
 	std::unique_lock<std::mutex> __locker(priv->mut);
 	std::unique_lock<std::mutex> __locker_conn(priv->conn_mut);
 
-	MYSQL_RES * meta_res;
+	MYSQL_RES__ptr meta_res;
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_result_metadata");
 	if(!(meta_res =  mysql_stmt_result_metadata(priv->stmt)))
 	{
@@ -531,7 +577,7 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 	}
 
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_num_fields");
-	unsigned long fields_num = mysql_num_fields(meta_res);
+	unsigned long fields_num = mysql_num_fields(*meta_res);
 	SAS_LOG_VAR(priv->conn->logger(), fields_num);
 
 	priv->res_helpers.resize(fields_num);
@@ -540,7 +586,7 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 	bool has_error(false);
 	for(unsigned long i = 0; i < fields_num; ++i)
 	{
-		MYSQL_FIELD * f = mysql_fetch_field_direct(meta_res, i);
+		MYSQL_FIELD * f = mysql_fetch_field_direct(*meta_res, i);
 		auto & b = priv->res_binders[i];
 		auto & h = priv->res_helpers[i];
 		b.buffer_type = f->type;
@@ -667,7 +713,7 @@ bool MySQLStatement::fieldNum(size_t & ret, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
 	std::unique_lock<std::mutex> __locker(priv->mut);
-	MYSQL_RES * meta_res;
+	MYSQL_RES__ptr meta_res;
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_result_metadata");
 	if(!(meta_res =  mysql_stmt_result_metadata(priv->stmt)))
 	{
@@ -677,7 +723,7 @@ bool MySQLStatement::fieldNum(size_t & ret, ErrorCollector & ec)
 	}
 
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_num_fields");
-	ret = mysql_num_fields(meta_res);
+	ret = mysql_num_fields(*meta_res);
 	return true;
 }
 
@@ -686,7 +732,7 @@ bool MySQLStatement::fields(std::vector<std::tuple<std::string /*db/scheme*/, st
 	SAS_LOG_NDC();
 	std::unique_lock<std::mutex> __locker(priv->mut);
 
-	MYSQL_RES * meta_res;
+	MYSQL_RES__ptr meta_res;
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_result_metadata");
 	if(!(meta_res =  mysql_stmt_result_metadata(priv->stmt)))
 	{
@@ -696,7 +742,7 @@ bool MySQLStatement::fields(std::vector<std::tuple<std::string /*db/scheme*/, st
 	}
 
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_num_fields");
-	unsigned long fields_num = mysql_num_fields(meta_res);
+	unsigned long fields_num = mysql_num_fields(*meta_res);
 	SAS_LOG_VAR(priv->conn->logger(), fields_num);
 	ret.resize(fields_num);
 
@@ -704,7 +750,7 @@ bool MySQLStatement::fields(std::vector<std::tuple<std::string /*db/scheme*/, st
 	for(unsigned long i = 0; i < fields_num; ++i)
 	{
 		MYSQL_FIELD * f;
-		assert(f = mysql_fetch_field_direct(meta_res, i));
+		assert(f = mysql_fetch_field_direct(*meta_res, i));
 
 		ret[i] = std::tuple<std::string, std::string, std::string, SQLDataType>(
 			f->db ? f->db : std::string(),
