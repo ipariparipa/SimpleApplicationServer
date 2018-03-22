@@ -19,6 +19,7 @@ HEADERS += \
     include/sasTCL/tclinterpinitilizer.h \
     include/sasTCL/tclinvoker.h \
     include/sasTCL/tcllisthandler.h
+    include/sasTCL/tclobjectref.h
 
 
 SOURCES += \
@@ -27,4 +28,5 @@ SOURCES += \
     tclexecutor.cpp \
     tclinvoker.cpp \
     tcllisthandler.cpp
+    tclobjectref.cpp
 
