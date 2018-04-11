@@ -165,7 +165,7 @@ struct MQTTAsync::Priv
 		priv->conn_not.notify();
 	}
 
-	static unsigned long long uniqId()
+	static unsigned long long uniqueId()
 	{
 		static std::mutex m;
 		std::unique_lock<std::mutex> __locker(m);
@@ -199,7 +199,7 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 {
 	SAS_LOG_NDC();
 
-	priv->client_id = conn_opts.clientId + "_" + std::to_string(Priv::uniqId());
+	priv->client_id = conn_opts.clientId + "_" + std::to_string(Priv::uniqueId());
 
 	SAS_LOG_VAR(priv->logger, conn_opts.serverUri);
 	SAS_LOG_VAR(priv->logger, priv->client_id);
