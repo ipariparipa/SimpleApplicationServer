@@ -22,6 +22,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/thread.h>
 #include <sasCore/tools.h>
 #include <sasCore/configreader.h>
+#include <sasCore/session.h>
 
 #include "mqttclient.h"
 #include "mqttconnectionoptions.h"
@@ -189,8 +190,9 @@ namespace SAS {
 		Logging::LoggerPtr _logger;
 		std::string _invoker;
 		std::string _module;
-		long long _session_id;
+		SessionID _session_id;
 		long _receive_count = 0;
+
 	public:
 		MQTTConnection(const std::string & module, const std::string & invoker) : Connection(), MQTTCaller(module, invoker),
 			_logger(Logging::getLogger("SAS.MQTTConnection." + module + "." + invoker)),
@@ -210,7 +212,7 @@ namespace SAS {
 		bool init(MQTTConnectionOptions & options, long receive_count, ErrorCollector & ec)
 		{
 			SAS_LOG_NDC();
-			if(!MQTTCaller::init(options, ec))
+			if (!MQTTCaller::init(options, ec))
 				return false;
 			_receive_count = receive_count;
 			return true;
