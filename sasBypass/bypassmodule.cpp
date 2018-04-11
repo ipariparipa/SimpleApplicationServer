@@ -101,6 +101,7 @@ namespace SAS {
 		{ }
 
 		std::string name;
+		std::string dest_module_name;
 		std::string version;
 		std::string description;
 		Logging::LoggerPtr logger;
@@ -152,16 +153,26 @@ namespace SAS {
 		if(!priv->connector->connect(ec))
 			return false;
 
+		if (!app->configReader()->getStringEntry(config_path + "/MODULE", priv->dest_module_name, priv->name, ec))
+			return false;
 
 		SAS_LOG_TRACE(priv->logger, "get module information");
-		return priv->connector->getModuleInfo(priv->name, priv->description, priv->version, ec);
+
+		long long default_session_lifetime;
+		if (!app->configReader()->getNumberEntry(config_path + "/DEFAULT_SESSION_LIFETIME", default_session_lifetime, 120, ec))
+			return false;
+
+		if (!SAS::SessionManager::init((long)default_session_lifetime, ec))
+			return false;
+
+		return priv->connector->getModuleInfo(priv->dest_module_name, priv->description, priv->version, ec);
 	}
 
 	Session * BypassModule::createSession(SessionID id, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
 		SAS_LOG_ASSERT(priv->logger, priv->connector, "connector must be initialized");
-		return new BypassSession(id, priv->name, priv->connector);
+		return new BypassSession(id, priv->dest_module_name, priv->connector);
 	}
 
 }

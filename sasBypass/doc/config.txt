@@ -1,3 +1,5 @@
 SAS/BYPASS/LOOPBACK_CONNECTORS: string list, optional
 SAS/BYPASS/MODULES: string list, optional
 SAS/BYPASS/<module>/CONNECTOR: string, mandatory
+SAS/BYPASS/<module>/MODULE: string, optional (<module>)
+SAS/BYPASS/<module>/DEFAULT_SESSION_LIFETIME: number, optional (120), secs
