@@ -20,12 +20,13 @@ namespace SAS {
 
 class ErrorCollector;
 
-struct MQTTAsync_priv;
-
 class MQTTAsync
 {
 	friend struct MQTTAsync_priv;
 	SAS_COPY_PROTECTOR(MQTTAsync);
+
+	struct Priv;
+	Priv * priv;
 public:
 	MQTTAsync(const std::string & name);
 	MQTTAsync(const Logging::LoggerPtr & logger);
@@ -51,8 +52,6 @@ public:
 protected:
 	virtual bool messageArrived(const std::string & topic, const std::vector<char> & payload, int qos) = 0;
 
-private:
-	std::unique_ptr<MQTTAsync_priv> priv;
 };
 
 }

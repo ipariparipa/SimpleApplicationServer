@@ -19,22 +19,21 @@
 
 namespace SAS {
 
-struct MQTTAsync_priv
+struct MQTTAsync::Priv
 {
-	MQTTAsync_priv(MQTTAsync * that_, const std::string & name) :
+	Priv(MQTTAsync * that_, const std::string & name) :
 		that(that_),
-		mqtt_handle(NULL),
 		logger(Logging::getLogger("SAS.MQTTAsync." + name))
 	{ }
 
-	MQTTAsync_priv(MQTTAsync * that_, const Logging::LoggerPtr & logger_) :
+	Priv(MQTTAsync * that_, const Logging::LoggerPtr & logger_) :
 		that(that_),
-		mqtt_handle(NULL),
 		logger(logger_)
 	{ }
 
+	std::string client_id;
 	MQTTAsync * that;
-	::MQTTAsync mqtt_handle;
+	::MQTTAsync mqtt_handle = NULL;
 	Logging::LoggerPtr logger;
 	MQTTConnectionOptions options;
 	std::vector<std::string> topics;
@@ -84,8 +83,8 @@ struct MQTTAsync_priv
 		conn_opts.username = options.username.c_str();
 		conn_opts.password = options.password.c_str();
 		conn_opts.context = this;
-		conn_opts.onSuccess = MQTTAsync_priv::_onConnected;
-		conn_opts.onFailure = MQTTAsync_priv::_onConnectionFailed;
+		conn_opts.onSuccess = Priv::_onConnected;
+		conn_opts.onFailure = Priv::_onConnectionFailed;
 		conn_opts.maxInflight = 100;
 		conn_opts.connectTimeout = options.connectTimeout;
 		int rc;
@@ -106,7 +105,7 @@ struct MQTTAsync_priv
 	static void _connectionLost(void* context, char* cause)
 	{
 		SAS_LOG_NDC();
-		auto priv = (MQTTAsync_priv*)context;
+		auto priv = (Priv*)context;
 		SAS_LOG_ERROR(priv->logger, "MQTT connection lost: '" + std::string(cause ? cause : "(no_cause)") + "'");
 		NullEC ec;
 		if (!priv->that->connect(priv->ec ? *priv->ec : ec))
@@ -116,7 +115,7 @@ struct MQTTAsync_priv
 	static void _connected(void* context, char* cause)
 	{
 		SAS_LOG_NDC();
-		auto priv = (MQTTAsync_priv*)context;
+		auto priv = (Priv*)context;
 		SAS_LOG_DEBUG(priv->logger, "MQTT connected: '" + std::string(cause ? cause : "(no_cause)") + "'");
 		priv->conn_not.notify();
 	}
@@ -124,7 +123,7 @@ struct MQTTAsync_priv
 	static int _messageArrived(void* context, char* topicName, int topicLen, MQTTAsync_message* message)
 	{
 		SAS_LOG_NDC();
-		auto priv = (MQTTAsync_priv*)context;
+		auto priv = (Priv*)context;
 		SAS_LOG_ASSERT(priv->logger, message, "'message' must be not NULL");
 
 		std::string _topic;
@@ -150,7 +149,7 @@ struct MQTTAsync_priv
 	{
 		SAS_LOG_NDC();
 		NullEC ec;
-		auto priv = (MQTTAsync_priv*)context;
+		auto priv = (Priv*)context;
 		SAS_LOG_DEBUG(priv->logger, "MQTT connected");
 		priv->subscribe(priv->ec ? *priv->ec : ec);
 		priv->conn_not.notify();
@@ -160,23 +159,32 @@ struct MQTTAsync_priv
 	{
 		SAS_LOG_NDC();
 		NullEC ec;
-		auto priv = (MQTTAsync_priv*)context;
+		auto priv = (Priv*)context;
 		auto err = (priv->ec ? priv->ec : &ec)->add(-1, "connection failed: '" + std::string(response->message ? response->message : "(no_message)") + "'");
 		SAS_LOG_ERROR(priv->logger, err);
 		priv->conn_not.notify();
 	}
 
+	static unsigned long long uniqId()
+	{
+		static std::mutex m;
+		std::unique_lock<std::mutex> __locker(m);
+		static unsigned long long id = 0;
+		return ++id;
+	}
+
 };
 
-MQTTAsync::MQTTAsync(const std::string & name) : priv(std::make_unique<MQTTAsync_priv>(this, name))
+MQTTAsync::MQTTAsync(const std::string & name) : priv(new Priv(this, name))
 { }
 
-MQTTAsync::MQTTAsync(const Logging::LoggerPtr & logger) : priv(std::make_unique<MQTTAsync_priv>(this, logger))
+MQTTAsync::MQTTAsync(const Logging::LoggerPtr & logger) : priv(new Priv(this, logger))
 { }
 
 MQTTAsync::~MQTTAsync()
 {
 	deinit();
+	delete priv;
 }
 
 
@@ -191,12 +199,14 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 {
 	SAS_LOG_NDC();
 
+	priv->client_id = conn_opts.clientId + "_" + std::to_string(Priv::uniqId());
+
 	SAS_LOG_VAR(priv->logger, conn_opts.serverUri);
-	SAS_LOG_VAR(priv->logger, conn_opts.clientId);
+	SAS_LOG_VAR(priv->logger, priv->client_id);
 
 	int rc;
 	SAS_LOG_TRACE(priv->logger, "MQTTAsync_create");
-	if((rc = MQTTAsync_create(&priv->mqtt_handle, conn_opts.serverUri.c_str(), conn_opts.clientId.c_str(), MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTASYNC_SUCCESS)
+	if ((rc = MQTTAsync_create(&priv->mqtt_handle, conn_opts.serverUri.c_str(), priv->client_id.c_str(), MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTASYNC_SUCCESS)
 	{
 		auto err = ec.add(-1, "could not initialize MQTT ("+std::to_string(rc)+")");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -204,8 +214,8 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 	}
 
 	SAS_LOG_TRACE(priv->logger, "MQTTAsync_setCallbacks, MQTTAsync_setConnected");
-	if ((rc = MQTTAsync_setCallbacks(priv->mqtt_handle, priv.get(), MQTTAsync_priv::_connectionLost, MQTTAsync_priv::_messageArrived, MQTTAsync_priv::_deliveryComplete)) != MQTTASYNC_SUCCESS ||
-	    (rc = MQTTAsync_setConnected(priv->mqtt_handle, priv.get(), MQTTAsync_priv::_connected)) != MQTTASYNC_SUCCESS)
+	if ((rc = MQTTAsync_setCallbacks(priv->mqtt_handle, priv, Priv::_connectionLost, Priv::_messageArrived, Priv::_deliveryComplete)) != MQTTASYNC_SUCCESS ||
+	    (rc = MQTTAsync_setConnected(priv->mqtt_handle, priv, Priv::_connected)) != MQTTASYNC_SUCCESS)
 	{
 		auto err = ec.add(-1, "unexpected error could not set MQTT callbacks ("+std::to_string(rc)+")");
 		SAS_LOG_ERROR(priv->logger, err);
