@@ -31,20 +31,20 @@ namespace SAS {
 		JSONInvoker_priv(const std::string & name) : logger(SAS::Logging::getLogger("SAS.JSONInvoker."+name))
 		{ }
 
-		bool call(rapidjson::Value & function, JSONFunction::RetVal & ret, SAS::ErrorCollector & ec)
+		JSONInvoker::Status call(rapidjson::Value & function, JSONFunction::RetVal & ret, SAS::ErrorCollector & ec)
 		{
 			if(!function.IsObject())
 			{
 				auto err = ec.add(SAS_CORE__ERROR__INVOKER__TYPE_MISMATCH, "function call must be an object");
 				SAS_LOG_ERROR(logger, err);
-				return false;
+				return JSONInvoker::Status::Error;
 			}
 
 			if(!function.HasMember("function"))
 			{
 				auto err = ec.add(SAS_CORE__ERROR__INVOKER__INVALID_DATA, "'function' is not specified");
 				SAS_LOG_ERROR(logger, err);
-				return false;
+				return JSONInvoker::Status::Error;
 			}
 
 			auto & _name = function["function"];
@@ -52,7 +52,7 @@ namespace SAS {
 			{
 				auto err = ec.add(SAS_CORE__ERROR__INVOKER__TYPE_MISMATCH, "'function' is not string");
 				SAS_LOG_ERROR(logger, err);
-				return false;
+				return JSONInvoker::Status::Error;
 			}
 
 			std::string name = _name.GetString();
@@ -60,18 +60,18 @@ namespace SAS {
 			{
 				auto err = ec.add(SAS_JSON__ERROR__INVOKER__UNSUPPORTED_FUNCTIONALITY, "unknown function: '" + name + "'");
 				SAS_LOG_ERROR(logger, err);
-				return false;
+				return JSONInvoker::Status::NotImplemented;
 			}
 
 			if(!function.HasMember("arguments"))
 			{
 				auto err = ec.add(SAS_CORE__ERROR__INVOKER__INVALID_DATA, "'arguments' for function '" + name + "' are not specified");
 				SAS_LOG_ERROR(logger, err);
-				return false;
+				return JSONInvoker::Status::Error;
 			}
 			auto & _args = function["arguments"];
 
-			return (*functions[name])(_args, ret, ec);
+			return (*functions[name])(_args, ret, ec) ? JSONInvoker::Status::OK : JSONInvoker::Status::Error;
 		}
 
 
@@ -104,8 +104,9 @@ namespace SAS {
 		rapidjson::Document ret_doc;
 		ret_doc.Parse("{}");
 		JSONFunction::RetVal rv(ret_doc);
-		if(!priv->call(doc, rv, ec))
-			return Status::Error;
+		Status ret_stat;
+		if ((ret_stat = priv->call(doc, rv, ec)) != Status::OK)
+			return ret_stat;
 
 		rapidjson::StringBuffer sb;
 		rapidjson::Writer<rapidjson::StringBuffer> w(sb);
