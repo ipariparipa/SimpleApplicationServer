@@ -118,6 +118,7 @@
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="timerthread.cpp" />
     <ClCompile Include="tools.cpp" />
+    <ClCompile Include="uniqueobjectmanager.cpp" />
     <ClCompile Include="watchdog.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +148,7 @@
     <ClInclude Include="include\sasCore\thread.h" />
     <ClInclude Include="include\sasCore\timerthread.h" />
     <ClInclude Include="include\sasCore\tools.h" />
+    <ClInclude Include="include\sasCore\uniqueobjectmanager.h" />
     <ClInclude Include="include\sasCore\watchdog.h" />
   </ItemGroup>
   <ItemGroup>

@@ -26,64 +26,66 @@
 #include "include/sasCore/session.h"
 #include "include/sasCore/timerthread.h"
 #include "include/sasCore/logging.h"
+#include "include/sasCore/uniqueobjectmanager.h"
 
 #include <iostream>
 #include <sstream>
 
 namespace SAS {
 
-	struct SessionManager_priv
+	struct SessionManager::Priv
 	{
-		SessionManager_priv() : cleaner(this), logger(Logging::getLogger("SAS.SessionManager"))
+		Priv(UniqueObjectManager * that_) : that(that_), cleaner(this), logger(Logging::getLogger("SAS.SessionManager"))
 		{ }
 
-		struct Depot
+		struct SessionObject : public UniqueObjectManager::Object
 		{
-			Depot() : logger(Logging::getLogger("SAS.SessionManager.Depot"))
+			SessionObject(Session * session_, std::chrono::seconds max_idletime_) : session(session_), max_idletime(max_idletime_)
 			{ }
 
-			struct Item
+			virtual ~SessionObject()
 			{
-				Item() : session(nullptr)
-				{ }
+				assert(session);	
+				delete session;
+			}
 
-				Session * session;
-				std::chrono::time_point<std::chrono::high_resolution_clock> lastTached;
-				std::chrono::seconds max_idletime;
-			};
+			Session * session;
 
-			Logging::LoggerPtr logger;
-			std::map<SessionID, Item> data;
-			std::mutex mutex;
-		} depot;
+			std::chrono::seconds max_idletime;
+		};
 
+		UniqueObjectManager * that;
 		std::chrono::seconds default_max_idletime;
 
 		struct Cleaner : public TimerThread
 		{
-			Cleaner(SessionManager_priv * priv_) : logger(Logging::getLogger("SAS.SessionManager.Cleaner")), priv(priv_)
+			Cleaner(Priv * priv_) : logger(Logging::getLogger("SAS.SessionManager.Cleaner")), priv(priv_)
 			{ }
 
 			void shot() override
 			{
 				SAS_LOG_NDC();
 
-				std::list<std::pair<SessionID, Session*>> to_be_deleted;
+				std::list<std::pair<SessionID, SessionObject*>> to_be_deleted;
 
 				{
-					std::unique_lock<std::mutex> __mutex_locker(priv->depot.mutex);
-					for (auto & it : priv->depot.data)
+					auto & depot = priv->that->depot();
+					std::unique_lock<UniqueObjectManager::Depot> __locker(depot);
+					for (const auto & it : depot.data())
 					{
-						if (it.second.session->try_lock())
+						auto so = dynamic_cast<SessionObject*>(it.second);
+						assert(so);
+						if (so->session->try_lock())
 						{
-							if (std::chrono::high_resolution_clock::now() - it.second.lastTached >= it.second.max_idletime)
-								to_be_deleted.push_back(std::pair<SessionID, Session*>(it.first, it.second.session));
-							it.second.session->unlock();
+							if (std::chrono::high_resolution_clock::now() - so->lastTached() >= so->max_idletime)
+								to_be_deleted.push_back(std::pair<SessionID, SessionObject*>(it.first, so));
+							so->session->unlock();
 						}
 					}
 					for (auto & s : to_be_deleted)
-						priv->depot.data.erase(s.first);
+						depot.erase(s.first);
 				}
+
 
 				for(auto & s : to_be_deleted)
 				{
@@ -93,14 +95,14 @@ namespace SAS {
 			}
 			Logging::LoggerPtr logger;
 
-			SessionManager_priv * priv;
+			Priv * priv;
 		} cleaner;
 
 
 		Logging::LoggerPtr logger;
 	};
 
-	SessionManager::SessionManager() : priv(new SessionManager_priv)
+	SessionManager::SessionManager() : UniqueObjectManager(), priv(new Priv(this))
 	{ }
 
 	SessionManager::~SessionManager()
@@ -126,88 +128,48 @@ namespace SAS {
 		priv->cleaner.stop();
 		priv->cleaner.wait();
 		SAS_LOG_TRACE(priv->logger, "session cleaner thread has been ended");
-		std::unique_lock<std::mutex> __mutex_locker(priv->depot.mutex);
 		SAS_LOG_TRACE(priv->logger, "remove all sessions");
-		for (auto it : priv->depot.data)
-		{
-			it.second.session->lock();
-			it.second.session->unlock();
-			delete it.second.session;
-		}
-		priv->depot.data.clear();
+		clear();
 	}
 
 	Session * SessionManager::getSession(SessionID sid, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-		std::unique_lock<std::mutex> __mutex_locker(priv->depot.mutex);
-		SessionManager_priv::Depot::Item * it;
-		auto now = std::chrono::system_clock::now();
-		if(sid)
-		{
-			SAS_LOG_TRACE(priv->logger, "session ID is already known");
-			SAS_LOG_VAR(priv->logger, sid);
-			if(priv->depot.data.count(sid))
-			{
-				SAS_LOG_TRACE(priv->logger, "session is found for ID: " + std::to_string(sid));
-				it = &priv->depot.data[sid];
-			}
-			else
-			{
-				SAS_LOG_DEBUG(priv->logger, "session is already not found, create a new session for this ID");
-				it = &priv->depot.data[sid];
-				if(!(it->session = createSession(sid, ec)))
-				{
-					priv->depot.data.erase(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count());
-					return nullptr;
-				}
-				it->max_idletime = priv->default_max_idletime;
-			}
-		}
-		else
-		{
-			SAS_LOG_TRACE(priv->logger, "session ID is unknown, generate a new one");
-			while(priv->depot.data.count(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count()))
-			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
-				now = std::chrono::system_clock::now();
-			}
-			sid = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
-			SAS_LOG_VAR(priv->logger, sid);
-			it = &priv->depot.data[sid];
-			SAS_LOG_TRACE(priv->logger, "create new session");
-			if (!(it->session = createSession(sid, ec)))
-			{
-				SAS_LOG_TRACE(priv->logger, "could not create new session");
-				priv->depot.data.erase(sid);
-				return nullptr;
-			}
-			SAS_LOG_TRACE(priv->logger, "new session has been created");
-			it->max_idletime = priv->default_max_idletime;
-		}
 
-		it->lastTached = now;
+		Object * o;
+		if (!(o = getObject(sid, ec)))
+			return nullptr;
+
+		auto so = dynamic_cast<Priv::SessionObject*>(o);
+		assert(so);
+
 		SAS_LOG_TRACE(priv->logger, "lock session");
-		it->session->lock();
-		return it->session;
+		so->session->lock();
+		return so->session;
 	}
 
 	void SessionManager::endSession(SessionID sid)
 	{
 		SAS_LOG_NDC();
-		std::unique_lock<std::mutex> __mutex_locker(priv->depot.mutex);
+		unuse(sid);
+	}
 
-		SAS_LOG_VAR(priv->logger, sid);
-		if(priv->depot.data.count(sid))
-		{
-			auto sess = priv->depot.data[sid].session;
-			SAS_LOG_TRACE(priv->logger, "lock session");
-			sess->lock();
-			sess->unlock();
-			SAS_LOG_TRACE(priv->logger, "destroy session");
-			delete sess;
-			priv->depot.data.erase(sid);
-		}
+	SessionManager::Object * SessionManager::createObject(const UniqueId & id, ErrorCollector & ec)
+	{
+		Session * s;
+		if (!(s = createSession(id, ec)))
+			return nullptr;
+
+		return new Priv::SessionObject(s, priv->default_max_idletime);
+	}
+
+	void SessionManager::destroyObject(Object * o)
+	{
+		auto so = dynamic_cast<Priv::SessionObject*>(o);
+		assert(so);
+		so->session->lock();
+		so->session->unlock();
+		delete so;
 	}
 
 }
