@@ -81,6 +81,9 @@
     <ClCompile Include="objectregistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="uniqueobjectmanager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sasCore\application.h">
@@ -162,6 +165,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\sasCore\errorcodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sasCore\uniqueobjectmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

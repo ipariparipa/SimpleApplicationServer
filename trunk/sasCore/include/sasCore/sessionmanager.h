@@ -21,16 +21,18 @@
 #include <chrono>
 #include "defines.h"
 #include "session.h"
+#include "uniqueobjectmanager.h"
 
 namespace SAS {
 
 	class ErrorCollector;
 
-	struct SessionManager_priv;
-
-	class SAS_CORE__CLASS SessionManager
+	class SAS_CORE__CLASS SessionManager : protected UniqueObjectManager
 	{
 		SAS_COPY_PROTECTOR(SessionManager)
+
+		struct Priv;
+		Priv * priv;
 
 	public:
 		SessionManager();
@@ -45,8 +47,8 @@ namespace SAS {
 	protected:
 		virtual Session * createSession(SessionID id, ErrorCollector & ec) = 0;
 
-	private:
-		SessionManager_priv * priv;
+		virtual Object * createObject(const UniqueId & id, ErrorCollector & ec) override;
+		virtual void destroyObject(Object * o) override;
 	};
 }
 

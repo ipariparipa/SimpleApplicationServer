@@ -28,9 +28,6 @@ namespace SAS {
 		Session_priv(SessionID id_) : id(id_)
 		{ }
 
-//		std::mutex contexts_mutex;
-//		std::map<std::string /*name*/, Session::Context*> contexts;
-
 		std::mutex active_mutex;
 
 		SessionID id;
