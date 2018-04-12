@@ -10,6 +10,7 @@
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
 #include <sasCore/thread.h>
+#include <sasCore/uniqueobjectmanager.h>
 
 #include <MQTTAsync.h>
 #include <string.h>
@@ -165,15 +166,26 @@ struct MQTTAsync::Priv
 		priv->conn_not.notify();
 	}
 
-	static unsigned long long uniqueId()
+	struct UniqueIdProvider
 	{
-		static std::mutex m;
-		std::unique_lock<std::mutex> __locker(m);
-		static unsigned long long id = 0;
-		return ++id;
-	}
+		~UniqueIdProvider()
+		{
+			if (id)
+				uom.unuse(id);
+		}
+
+		UniqueId get(ErrorCollector & ec)
+		{
+			return id ? id : (id = uom.getUniqueId(ec));
+		}
+	private:
+		static UniqueObjectManager uom;
+		UniqueId id = 0;
+	} uniqueIdProvider;
 
 };
+
+UniqueObjectManager MQTTAsync::Priv::UniqueIdProvider::uom;
 
 MQTTAsync::MQTTAsync(const std::string & name) : priv(new Priv(this, name))
 { }
@@ -199,7 +211,11 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 {
 	SAS_LOG_NDC();
 
-	priv->client_id = conn_opts.clientId + "_" + std::to_string(Priv::uniqueId());
+	UniqueId uid;
+	if (!(uid = priv->uniqueIdProvider.get(ec)))
+		return false;
+
+	priv->client_id = conn_opts.clientId + "_" + std::to_string(uid);
 
 	SAS_LOG_VAR(priv->logger, conn_opts.serverUri);
 	SAS_LOG_VAR(priv->logger, priv->client_id);
