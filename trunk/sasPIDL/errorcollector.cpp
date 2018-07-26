@@ -15,7 +15,7 @@
     along with sasPIDL.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include "include/sasPIDL/errorcolelctor.h"
+#include "include/sasPIDL/errorcollector.h"
 
 namespace SAS {
 

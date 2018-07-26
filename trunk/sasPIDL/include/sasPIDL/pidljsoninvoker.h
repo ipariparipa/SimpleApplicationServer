@@ -23,10 +23,9 @@
 #include <sasCore/invoker.h>
 
 #include <rapidjson/document.h>
-#include "errorcolelctor.h"
-
 #include <vector>
 #include <string>
+#include "errorcollector.h"
 
 namespace SAS {
 

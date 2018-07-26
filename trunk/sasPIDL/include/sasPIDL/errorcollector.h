@@ -15,8 +15,8 @@
     along with sasPIDL.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef INCLUDE_SASPIDL_ERRORCOLELCTOR_H_
-#define INCLUDE_SASPIDL_ERRORCOLELCTOR_H_
+#ifndef INCLUDE_SASPIDL_ERRORCOLLECTOR_H_
+#define INCLUDE_SASPIDL_ERRORCOLLECTOR_H_
 
 #include "config.h"
 
@@ -55,4 +55,4 @@ namespace SAS {
 
 }
 
-#endif /* INCLUDE_SASPIDL_ERRORCOLELCTOR_H_ */
+#endif /* INCLUDE_SASPIDL_ERRORCOLLECTOR_H_ */
