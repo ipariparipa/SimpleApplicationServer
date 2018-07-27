@@ -19,13 +19,14 @@
 #define INCLUDE_SASPIDL_PIDLJSONINVOKER_H_
 
 #include "config.h"
+#include "errorcollector.h"
 
 #include <sasCore/invoker.h>
 
 #include <rapidjson/document.h>
 #include <vector>
 #include <string>
-#include "errorcollector.h"
+#include <memory>
 
 namespace SAS {
 
@@ -45,10 +46,13 @@ namespace SAS {
 	template<class PIDL_JSON_Server_T>
 	class PIDLJSONInvoker : public Invoker
 	{
-		PIDL_JSON_Server_T srv;
+		std::shared_ptr<PIDL_JSON_Server_T> srv;
 		PIDLJSONInvoker_helper helper;
 	public:
-		PIDLJSONInvoker(const std::string & name) : Invoker(), helper(name)
+		PIDLJSONInvoker(const std::string & name, const std::shared_ptr<PIDL_JSON_Server_T> & srv_) : 
+			Invoker(), 
+			helper(name), 
+			srv(srv_)
 		{ }
 
 		virtual ~PIDLJSONInvoker() = default;
@@ -64,7 +68,7 @@ namespace SAS {
 
 			rapidjson::Document outdoc;
 			outdoc.SetObject();
-			switch(srv._invoke(indoc, outdoc, _ec))
+			switch(srv->_invoke(indoc, outdoc, _ec))
 			{
 			case PIDL_JSON_Server_T::_InvokeStatus::Ok:
 				break;
