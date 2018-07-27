@@ -102,7 +102,7 @@ namespace SAS {
 			return Status::Error;
 		}
 		rapidjson::Document ret_doc;
-		ret_doc.Parse("{}");
+		ret_doc.SetObject();
 		JSONFunction::RetVal rv(ret_doc);
 		Status ret_stat;
 		if ((ret_stat = priv->call(doc, rv, ec)) != Status::OK)

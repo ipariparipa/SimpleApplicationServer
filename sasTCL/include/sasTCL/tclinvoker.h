@@ -29,7 +29,7 @@ namespace SAS {
 
 	class TCLExecutorPool;
 
-	class TCLBlobHandler
+	class SAS_TCL__CLASS TCLBlobHandler
 	{
 	public:
 		virtual void lock() = 0;
