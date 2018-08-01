@@ -100,8 +100,13 @@ namespace SAS {
 
 			std::string rec_topic;
 
+			SAS_LOG_VAR(_logger, send_topic);
+			SAS_LOG_VAR(_logger, rec_subs_topic[0]);
+			SAS_LOG_TRACE(_logger, "_client.exchange");
 			if (!_client.exchange(send_topic, _input, SAS_MQTT__QOS, rec_subs_topic, SAS_MQTT__QOS, rec_topic, output, receive_count, ec))
 				return false;
+
+			SAS_LOG_VAR(_logger, rec_topic);
 
 			auto lst = str_split(rec_topic, '/');
 			if (lst.size() < 3)
@@ -386,6 +391,8 @@ namespace SAS {
 
 	bool MQTTConnector::getModuleInfo(const std::string & moduleName, std::string & description, std::string & version, ErrorCollector & ec)
 	{
+		SAS_LOG_NDC();
+		SAS_LOG_VAR(priv->logger, moduleName);
 		MQTTCaller caller(moduleName, priv->name);
 		if (!caller.init(priv->options, ec))
 			return false;
@@ -394,6 +401,7 @@ namespace SAS {
 		std::string out_topic;
 		std::vector<std::string> out_args;
 		std::vector<char> output;
+		SAS_LOG_TRACE(priv->logger, "caller.msg_exchange");
 		if (!caller.msg_exchange("get_module_info", in_args, std::vector<char>(), out_topic, out_args, output, priv->rec_count, ec))
 			return false;
 
@@ -414,7 +422,9 @@ namespace SAS {
 				return false;
 			}
 			description = doc.HasMember("description") ? doc["description"].GetString() : "(null)";
+			SAS_LOG_VAR(priv->logger, description);
 			version = doc.HasMember("version") ? doc["version"].GetString() : "(null)";
+			SAS_LOG_VAR(priv->logger, version);
 			return true;
 		}
 		auto err = ec.add(-1, "invalid out topic: '" + out_topic + "'");
