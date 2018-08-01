@@ -77,7 +77,7 @@ namespace SAS {
 						assert(so);
 						if (so->session->try_lock())
 						{
-							if (std::chrono::high_resolution_clock::now() - so->lastTached() >= so->max_idletime)
+							if (std::chrono::high_resolution_clock::now() - so->lastTouched() >= so->max_idletime)
 								to_be_deleted.push_back(std::pair<SessionID, SessionObject*>(it.first, so));
 							so->session->unlock();
 						}
