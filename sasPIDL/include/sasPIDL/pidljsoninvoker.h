@@ -46,8 +46,8 @@ namespace SAS {
 	template<class PIDL_JSON_Server_T>
 	class PIDLJSONInvoker : public Invoker
 	{
-		std::shared_ptr<PIDL_JSON_Server_T> srv;
 		PIDLJSONInvoker_helper helper;
+		std::shared_ptr<PIDL_JSON_Server_T> srv;
 	public:
 		PIDLJSONInvoker(const std::string & name, const std::shared_ptr<PIDL_JSON_Server_T> & srv_) : 
 			Invoker(), 
