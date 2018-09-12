@@ -142,11 +142,8 @@ int main(int argc, char * argv[])
 
 	SAS_ROOT_LOG_TRACE("start watchdog");
 	server.run();
-/*
-	std::string str;
-	std::cout << "> ";
-	std::cin >> str;
-	cfinish(SIGINT);
-*/
+	SAS_ROOT_LOG_TRACE("watchdog stopped");
+
+	server.deinit();
 	return 0;
 }
