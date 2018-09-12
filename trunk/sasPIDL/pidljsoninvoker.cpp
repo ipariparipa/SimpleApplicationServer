@@ -48,6 +48,13 @@ namespace SAS {
 
 	bool PIDLJSONInvoker_helper::parse(std::vector<char> & buffer, rapidjson::Document & doc, ErrorCollector & ec)
 	{
+		if (!buffer.size())
+		{
+			doc.SetObject();
+			return true;
+		}
+		if (buffer.back() != '\0')
+			buffer.push_back('\0');
 		if (doc.ParseInsitu(buffer.data()).HasParseError())
 		{
 			auto err = ec.add(-1, "JSON parse error (" + PIDL::JSONTools::getErrorText(doc.GetParseError()) + ")");
