@@ -15,7 +15,7 @@
     along with sasPIDL.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include "include/sasPIDL/pidljsoninvoker.h"
+#include "include/sasPIDL/pidljsonhelper.h"
 
 #include <sasCore/logging.h>
 
@@ -30,7 +30,7 @@
 
 namespace SAS {
 
-	struct PIDLJSONInvoker_helper::Priv
+	struct PIDLJSONHelper::Priv
 	{
 		Priv(const std::string & name) : logger(Logging::getLogger("PIDLJSONInvoker." + name))
 		{ }
@@ -38,15 +38,15 @@ namespace SAS {
 		Logging::LoggerPtr logger;
 	};
 
-	PIDLJSONInvoker_helper::PIDLJSONInvoker_helper(const std::string & name) : priv(new Priv(name))
+	PIDLJSONHelper::PIDLJSONHelper(const std::string & name) : priv(new Priv(name))
 	{ }
 
-	PIDLJSONInvoker_helper::~PIDLJSONInvoker_helper()
+	PIDLJSONHelper::~PIDLJSONHelper()
 	{
 		delete priv;
 	}
 
-	bool PIDLJSONInvoker_helper::parse(std::vector<char> & buffer, rapidjson::Document & doc, ErrorCollector & ec)
+	bool PIDLJSONHelper::parseInsitu(std::vector<char> & buffer, rapidjson::Document & doc, ErrorCollector & ec)
 	{
 		if (!buffer.size())
 		{
@@ -64,7 +64,18 @@ namespace SAS {
 		return true;
 	}
 
-	bool PIDLJSONInvoker_helper::accept(const rapidjson::Value & root, std::vector<char> & data, ErrorCollector & ec)
+	bool PIDLJSONHelper::parse(std::vector<char> & buffer, rapidjson::Document & doc, ErrorCollector & ec)
+	{
+		if (doc.Parse(buffer.data()).HasParseError())
+		{
+			auto err = ec.add(-1, "JSON parse error (" + PIDL::JSONTools::getErrorText(doc.GetParseError()) + ")");
+			SAS_LOG_ERROR(priv->logger, err);
+			return false;
+		}
+		return true;
+	}
+
+	bool PIDLJSONHelper::accept(const rapidjson::Value & root, std::vector<char> & data, ErrorCollector & ec)
 	{
 		rapidjson::StringBuffer buffer;
 		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

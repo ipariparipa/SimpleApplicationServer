@@ -20,39 +20,26 @@
 
 #include "config.h"
 #include "errorcollector.h"
-
 #include <sasCore/invoker.h>
+#include <pidlCore/jsontools.h>
 
-#include <rapidjson/document.h>
 #include <vector>
 #include <string>
 #include <memory>
+#include "pidljsonhelper.h"
 
 namespace SAS {
-
-	class SAS_PIDL__CLASS PIDLJSONInvoker_helper
-	{
-		SAS_COPY_PROTECTOR(PIDLJSONInvoker_helper)
-		struct Priv;
-		Priv * priv;
-	public:
-		PIDLJSONInvoker_helper(const std::string & name);
-		~PIDLJSONInvoker_helper();
-
-		bool parse(std::vector<char> & buffer, rapidjson::Document & doc, ErrorCollector & ec);
-		bool accept(const rapidjson::Value & root, std::vector<char> & data, ErrorCollector & ec);
-	};
 
 	template<class PIDL_JSON_Server_T>
 	class PIDLJSONInvoker : public Invoker
 	{
-		PIDLJSONInvoker_helper helper;
 		std::shared_ptr<PIDL_JSON_Server_T> srv;
+		PIDLJSONHelper helper;
 	public:
 		PIDLJSONInvoker(const std::string & name, const std::shared_ptr<PIDL_JSON_Server_T> & srv_) : 
 			Invoker(), 
-			helper(name), 
-			srv(srv_)
+			srv(srv_),
+			helper(name)
 		{ }
 
 		virtual ~PIDLJSONInvoker() = default;
@@ -61,7 +48,7 @@ namespace SAS {
 		{
 			auto buffer = input;
 			rapidjson::Document indoc;
-			if(!helper.parse(buffer, indoc, ec))
+			if(!helper.parseInsitu(buffer, indoc, ec))
 				return Status::Error;
 
 			SAS_PIDLErrorCollector _ec(ec);
@@ -70,14 +57,15 @@ namespace SAS {
 			outdoc.SetObject();
 			switch(srv->_invoke(indoc, outdoc, _ec))
 			{
-			case PIDL_JSON_Server_T::_InvokeStatus::Ok:
+			case PIDL::JSONTools::InvokeStatus::Ok:
 				break;
-			case PIDL_JSON_Server_T::_InvokeStatus::Error:
-			case PIDL_JSON_Server_T::_InvokeStatus::MarshallingError:
+			case PIDL::JSONTools::InvokeStatus::Error:
+			case PIDL::JSONTools::InvokeStatus::MarshallingError:
+			case PIDL::JSONTools::InvokeStatus::NotSupportedMarshaklingVersion:
 				return Status::Error;
-			case PIDL_JSON_Server_T::_InvokeStatus::FatalError:
+			case PIDL::JSONTools::InvokeStatus::FatalError:
 				return Status::FatalError;
-			case PIDL_JSON_Server_T::_InvokeStatus::NotImplemented:
+			case PIDL::JSONTools::InvokeStatus::NotImplemented:
 				return Status::NotImplemented;
 			}
 
