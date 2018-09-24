@@ -39,6 +39,9 @@ namespace SAS.Client.PIDL
 			ec.Add(code, msg);
 		}
 
+		public void Clear()
+		{ }
+
 		public void Add(PIDLError err)
 		{
 			ec.Add(err.code, err.msg);
