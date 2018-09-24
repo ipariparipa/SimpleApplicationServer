@@ -79,7 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="errorcollector.cpp" />
-    <ClCompile Include="pidljsoninvoker.cpp" />
+    <ClCompile Include="pidljsonhelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sasPIDL\config.h" />
