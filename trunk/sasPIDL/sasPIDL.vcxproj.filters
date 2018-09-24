@@ -32,5 +32,11 @@
     <ClInclude Include="include\sasPIDL\pidljsoninvoker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sasPIDL\pidljsonclient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sasPIDL\pidljsonhelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

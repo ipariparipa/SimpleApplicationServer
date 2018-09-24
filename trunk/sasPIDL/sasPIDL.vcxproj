@@ -84,6 +84,8 @@
   <ItemGroup>
     <ClInclude Include="include\sasPIDL\config.h" />
     <ClInclude Include="include\sasPIDL\errorcollector.h" />
+    <ClInclude Include="include\sasPIDL\pidljsonclient.h" />
+    <ClInclude Include="include\sasPIDL\pidljsonhelper.h" />
     <ClInclude Include="include\sasPIDL\pidljsoninvoker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
