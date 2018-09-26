@@ -1,0 +1,9 @@
+<module name="SAS">
+	<body>
+		<interface name="PIDLAdmin">
+			<body>
+				<function name="getPIDL" type="string"/>
+			</body>
+		</interface>
+	</body>
+</module>
