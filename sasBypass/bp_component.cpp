@@ -56,7 +56,7 @@ public:
 
 		{
 			std::vector<std::string> loopback_names;
-			if (app->configReader()->getStringListEntry("SAS/BYPASS/LOOPBACK_CONNECTORS", loopback_names, ec) && loopback_names.size())
+			if (app->configReader()->getStringListEntry("SAS/BYPASS/LOOPBACK_CONNECTORS", loopback_names, loopback_names, ec) && loopback_names.size())
 			{
 				std::vector<Object*> objs(loopback_names.size());
 				for (size_t i(0), l(loopback_names.size()); i < l; ++i)
@@ -73,7 +73,7 @@ public:
 
 		{
 			std::vector<std::string> bypassmodule_names;
-			if (app->configReader()->getStringListEntry("SAS/BYPASS/MODULES", bypassmodule_names, ec) && bypassmodule_names.size())
+			if (app->configReader()->getStringListEntry("SAS/BYPASS/MODULES", bypassmodule_names, bypassmodule_names, ec) && bypassmodule_names.size())
 			{
 				std::vector<Object*> objs(bypassmodule_names.size());
 				bool has_error(false);
