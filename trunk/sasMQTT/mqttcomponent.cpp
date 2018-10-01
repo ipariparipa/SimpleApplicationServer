@@ -48,7 +48,7 @@ namespace SAS {
 			{
 				MQTTAsync::globalInit();
 				std::vector<std::string> interface_names;
-				if (app->configReader()->getStringListEntry("SAS/MQTT/INTERFACES", interface_names, ec))
+				if (app->configReader()->getStringListEntry("SAS/MQTT/INTERFACES", interface_names, interface_names, ec) && interface_names.size())
 				{
 					bool has_error(false);
 					std::vector<SAS::Interface*> interfaces(interface_names.size());
@@ -69,7 +69,7 @@ namespace SAS {
 			}
 
 			std::vector<std::string> connector_names;
-			if (app->configReader()->getStringListEntry("SAS/MQTT/CONNECTORS", connector_names, ec))
+			if (app->configReader()->getStringListEntry("SAS/MQTT/CONNECTORS", connector_names, connector_names, ec), connector_names.size())
 			{
 				bool has_error(false);
 				std::vector<Object*> connectors(connector_names.size());
