@@ -45,6 +45,7 @@ struct MQTTAsync::Priv
 
 	Notifier runner_not;
 	Notifier conn_not;
+	Notifier disconn_not;
 
 	bool subscribe(ErrorCollector & ec)
 	{
@@ -77,6 +78,9 @@ struct MQTTAsync::Priv
 	bool connect(ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
+
+		std::unique_lock<std::mutex> __locker(mut);
+
 		MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
 		conn_opts.keepAliveInterval = options.keepalive;
 		conn_opts.automaticReconnect = 0;
@@ -166,6 +170,25 @@ struct MQTTAsync::Priv
 		priv->conn_not.notify();
 	}
 
+	static void _onDisconnected(void* context, MQTTAsync_successData* response)
+	{
+		SAS_LOG_NDC();
+		NullEC ec;
+		auto priv = (Priv*)context;
+		SAS_LOG_DEBUG(priv->logger, "MQTT disconnected");
+		priv->disconn_not.notify();
+	}
+
+	static void _onDisconnectFailed(void * context, MQTTAsync_failureData* response)
+	{
+		SAS_LOG_NDC();
+		NullEC ec;
+		auto priv = (Priv*)context;
+		auto err = (priv->ec ? priv->ec : &ec)->add(-1, "connection failed: '" + std::string(response->message ? response->message : "(no_message)") + "'");
+		SAS_LOG_ERROR(priv->logger, err);
+		priv->disconn_not.notify();
+	}
+
 	struct UniqueIdProvider
 	{
 		~UniqueIdProvider()
@@ -245,8 +268,12 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 
 void MQTTAsync::deinit()
 {
+	SAS_LOG_NDC();
 	if (priv->mqtt_handle)
-	{ 
+	{
+		NullEC ec;
+		disconnect(ec);
+		SAS_LOG_TRACE(priv->logger, "MQTTAsync_destroy");
 		MQTTAsync_destroy(&priv->mqtt_handle);
 		priv->mqtt_handle = nullptr;
 	}
@@ -263,14 +290,26 @@ bool MQTTAsync::disconnect(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
 
+	if (!shutdown(ec))
+		return false;
+
+	std::unique_lock<std::mutex> __locker(priv->mut);
+
 	int rc;
 	SAS_LOG_TRACE(priv->logger, "MQTTAsync_disconnect");
-	if((rc = MQTTAsync_disconnect(priv->mqtt_handle, NULL)) != MQTTASYNC_SUCCESS)
+	MQTTAsync_disconnectOptions ops = MQTTAsync_disconnectOptions_initializer;
+	priv->ec = &ec;
+	ops.context = priv;
+	ops.onSuccess = Priv::_onDisconnected;
+	ops.onFailure = Priv::_onDisconnectFailed;
+	if ((rc = MQTTAsync_disconnect(priv->mqtt_handle, &ops)) != MQTTASYNC_SUCCESS)
 	{
 		auto err = ec.add(-1, "could not disconnect from MQTT server (" + std::to_string(rc) + ")");
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
+	priv->disconn_not.wait();
+
 	return true;
 }
 
@@ -341,6 +380,8 @@ bool MQTTAsync::send(const std::string & topic, const std::vector<char> & payloa
 
 bool MQTTAsync::run(ErrorCollector & ec)
 {
+	//SAS_LOG_NDC();
+	std::unique_lock<std::mutex> __locker(priv->mut);
 	priv->ec = &ec;
 	priv->runner_not.wait();
 	priv->ec = nullptr;
@@ -349,6 +390,7 @@ bool MQTTAsync::run(ErrorCollector & ec)
 
 bool MQTTAsync::shutdown(ErrorCollector & ec)
 {
+	//SAS_LOG_NDC();
 	priv->runner_not.notify();
 	return true;
 }
