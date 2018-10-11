@@ -1,0 +1,7 @@
+SAS/HTTP/INTERFACES: string list, optional (empty)
+SAS/HTTP/CONNECTORS: string list, optional (empty)
+
+SAS/HTTP/<interface>/PORT: number, optional (80)
+SAS/HTTP/<interface>/RESPONSE_CONTENT_TYPE: string, optional ("application/octet-stream")
+SAS/HTTP/<connector>/BASE_URL: string
+SAS/HTTP/<connector>/CONTENT_TYPE: string, optional ("application/octet-stream")
