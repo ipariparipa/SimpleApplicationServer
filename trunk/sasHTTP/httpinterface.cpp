@@ -58,7 +58,6 @@ namespace SAS {
 		{
 			short port = 0;
 			std::string responseContentType;
-			size_t max_thread_num = 0;
 		} options;
 
 		enum class Method
@@ -543,10 +542,6 @@ namespace SAS {
 		if(!priv->app->configReader()->getNumberEntry(config_path + "/PORT", _ll_tmp, 80, ec))
 			return false;
 		priv->options.port = (short)_ll_tmp;
-
-		if(!priv->app->configReader()->getNumberEntry(config_path + "/MAX_THREAD_NUM", _ll_tmp, 10, ec))
-			return false;
-		priv->options.max_thread_num = (size_t)_ll_tmp;
 
 		if(!priv->app->configReader()->getStringEntry(config_path + "/RESPONSE_CONTENT_TYPE", priv->options.responseContentType, "application/octet-stream", ec))
 			return false;
