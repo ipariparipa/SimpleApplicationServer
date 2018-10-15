@@ -44,14 +44,19 @@ namespace SAS {
 
 			this->app = app;
 
-			auto im = app->interfaceManager();
-			if (im)
+			std::vector<std::string> interface_names;
+			if (app->configReader()->getStringListEntry("SAS/HTTP/INTERFACES", interface_names, interface_names, ec))
 			{
-				//TODO: MHD global init
-
-				std::vector<std::string> interface_names;
-				if (app->configReader()->getStringListEntry("SAS/HTTP/INTERFACES", interface_names, ec))
+				if (interface_names.size())
 				{
+					auto im = app->interfaceManager();
+					if (!im)
+					{
+						auto err = ec.add(-1, "interface manager is not existing, could not register HTTP interface");
+						SAS_LOG_ERROR(logger, err);
+						return false;
+					}
+
 					bool has_error(false);
 					std::vector<Interface*> interfaces(interface_names.size());
 					for (size_t i = 0, l = interface_names.size(); i < l; ++i)
@@ -68,28 +73,35 @@ namespace SAS {
 					if (!im->registerInterfaces(interfaces, ec))
 						return false;
 				}
+				else
+					SAS_LOG_INFO(logger, "no HTTP interface is defined.");
 			}
 
 			std::vector<std::string> connector_names;
-			if (app->configReader()->getStringListEntry("SAS/HTTP/CONNECTORS", connector_names, ec))
+			if (app->configReader()->getStringListEntry("SAS/HTTP/CONNECTORS", connector_names, connector_names, ec))
 			{
-				ne_sock_init();
-
-				bool has_error(false);
-				std::vector<Object*> connectors(connector_names.size());
-				for (size_t i = 0, l = connector_names.size(); i < l; ++i)
+				if (connector_names.size())
 				{
-					auto conn = new HTTPConnector(connector_names[i], app);
-					if (!conn->init(std::string("SAS/HTTP/") + connector_names[i], ec))
-						has_error = true;
-					else
-						connectors[i] = conn;
-				}
-				if (has_error)
-					return false;
+					ne_sock_init();
 
-				if (!app->objectRegistry()->registerObjects(connectors, ec))
-					return false;
+					bool has_error(false);
+					std::vector<Object*> connectors(connector_names.size());
+					for (size_t i = 0, l = connector_names.size(); i < l; ++i)
+					{
+						auto conn = new HTTPConnector(connector_names[i], app);
+						if (!conn->init(std::string("SAS/HTTP/") + connector_names[i], ec))
+							has_error = true;
+						else
+							connectors[i] = conn;
+					}
+					if (has_error)
+						return false;
+
+					if (!app->objectRegistry()->registerObjects(connectors, ec))
+						return false;
+				}
+				else
+					SAS_LOG_INFO(logger, "no HTTP connector is defined.");
 			}
 
 			return true;

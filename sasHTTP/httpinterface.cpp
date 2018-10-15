@@ -504,7 +504,7 @@ namespace SAS {
 		SAS_LOG_NDC();
 
 		SAS_LOG_TRACE(priv->logger, "MHD_start_daemon");
-		if(!(priv->daemon = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION,  //MHD_USE_SUSPEND_RESUME, //MHD_USE_SELECT_INTERNALLY,
+		if(!(priv->daemon = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION,
 								 priv->options.port, NULL, NULL,
 								 &Priv::answer_to_connection, (void*)priv,
 								 MHD_OPTION_NOTIFY_COMPLETED, &Priv::request_completed, (void*)priv,
