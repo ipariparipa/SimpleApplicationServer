@@ -48,11 +48,13 @@ namespace SAS {
 			std::vector<char> out;
 			auto stat = _conn->invoke(in, out, sas_ec);
 
-			if(!out.size() || out.back() != '\0')
-				out.push_back('\0');
-
-			if(!_helper.parse(out, retval, sas_ec))
-				return PIDL::JSONTools::InvokeStatus::MarshallingError;
+			if(out.size())
+			{
+				if(!out.size() || out.back() != '\0')
+					out.push_back('\0');
+				if(!_helper.parse(out, retval, sas_ec))
+					return PIDL::JSONTools::InvokeStatus::MarshallingError;
+			}
 
 			switch(stat)
 			{
