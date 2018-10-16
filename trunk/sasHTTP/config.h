@@ -23,6 +23,7 @@ along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 #if SAS_OS == SAS_OS_LINUX 
 #  define SAS_HTTP__CLASS
 #  define SAS_HTTP__FUNCTION
+#  define SAS_HTTP__HAVE_MICROHTTPD
 #elif SAS_OS == SAS_OS_WINDOWS 
 #  ifdef SAS_HTTP__IMPL
 #    define SAS_HTTP__CLASS __declspec(dllexport)
@@ -31,6 +32,7 @@ along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 #    define SAS_HTTP__CLASS __declspec(dllimport)
 #    define SAS_HTTP__FUNCTION __declspec(dllimport)
 #  endif
+//#  define SAS_HTTP__HAVE_MICROHTTPD
 #endif
 
 #endif // sasHTTP__config_h
