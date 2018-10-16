@@ -15,6 +15,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 */
 
+#ifdef SAS_HTTP__HAVE_MICROHTTPD
+
 #include "httpinterface.h"
 #include <sasCore/logging.h>
 #include <sasCore/errorcollector.h>
@@ -555,3 +557,5 @@ namespace SAS {
 	}
 
 }
+
+#endif // SAS_HTTP__HAVE_MICROHTTPD

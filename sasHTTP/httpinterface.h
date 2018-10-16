@@ -18,6 +18,8 @@ along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 #ifndef sasHTTP__mqttinterface_h
 #define sasHTTP__mqttinterface_h
 
+#ifdef SAS_HTTP__HAVE_MICROHTTPD
+
 #include "config.h"
 
 #include <sasCore/interface.h>
@@ -49,5 +51,7 @@ namespace SAS {
 	};
 
 }
+
+#endif // SAS_HTTP__HAVE_MICROHTTPD
 
 #endif // sasHTTP__mqttinterface_h

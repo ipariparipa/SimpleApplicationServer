@@ -44,6 +44,7 @@ namespace SAS {
 
 			this->app = app;
 
+#ifdef SAS_HTTP__HAVE_MICROHTTPD
 			std::vector<std::string> interface_names;
 			if (app->configReader()->getStringListEntry("SAS/HTTP/INTERFACES", interface_names, interface_names, ec))
 			{
@@ -76,6 +77,7 @@ namespace SAS {
 				else
 					SAS_LOG_INFO(logger, "no HTTP interface is defined.");
 			}
+#endif // SAS_HTTP__HAVE_MICROHTTPD
 
 			std::vector<std::string> connector_names;
 			if (app->configReader()->getStringListEntry("SAS/HTTP/CONNECTORS", connector_names, connector_names, ec))
