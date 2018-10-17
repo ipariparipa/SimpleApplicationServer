@@ -37,6 +37,8 @@ namespace SAS {
 			
 			bool GetEntryAsStringList(System::String ^ path, [System::Runtime::InteropServices::OutAttribute] array<System::String ^> ^% ret, ISASErrorCollector ^ ec) override;
 
+			bool GetEntryAsStringList(System::String ^ path, [System::Runtime::InteropServices::OutAttribute] array<System::String^> ^% ret, array<System::String^> ^ defaultValue, ISASErrorCollector ^ ec) override;
+
 		private:
 			SASAppSettingsReader_priv ^ priv;
 		};

@@ -32,10 +32,11 @@ namespace SAS {
 			priv->writer = writer;
 		}
 
-		void SASTextWriterErrorCollector::Add(long errorCode, System::String ^ errorText)
+		System::String ^ SASTextWriterErrorCollector::Add(long errorCode, System::String ^ errorText)
 		{
 			auto tmp = System::String::Format("[{0}] {1}", errorCode, errorText);
 			priv->writer->WriteLine(tmp);
+			return tmp;
 		}
 
 	}

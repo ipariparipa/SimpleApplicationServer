@@ -38,9 +38,15 @@ namespace SAS {
 		//virtual 
 		bool SASConfigReader::GetEntryAsString(System::String ^ path, [System::Runtime::InteropServices::OutAttribute] System::String ^% ret, System::String ^ defaultValue, ISASErrorCollector ^ ec)
 		{
-			if (!GetEntryAsString(path, ret, ec))
-				ret = defaultValue;
+			auto def_tmp = gcnew array<System::String^>(1);
+			def_tmp[0] = defaultValue;
+
+			array<System::String^> ^ tmp;
+			if (!GetStringListEntry(path, tmp, def_tmp, ec) || !tmp->Length)
+				return false;
+			ret = tmp[0];
 			return true;
+
 		}
 
 		//virtual 

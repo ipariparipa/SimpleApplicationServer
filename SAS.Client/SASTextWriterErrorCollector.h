@@ -32,7 +32,7 @@ namespace SAS {
 		public:
 			SASTextWriterErrorCollector(System::IO::TextWriter ^ writer);
 
-			virtual void Add(long errorCode, System::String ^ errorText);
+			virtual System::String ^ Add(long errorCode, System::String ^ errorText);
 		private:
 			SASTextWriterErrorCollector_priv ^ priv;
 		};

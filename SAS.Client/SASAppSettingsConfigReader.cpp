@@ -18,13 +18,32 @@
 #include "SASAppSettingsConfigReader.h"
 #include "SASErrorCollector.h"
 #include "errorcodes.h"
+#include "sasCore/logging.h"
+#include "macros.h"
 
 namespace SAS {
 	namespace Client {
 
+		struct SASAppSettingsReader_upriv
+		{
+			SASAppSettingsReader_upriv() : logger(SAS::Logging::getLogger("SAS.SASAppSettingsReader"))
+			{ }
+
+			SAS::Logging::LoggerPtr logger;
+		};
+
 		ref struct SASAppSettingsReader_priv
 		{
+			SASAppSettingsReader_priv() : upriv(new SASAppSettingsReader_upriv)
+			{ }
+
+			!SASAppSettingsReader_priv()
+			{
+				delete upriv;
+			}
+
 			System::Configuration::AppSettingsSection ^  config;
+			SASAppSettingsReader_upriv * upriv;
 		};
 
 		SASAppSettingsReader::SASAppSettingsReader() : priv(gcnew SASAppSettingsReader_priv)
@@ -53,6 +72,7 @@ namespace SAS {
 
 		bool SASAppSettingsReader::GetEntryAsStringList(System::String ^ path, [System::Runtime::InteropServices::OutAttribute] array<System::String ^> ^% ret, ISASErrorCollector ^ ec)
 		{
+			SAS_LOG_NDC();
 			try
 			{
 				if (!Init(ec))
@@ -63,7 +83,8 @@ namespace SAS {
 				auto key = priv->config->Settings[path];
 				if (key == nullptr)
 				{
-					ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "config entry '" + path + "' is not found");
+					auto err =  ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__ENTRY_NOT_FOUND, "config entry '" + path + "' is not found");
+					SAS_LOG_ERROR(priv->upriv->logger, TO_STR(err));
 					ret = nullptr;
 					return false;
 				}
@@ -72,7 +93,39 @@ namespace SAS {
 			}
 			catch (System::Exception ^ ex)
 			{
-				ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__CANNOT_GET_ENTRY, "'" + ex->GetType()->Name + "' exception is caught: '" + ex->Message + "'");
+				auto err = ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__CANNOT_GET_ENTRY, "'" + ex->GetType()->Name + "' exception is caught: '" + ex->Message + "'");
+				SAS_LOG_ERROR(priv->upriv->logger, TO_STR(err));
+				ret = nullptr;
+				return false;
+			}
+
+			return true;
+		}
+
+		bool SASAppSettingsReader::GetEntryAsStringList(System::String ^ path, [System::Runtime::InteropServices::OutAttribute] array<System::String^> ^% ret, array<System::String^> ^ defaultValue, ISASErrorCollector ^ ec)
+		{
+			SAS_LOG_NDC();
+			try
+			{
+				if (!Init(ec))
+				{
+					ret = nullptr;
+					return false;
+				}
+				auto key = priv->config->Settings[path];
+				if (key == nullptr)
+				{
+					SAS_LOG_DEBUG(priv->upriv->logger, std::string() + "config entry '" + TO_STR(path) + "' is not found, use default value");
+					ret = defaultValue;
+					return true;
+				}
+
+				ret = key->Value->Split('|');
+			}
+			catch (System::Exception ^ ex)
+			{
+				auto err = ec->Add(SAS_CLIENT__ERROR__CONFIG_READER__CANNOT_GET_ENTRY, "'" + ex->GetType()->Name + "' exception is caught: '" + ex->Message + "'");
+				SAS_LOG_ERROR(priv->upriv->logger, TO_STR(err));
 				ret = nullptr;
 				return false;
 			}
