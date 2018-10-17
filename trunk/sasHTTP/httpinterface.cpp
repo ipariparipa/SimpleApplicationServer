@@ -15,9 +15,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 */
 
+#include "httpinterface.h"
+
 #ifdef SAS_HTTP__HAVE_MICROHTTPD
 
-#include "httpinterface.h"
+#include "httpcommon.h"
+
 #include <sasCore/logging.h>
 #include <sasCore/errorcollector.h>
 #include <sasJSON/jsonerrorcollector.h>
@@ -28,8 +31,9 @@ along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/configreader.h>
 #include <sasCore/thread.h>
 #include <sasCore/controlledthread.h>
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
+
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
 
 #include <list>
 #include <deque>
@@ -62,12 +66,6 @@ namespace SAS {
 			std::string responseContentType;
 		} options;
 
-		enum class Method
-		{
-			None,
-			PUT, POST, GET
-		};
-
 		struct connection_info_struct
 		{
 			connection_info_struct(Priv * priv_) : priv(priv_)
@@ -77,7 +75,7 @@ namespace SAS {
 
 			std::list<std::vector<char>> in_buffer;
 
-			Method connectiontype = Method::None;
+			HTTPMethod connectiontype = HTTPMethod::None;
 			MHD_PostProcessor *postprocessor = nullptr;
 		};
 
@@ -410,12 +408,12 @@ namespace SAS {
 						delete con_info;
 						return MHD_NO;
 					}
-					con_info->connectiontype = Method::POST;
+					con_info->connectiontype = HTTPMethod::POST;
 				}
 				else if (std::string(method) == MHD_HTTP_METHOD_PUT)
-					con_info->connectiontype = Method::PUT;
+					con_info->connectiontype = HTTPMethod::PUT;
 				else if (std::string(method) == MHD_HTTP_METHOD_GET)
-					con_info->connectiontype = Method::GET;
+					con_info->connectiontype = HTTPMethod::GET;
 
 				*con_cls = (void*) con_info;
 				return MHD_YES;
@@ -425,9 +423,9 @@ namespace SAS {
 
 			switch(con_info->connectiontype)
 			{
-			case Method::None:
+			case HTTPMethod::None:
 				return MHD_HTTP_INTERNAL_SERVER_ERROR;
-			case Method::POST:
+			case HTTPMethod::POST:
 				if (*upload_data_size)
 				{
 					if (con_info->postprocessor)
@@ -443,7 +441,7 @@ namespace SAS {
 				}
 				else
 					return priv->complete(con_info, connection, url);
-			case Method::PUT:
+			case HTTPMethod::PUT:
 				if(*upload_data_size)
 				{
 					priv->handle_input_data(con_info, *upload_data_size, upload_data);
@@ -452,9 +450,8 @@ namespace SAS {
 				}
 				else
 					return priv->complete(con_info, connection, url);
-			case Method::GET:
+			case HTTPMethod::GET:
 				return priv->complete(con_info, connection, url);
-//					return priv->send_data (connection, std::vector<char>(), nullptr, MHD_HTTP_FORBIDDEN);
 			}
 
 			return priv->send_data(connection, std::vector<char>(), nullptr, nullptr, MHD_HTTP_BAD_REQUEST);
@@ -471,7 +468,7 @@ namespace SAS {
 			if (!con_info)
 				return;
 
-			if (con_info->connectiontype == Method::POST)
+			if (con_info->connectiontype == HTTPMethod::POST)
 			{
 				if (con_info->postprocessor)
 				{

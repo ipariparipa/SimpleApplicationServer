@@ -24,6 +24,9 @@
     <ClInclude Include="httpinterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="httpcommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="httpcomponent.cpp">
