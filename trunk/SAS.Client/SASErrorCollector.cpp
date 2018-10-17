@@ -37,9 +37,9 @@ namespace SAS {
 		SASErrorCollectorObj::SASErrorCollectorObj(ErrorCollector & obj) : priv(gcnew SASErrorCollectorObj_priv(obj))
 		{ }
 
-		void SASErrorCollectorObj::Add(long errorCode, System::String ^ errorText)
+		System::String ^ SASErrorCollectorObj::Add(long errorCode, System::String ^ errorText)
 		{
-			priv->obj.add(errorCode, TO_STR(errorText));
+			return TO_MSTR(priv->obj.add(errorCode, TO_STR(errorText)));
 		}
 
 	}

@@ -27,7 +27,7 @@ namespace SAS {
 		public interface class ISASErrorCollector
 		{
 		public:
-			virtual void Add(long errorCode, System::String ^ errorText) abstract;
+			virtual System::String ^ Add(long errorCode, System::String ^ errorText) abstract;
 		};
 
 		ref struct SASErrorCollectorObj_priv;
@@ -38,7 +38,7 @@ namespace SAS {
 			SASErrorCollectorObj(ErrorCollector & obj);
 		public:
 
-			virtual void Add(long errorCode, System::String ^ errorText);
+			virtual System::String ^ Add(long errorCode, System::String ^ errorText);
 
 		private:
 			SASErrorCollectorObj_priv ^ priv;
