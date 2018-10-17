@@ -34,9 +34,10 @@ namespace SAS.Client.PIDL
 			ec = ec_;
 		}
 
-		public void Add(int code, string msg)
+		public string Add(int code, string msg)
 		{
 			ec.Add(code, msg);
+			return string.Format("[{0}] {1}", code, msg);
 		}
 		
 	}
