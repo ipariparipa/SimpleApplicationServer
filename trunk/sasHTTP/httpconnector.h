@@ -15,8 +15,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#ifndef sasHTTP__mqttconnector_h
-#define sasHTTP__mqttconnector_h
+#ifndef sasHTTP__httpconnector_h
+#define sasHTTP__httpconnector_h
 
 #include "config.h"
 
@@ -53,4 +53,4 @@ namespace SAS {
 
 }
 
-#endif // sasHTTP__mqttconnector_h
+#endif // sasHTTP__httpconnector_h

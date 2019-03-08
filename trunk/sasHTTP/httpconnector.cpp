@@ -104,7 +104,7 @@ namespace SAS {
 		ne_session *_sess = nullptr;
 	public:
 		HTTPCaller(const std::string & module, const std::string & name) :
-			_logger(Logging::getLogger("SAS.MQTTCaller." + module + "." + name)),
+			_logger(Logging::getLogger("SAS.HTTPCaller." + module + "." + name)),
 			_module(module)
 		{ }
 
@@ -449,7 +449,7 @@ namespace SAS {
 		Priv(const std::string & name_, Application * app_) :
 			name(name_),
 			app(app_),
-			logger(Logging::getLogger("SAS.MQTTConnector." + name_))
+			logger(Logging::getLogger("SAS.HTTPConnector." + name_))
 		{ }
 
 		std::string name;

@@ -15,8 +15,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#ifndef sasHTTP__mqttinterface_h
-#define sasHTTP__mqttinterface_h
+#ifndef sasHTTP__httpinterface_h
+#define sasHTTP__httpinterface_h
 
 #include "config.h"
 
@@ -54,4 +54,4 @@ namespace SAS {
 
 #endif // SAS_HTTP__HAVE_MICROHTTPD
 
-#endif // sasHTTP__mqttinterface_h
+#endif // sasHTTP__httpinterface_h
