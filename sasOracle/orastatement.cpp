@@ -505,6 +505,10 @@ bool OraStatement::exec(ErrorCollector & ec)
 
 bool OraStatement::getLastGeneratedId(const std::string & schema, const std::string & table, const std::string & field, SQLVariant & ret, ErrorCollector & ec) // final
 {
+    (void)schema;
+    (void)table;
+    (void)field;
+    (void)ret;
 	SAS_LOG_NDC();
 
 	auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "this functionality is not supported by oracle");

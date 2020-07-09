@@ -65,14 +65,14 @@ public:
 	SASJSONReader() : _doc(new rapidjson::Document)
 	{ }
 
-	virtual ~SASJSONReader() = default;
+    virtual ~SASJSONReader() override = default;
 
 	virtual const SAS::JSONDocument & document() const final override
 	{
 		return *this;
 	}
 
-	bool parse(const std::string & json_data, SAS::ErrorCollector & ec)
+    bool parse(const std::string & json_data, SAS::ErrorCollector & ec)
 	{
 		if (_doc->Parse(json_data.c_str()).HasParseError())
 		{

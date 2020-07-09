@@ -170,6 +170,7 @@ namespace SAS {
 
 	Session * BypassModule::createSession(SessionID id, ErrorCollector & ec)
 	{
+        (void)ec;
 		SAS_LOG_NDC();
 		SAS_LOG_ASSERT(priv->logger, priv->connector, "connector must be initialized");
 		return new BypassSession(id, priv->dest_module_name, priv->connector);

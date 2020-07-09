@@ -212,6 +212,7 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
 
 SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, int tzHours, int TzMinutes, bool negative, short ms_precision) : priv(new Priv)
 {
+    (void)negative;
 	std::tm tm;
 	Priv::to_tm(years, months, days, hours, minutes, seconds, tm);
 	auto tp = std::chrono::system_clock::from_time_t(mktime(&tm));

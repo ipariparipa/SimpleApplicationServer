@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -z $1 ] ; then
-    PIDL_DIR=../bin/Debug
+    PIDL_DIR=../../bin/Debug
 else
     PIDL_DIR=$1
 fi

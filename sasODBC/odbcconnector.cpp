@@ -44,7 +44,7 @@ namespace SAS {
 
 struct ODBCConnector::Priv
 {
-	Priv(ODBCConnector * that, SQLHENV env_, Application * app_, const std::string & name_) :
+    Priv(SQLHENV env_, Application * app_, const std::string & name_) :
 		env(env_),
 		app(app_),
 		name(name_),
@@ -83,6 +83,7 @@ struct ODBCConnector::Priv
 
 		bool init(SQLHENV env_, ErrorCollector & ec)
 		{
+            (void)ec;
 			SAS_LOG_NDC();
 			env = env_;
 
@@ -380,7 +381,7 @@ struct ODBCConnector::Priv
 };
 
 
-ODBCConnector::ODBCConnector(SQLHENV env, const std::string & name, Application * app) : SQLConnector(), priv(new Priv(this, env, app, name))
+ODBCConnector::ODBCConnector(SQLHENV env, const std::string & name, Application * app) : SQLConnector(), priv(new Priv(env, app, name))
 { }
 
 ODBCConnector::~ODBCConnector()
@@ -746,7 +747,8 @@ void ODBCConnector::unlock()
 
 bool ODBCConnector::startTransaction(ErrorCollector & ec)
 {
-	SAS_LOG_NDC();
+    (void)ec;
+    SAS_LOG_NDC();
 	return true;
 }
 

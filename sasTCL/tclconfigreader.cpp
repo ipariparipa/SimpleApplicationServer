@@ -232,13 +232,15 @@ namespace SAS {
 
 	bool TCLConfigReader::toBool(const std::string & v, bool & ret, ErrorCollector & ec) const
 	{
-		ret = v.length() ? (std::stol(v) != 0) : false;
+        (void)ec;
+        ret = v.length() ? (std::stol(v) != 0) : false;
 		return true;
 	}
 
 	bool TCLConfigReader::toString(bool v, std::string & ret, ErrorCollector & ec) const
 	{
-		ret = v ? "1" : "0";
+        (void)ec;
+        ret = v ? "1" : "0";
 		return true;
 	}
 

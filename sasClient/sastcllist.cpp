@@ -30,6 +30,7 @@ extern "C" SAS_CLIENT__FUNCTION void SAS_CLIENT__CALL_CONVENTION sas_TCLList_dei
 
 extern "C" SAS_CLIENT__FUNCTION sas_Bool SAS_CLIENT__CALL_CONVENTION sas_TCLList_isNull(sas_TCLList_T obj, const char * str)
 {
+    (void)str;
 	assert(obj);
 	return (sas_Bool)obj->isNull();
 }

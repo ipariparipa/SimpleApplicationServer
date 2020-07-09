@@ -694,6 +694,7 @@ namespace SAS {
 
 	Connection * CorbaConnector::createConnection(const std::string & module_name, const std::string & invoker_name, ErrorCollector & ec)
 	{
+        (void)ec;
 		return new CorbaConnection(this, priv->maxReconnectRecall, module_name, invoker_name, priv->app, priv->corba_sas_module);
 	}
 

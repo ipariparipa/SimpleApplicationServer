@@ -1,4 +1,4 @@
-include(../common.pri)
+include(../global.pri)
 
 TEMPLATE = lib
 CONFIG += console c++11
@@ -9,6 +9,8 @@ INCLUDEPATH += ../sasCore/include
 INCLUDEPATH += ../sasTCLTools/include
 
 LIBS += -llog4cxx
+LIBS += -L../sasCore -lsasCore
+LIBS += -L../sasTCLTools -lsasTCLTools
 
 HEADERS += \
     include/sasTCL/config.h \

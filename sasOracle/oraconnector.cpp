@@ -41,7 +41,7 @@ namespace SAS {
 
 struct OraConnector::Priv
 {
-	Priv(OraConnector * that, dpiContext * ctx_, Application * app_, const std::string & name_) :
+    Priv(dpiContext * ctx_, Application * app_, const std::string & name_) :
 		ctx(ctx_),
 		app(app_),
 		name(name_),
@@ -223,7 +223,7 @@ struct OraConnector::Priv
 };
 
 
-OraConnector::OraConnector(dpiContext * ctx, const std::string & name, Application * app) : SQLConnector(), priv(new Priv(this, ctx, app, name))
+OraConnector::OraConnector(dpiContext * ctx, const std::string & name, Application * app) : SQLConnector(), priv(new Priv(ctx, app, name))
 { }
 
 OraConnector::~OraConnector()
@@ -470,6 +470,7 @@ void OraConnector::unlock()
 
 bool OraConnector::startTransaction(ErrorCollector & ec)
 {
+    (void)ec;
 	SAS_LOG_NDC();
 	return true;
 }

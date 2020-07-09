@@ -53,6 +53,7 @@ SAS::ErrorCollector * _ec = nullptr;
 
 void cfinish(int sig)
 {
+    (void)sig;
 	signal(SIGINT, NULL);
 	if(_srv)
 	{

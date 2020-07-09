@@ -113,7 +113,8 @@ namespace SAS {
 
 	bool SessionManager::init(long default_max_idletime_secs,  ErrorCollector & ec)
 	{
-		SAS_LOG_NDC();
+        (void)ec;
+        SAS_LOG_NDC();
 		SAS_LOG_VAR(priv->logger, default_max_idletime_secs);
 		priv->default_max_idletime = std::chrono::seconds(default_max_idletime_secs);
 		SAS_LOG_INFO(priv->logger, "start session cleaner thread");

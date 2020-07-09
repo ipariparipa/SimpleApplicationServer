@@ -81,7 +81,8 @@ InterfaceManager::~InterfaceManager()
 
 bool InterfaceManager::start(ErrorCollector & ec)
 {
-	for(auto & th : priv->threads)
+    (void)ec;
+    for(auto & th : priv->threads)
 		th.second->start();
 	return true;
 }
@@ -95,7 +96,8 @@ void InterfaceManager::terminate()
 
 bool InterfaceManager::stop(ErrorCollector & ec)
 {
-	SAS_LOG_NDC();
+    (void)ec;
+    SAS_LOG_NDC();
 	SAS_LOG_DEBUG(priv->logger, "send stop signal to interfaces");
 	bool has_error(false);
 	for(auto & th : priv->threads)
@@ -110,7 +112,8 @@ bool InterfaceManager::stop(ErrorCollector & ec)
 
 bool InterfaceManager::stopOrTerminate(long timeout, ErrorCollector & ec)
 {
-	SAS_LOG_NDC();
+    (void)ec;
+    SAS_LOG_NDC();
 	stop(ec);
 	bool ret;
 	if(!(ret = wait(timeout, ec)))
@@ -127,7 +130,8 @@ bool InterfaceManager::stopOrTerminate(long timeout, ErrorCollector & ec)
 
 bool InterfaceManager::wait(long timeout, ErrorCollector & ec)
 {
-	SAS_LOG_NDC();
+    (void)ec;
+    SAS_LOG_NDC();
 	bool has_error(false);
 	for(auto & th : priv->threads)
 	{

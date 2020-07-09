@@ -67,7 +67,8 @@ bool EnvConfigReader::getEntryAsString(const std::string & path, std::string & r
 
 bool EnvConfigReader::getEntryAsString(const std::string & path, std::string & ret, const std::string & defaultValue, ErrorCollector & ec)
 {
-	SAS_LOG_NDC();
+    (void)ec;
+    SAS_LOG_NDC();
 	assert(path.length());
 	std::string env_name = to_env(path);
 	SAS_LOG_VAR(_logger, env_name);

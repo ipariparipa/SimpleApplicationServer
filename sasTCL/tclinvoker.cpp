@@ -109,6 +109,7 @@ namespace SAS {
 
 			virtual bool getAll(std::vector<std::pair<std::string, std::vector<unsigned char>*>> & ret, ErrorCollector & ec) final
 			{
+                (void)ec;
 				SAS_LOG_NDC();
 				SAS_LOG_TRACE(logger, "get all blob");
 				ret.resize(blobs.size());
@@ -179,6 +180,7 @@ namespace SAS {
 	//virtual 
 	void TCLInvoker::init(Tcl_Interp *interp) //override
 	{
+        (void)interp;
 		//TODO: add embedded TCL functions (e.g. blob handling)
 	}
 

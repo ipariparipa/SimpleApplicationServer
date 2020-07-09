@@ -49,7 +49,12 @@ struct SQLTransactionProtector::Priv
 
 	struct SimpleEC : public ErrorCollector
 	{
-		virtual inline void append(long errorCode, const std::string & errorText) override { };
+        virtual inline ~SimpleEC() override = default;
+        virtual inline void append(long errorCode, const std::string & errorText) override
+        {
+            (void)errorCode;
+            (void)errorText;
+        }
 	} s_ec;
 };
 

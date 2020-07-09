@@ -35,7 +35,8 @@ namespace SAS { namespace Logging {
 extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & ec)
 {
 #ifdef SAS_LOG4CXX_ENABLED
-	enum State
+    (void)ec;
+    enum State
 	{
 		None,
 		XMLConfig,
@@ -71,7 +72,7 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
 	if(config_type == None)
 		log4cxx::BasicConfigurator::configure();
 #else // SAS_LOG4CXX_ENABLED
-
+    (void)ec;
 	enum State
 	{
 		None,

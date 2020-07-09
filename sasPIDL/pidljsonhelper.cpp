@@ -77,6 +77,7 @@ namespace SAS {
 
 	bool PIDLJSONHelper::accept(const rapidjson::Value & root, std::vector<char> & data, ErrorCollector & ec)
 	{
+        (void)ec;
 		rapidjson::StringBuffer buffer;
 		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 		root.Accept(writer);

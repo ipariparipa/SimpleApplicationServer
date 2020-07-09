@@ -119,25 +119,29 @@ namespace SAS {
 
 	bool ConfigReader::toBool(const std::string & str, bool & ret, ErrorCollector & ec) const
 	{
+        (void)ec;
 		ret = str == "true" || atol(str.c_str());
 		return true;
 	}
 
 	bool ConfigReader::toNumber(const std::string & str, long long & ret, ErrorCollector & ec) const
 	{
-		ret = atoll(str.c_str());
+        (void)ec;
+        ret = atoll(str.c_str());
 		return true;
 	}
 
 	bool ConfigReader::toString(bool v, std::string & ret, ErrorCollector & ec) const
 	{
-		ret = v ? "true" : "false";
+        (void)ec;
+        ret = v ? "true" : "false";
 		return true;
 	}
 
 	bool ConfigReader::toString(long long v, std::string & ret, ErrorCollector & ec) const
 	{
-		ret = std::to_string(v);
+        (void)ec;
+        ret = std::to_string(v);
 		return true;
 	}
 
