@@ -5,7 +5,7 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-LIBS += -llog4cxx
+LIBS += -llog4cxx -ldl -lpthread
 
 SOURCES += \
     application.cpp \
