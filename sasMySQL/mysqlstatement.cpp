@@ -92,9 +92,14 @@ struct MySQLStatement::Priv
 
 		virtual SQLVariant getData() const = 0;
 
-		unsigned long out_size;
-		my_bool is_null;
-		my_bool is_error;
+        unsigned long out_size;
+#if MYSQL_VERSION_ID < 80000
+        my_bool is_null;
+        my_bool is_error;
+#else
+        bool is_null;
+        bool is_error;
+#endif
 	};
 
 	template<typename N_Type>
