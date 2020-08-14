@@ -105,7 +105,10 @@ SQLDataType MySQLResult::toDataType(enum_field_types type)
 	case MYSQL_TYPE_BIT:
 	case MYSQL_TYPE_NEWDECIMAL:
 	case MYSQL_TYPE_DECIMAL:
-		return SQLDataType::String;
+#if MYSQL_VERSION_ID >= 50700
+    case MYSQL_TYPE_JSON:
+#endif
+        return SQLDataType::String;
 	case MYSQL_TYPE_YEAR:
 	case MYSQL_TYPE_SHORT:
 		return SQLDataType::Number;
@@ -120,9 +123,6 @@ SQLDataType MySQLResult::toDataType(enum_field_types type)
 	case MYSQL_TYPE_DATETIME2:
 #endif
 		return SQLDataType::DateTime;
-#if MYSQL_VERSION_ID >= 50700
-	case MYSQL_TYPE_JSON:
-#endif
 	case MYSQL_TYPE_ENUM:
 	case MYSQL_TYPE_SET:
 	case MYSQL_TYPE_GEOMETRY:

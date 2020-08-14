@@ -621,7 +621,10 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 		case MYSQL_TYPE_STRING:
 		case MYSQL_TYPE_NEWDECIMAL:
 		case MYSQL_TYPE_DECIMAL:
-			h.reset(Priv::Str_ResultHelper::init(
+#if MYSQL_VERSION_ID >= 50700
+        case MYSQL_TYPE_JSON:
+#endif
+            h.reset(Priv::Str_ResultHelper::init(
 					priv->conn->settings().max_buffer_size > f->length ? f->length : priv->conn->settings().max_buffer_size,
 					b.buffer, b.buffer_length));
 			break;
@@ -650,9 +653,6 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 #endif
 			h.reset(Priv::DateTime_ResultHelper::init(b.buffer));
 			break;
-#if MYSQL_VERSION_ID >= 50700
-		case MYSQL_TYPE_JSON:
-#endif
 		case MYSQL_TYPE_ENUM:
 		case MYSQL_TYPE_SET:
 		case MYSQL_TYPE_GEOMETRY:
@@ -796,11 +796,17 @@ bool MySQLStatement::fetch(std::vector<SQLVariant> & ret, ErrorCollector & ec)
 		return false;
 	}
 
+    bool has_error = false;
 	ret.resize(priv->res_helpers.size());
 	for(size_t i(0), l(ret.size()); i < l; ++i)
-		ret[i] = priv->res_helpers[i]->getData();
+    {
+        if(auto & h = priv->res_helpers[i])
+            ret[i] = h->getData();
+        else
+            has_error = true;
+    }
 
-	return true;
+    return !has_error;
 }
 
 bool MySQLStatement::getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec)
