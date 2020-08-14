@@ -26,6 +26,7 @@ along with sasODBC.  If not, see <http://www.gnu.org/licenses/>
 
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 
 namespace SAS {
 
@@ -70,7 +71,7 @@ namespace SAS {
 					return false;
 				}
 			}
-			else if (abs(val) > LONG_MAX)
+            else if (abs(val) > LONG_MAX)
 				return bindParam(idx, std::to_string(val), isNull, ec);
 
 			return bindParam(idx, (long)val, isNull, ec);
