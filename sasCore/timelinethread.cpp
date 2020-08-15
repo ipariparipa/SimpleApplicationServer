@@ -18,6 +18,8 @@ namespace SAS {
 		{
 			Id id = 0;
 			std::chrono::system_clock::time_point timestamp;
+            std::chrono::system_clock::duration period;
+            long remaining = 1;
 			Func func;
 			bool done = false;
 		};
@@ -59,6 +61,22 @@ namespace SAS {
 			return current_entry;
 		}
 
+
+        void add(TimelineThread::Id id, std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, long cycle)
+        {
+            std::unique_lock<std::mutex> __locker(entries_mut);
+
+            Private::Entry e;
+            e.id = id;
+            e.func = func;
+            e.timestamp = timestamp;
+            e.period = period;
+            e.remaining = cycle;
+
+            entries[e.timestamp].push_back(e);
+            notif.notify();
+        }
+
 	};
 
     TimelineThread::TimelineThread() : ControlledThread(), p(new Private)
@@ -72,21 +90,27 @@ namespace SAS {
 		p->notif.notifyAll();
 	}
 
-	TimelineThread::Id TimelineThread::add(std::chrono::system_clock::time_point timestamp, Func func)
-	{
-		std::unique_lock<std::mutex> __locker(p->entries_mut);
+    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::duration timeout, Func func, long cycle)
+    {
+        return add(std::chrono::system_clock::now() + timeout, timeout, func, cycle);
+    }
 
-        static std::atomic<Id> id(0);
-        Private::Entry e;
-		e.id = ++id;
-		e.func = func;
-		e.timestamp = timestamp;
+    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::time_point timestamp, Func func)
+    {
+        return add(timestamp, std::chrono::system_clock::duration(), func, 1);
+    }
 
-        p->entries[e.timestamp].push_back(e);
-		p->notif.notify();
-		resume();
+    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, long cycle)
+    {
+        std::mutex mut;
+        std::unique_lock<std::mutex> __locker(mut);
+        static Id id(0);
 
-		return e.id;
+        p->add(++id, timestamp, period, func, cycle);
+
+        resume();
+
+        return id;
 	}
 
 	void TimelineThread::cancel(TimelineThread::Id id)
@@ -127,14 +151,22 @@ namespace SAS {
 			else
 			{
                 if (std::chrono::system_clock::now() >= e.timestamp)
+                {
 					e.func(e.id);
+                    if(e.remaining == -1 || --e.remaining > 0)
+                        p->add(e.id, e.timestamp + e.period, e.period, e.func, e.remaining);
+                }
                 else if (p->notif.wait(e.timestamp))
 				{
                     p->restore();
                     continue;
 				}
 				else
+                {
 					e.func(e.id);
+                    if(e.remaining == -1 || --e.remaining > 0)
+                        p->add(e.id, e.timestamp + e.period, e.period, e.func, e.remaining);
+                }
 			}
 		}
 	}

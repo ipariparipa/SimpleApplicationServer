@@ -27,12 +27,16 @@ namespace SAS {
 		void stop() final override;
 
 		template<typename DurationT>
-		Id add(DurationT timeout, Func func)
+        Id add(DurationT timeout, Func func, long cycle = 1) //cycle=-1 to infinity
 		{
-			return add(std::chrono::system_clock::now() + timeout, func);
+            return add(std::chrono::duration_cast<std::chrono::system_clock::duration>(timeout), func, cycle);
 		}
 
-		Id add(std::chrono::system_clock::time_point timestamp, Func func);
+        Id add(std::chrono::system_clock::duration timeout, Func func, long cycle = 1); //cycle=-1 to infinity
+
+        Id add(std::chrono::system_clock::time_point timestamp, Func func);
+
+        Id add(std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, long cycle);
 
 		void cancel(Id id);
 
