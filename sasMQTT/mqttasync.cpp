@@ -10,6 +10,7 @@
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
 #include <sasCore/thread.h>
+#include <sasCore/notifier.h>
 #include <sasCore/uniqueobjectmanager.h>
 
 #include <MQTTAsync.h>

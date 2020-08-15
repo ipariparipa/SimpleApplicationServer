@@ -16,6 +16,7 @@
  */
 
 #include "include/sasCore/timerthread.h"
+#include "include/sasCore/notifier.h"
 #include <mutex>
 #include <chrono>
 
@@ -24,8 +25,8 @@ namespace SAS {
 	struct TimerThread_priv
 	{
 		Notifier timer_not;
-		long milliseconds;
-	};
+        std::chrono::milliseconds interval;
+    };
 
 	TimerThread::TimerThread() : priv(new TimerThread_priv)
 	{
@@ -38,22 +39,22 @@ namespace SAS {
 		delete priv;
 	}
 
-	bool TimerThread::start(long milliseconds)
+    bool TimerThread::start(std::chrono::milliseconds interval)
 	{
 		wait();
-		priv->milliseconds = milliseconds;
+        priv->interval = interval;
 		priv->timer_not.wait();
 		return Thread::start();
 	}
 
-	void TimerThread::setInterval(long milliseconds)
+    void TimerThread::setInterval(std::chrono::milliseconds v)
 	{
-		priv->milliseconds = milliseconds;
+        priv->interval = v;
 	}
 
-	long TimerThread::interval() const
+    std::chrono::milliseconds TimerThread::interval() const
 	{
-		return priv->milliseconds;
+        return priv->interval;
 	}
 
 	void TimerThread::stop()
@@ -72,7 +73,7 @@ namespace SAS {
 
 	void TimerThread::execute()
 	{
-		while(!priv->timer_not.wait(priv->milliseconds) && status() != Thread::Status::Stopped)
+        while(!priv->timer_not.wait(priv->interval) && status() != Thread::Status::Stopped)
 			shot();
 	}
 

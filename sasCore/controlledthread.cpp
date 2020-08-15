@@ -16,6 +16,7 @@
  */
 
 #include "include/sasCore/controlledthread.h"
+#include "include/sasCore/notifier.h"
 
 #include <mutex>
 

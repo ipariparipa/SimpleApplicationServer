@@ -22,6 +22,7 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 #include <sasCore/logging.h>
 #include <sasCore/errorcollector.h>
+#include <sasCore/notifier.h>
 
 #include <mutex>
 #include <condition_variable>

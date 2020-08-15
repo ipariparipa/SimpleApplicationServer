@@ -29,7 +29,9 @@ SOURCES += \
     timerthread.cpp \
     tools.cpp \
     watchdog.cpp \
-	uniqueobjectmanager.cpp
+	uniqueobjectmanager.cpp \
+    notifier.cpp \
+    timelinethread.cpp
 
 HEADERS += \
     include/sasCore/application.h \
@@ -59,7 +61,9 @@ HEADERS += \
     include/sasCore/tools.h \
     include/sasCore/watchdog.h \
     include/sasCore/platform.h \
-	include/sasCore/uniqueobjectmanager.h
+	include/sasCore/uniqueobjectmanager.h \
+    include/sasCore/notifier.h \
+    include/sasCore/timelinethread.h
 
 
 

@@ -31,6 +31,7 @@ along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/configreader.h>
 #include <sasCore/thread.h>
 #include <sasCore/controlledthread.h>
+#include <sasCore/notifier.h>
 
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>

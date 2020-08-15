@@ -28,13 +28,19 @@ namespace SAS {
 		SAS_COPY_PROTECTOR(TimerThread)
 	public:
 		TimerThread();
-		virtual ~TimerThread();
+        virtual ~TimerThread() override;
 
-		bool start(long milliseconds);
-		virtual void stop() override;
+        inline bool start(long milliseconds)
+        { return start(std::chrono::milliseconds(milliseconds)); }
 
-		void setInterval(long milliseconds);
-		long interval() const;
+        bool start(std::chrono::milliseconds interval);
+        virtual void stop() override;
+
+        inline void setInterval(long milliseconds)
+        { setInterval(std::chrono::milliseconds(milliseconds)); }
+
+        void setInterval(std::chrono::milliseconds v);
+        std::chrono::milliseconds interval() const;
 
 	protected:
 		virtual void begun() override;

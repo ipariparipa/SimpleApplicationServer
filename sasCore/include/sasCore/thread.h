@@ -48,8 +48,12 @@ public:
 	virtual bool start();
 	virtual void stop();
 	void wait();
-	bool wait(long milliseconds);
-	void terminate();
+
+    bool inline wait(long milliseconds)
+    { return wait(std::chrono::milliseconds(milliseconds)); }
+
+    bool wait(std::chrono::milliseconds timeout);
+    void terminate();
 	Status status();
 
 	static ThreadId getThreadId();
@@ -62,25 +66,6 @@ protected:
 	virtual void execute() = 0;
 private:
 	Thread_priv * priv;
-};
-
-class SAS_CORE__CLASS Notifier
-{
-	SAS_COPY_PROTECTOR(Notifier)
-public:
-	Notifier();
-	~Notifier();
-
-	void notify();
-	void notifyAll();
-
-	void wait();
-	bool wait(long msecs);
-	bool tryWait();
-
-private:
-	struct Priv;
-	Priv * priv;
 };
 
 }

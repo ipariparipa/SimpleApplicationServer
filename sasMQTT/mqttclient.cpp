@@ -20,6 +20,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/logging.h>
 #include <sasCore/errorcollector.h>
 #include <sasCore/thread.h>
+#include <sasCore/notifier.h>
 
 #include "mqttconnectionoptions.h"
 
