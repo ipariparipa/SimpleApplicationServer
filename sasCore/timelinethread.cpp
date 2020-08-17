@@ -16,19 +16,21 @@ namespace SAS {
 
 		struct Entry
 		{
+            using Ptr = std::shared_ptr<Entry>;
 			Id id = 0;
 			std::chrono::system_clock::time_point timestamp;
             std::chrono::system_clock::duration period;
             long remaining = 1;
 			Func func;
-			bool done = false;
-		};
+            bool done = false;
+            std::mutex mut;
+        };
 
 		std::mutex entries_mut;
-		std::map<std::chrono::system_clock::time_point, std::list<Entry>> entries;
-		Entry current_entry;
+        std::map<std::chrono::system_clock::time_point, std::list<Entry::Ptr>> entries;
+        Entry::Ptr current_entry;
 
-		Entry takeNext()
+        Entry::Ptr takeNext()
 		{
 			std::unique_lock<std::mutex> __locker(entries_mut);
 
@@ -45,17 +47,20 @@ namespace SAS {
                     entries.erase(it);
             }
 
-			return current_entry = Entry();
+            return current_entry = nullptr;
 		}
 
 		void restore()
 		{
 			std::unique_lock<std::mutex> __locker(entries_mut);
-			if (current_entry.id)
-				entries[current_entry.timestamp].push_back(current_entry);
+            if (current_entry)
+            {
+                std::unique_lock<std::mutex> __e_locker(current_entry->mut);
+                entries[current_entry->timestamp].push_back(current_entry);
+            }
 		}
 
-		Entry current()
+        Entry::Ptr current()
 		{
 			std::unique_lock<std::mutex> __locker(entries_mut);
 			return current_entry;
@@ -66,14 +71,14 @@ namespace SAS {
         {
             std::unique_lock<std::mutex> __locker(entries_mut);
 
-            Private::Entry e;
-            e.id = id;
-            e.func = func;
-            e.timestamp = timestamp;
-            e.period = period;
-            e.remaining = cycle;
+            auto e = std::make_shared<Private::Entry>();
+            e->id = id;
+            e->func = func;
+            e->timestamp = timestamp;
+            e->period = period;
+            e->remaining = cycle;
 
-            entries[e.timestamp].push_back(e);
+            entries[e->timestamp].push_back(e);
             notif.notify();
         }
 
@@ -116,26 +121,32 @@ namespace SAS {
 	void TimelineThread::cancel(TimelineThread::Id id)
 	{
 		std::unique_lock<std::mutex> __locker(p->entries_mut);
-		if (p->current_entry.id && p->current_entry.id == id)
+        if(p->current_entry)
         {
-            p->current_entry = Private::Entry();
-		}
-		else
-		{
-			for (auto it = p->entries.begin(); it != p->entries.end(); ++it)
-			{
-				for (auto it_l = it->second.begin(); it_l != it->second.end(); ++it_l)
-				{
-					if (it_l->id == id)
-					{
-						it->second.erase(it_l);
-						if (!it->second.size())
+            std::unique_lock<std::mutex> __entry_locker(p->current_entry->mut);
+            auto __ce = p->current_entry;
+            if (p->current_entry->id == id)
+            {
+                p->current_entry->remaining = 0;
+                p->current_entry = nullptr;
+            }
+        }
+        else
+        {
+            for (auto it = p->entries.begin(); it != p->entries.end(); ++it)
+            {
+                for (auto it_l = it->second.begin(); it_l != it->second.end(); ++it_l)
+                {
+                    if ((*it_l)->id == id)
+                    {
+                        it->second.erase(it_l);
+                        if (!it->second.size())
                             p->entries.erase(it);
-						return;
-					}
-				}
-			}
-		}
+                        return;
+                    }
+                }
+            }
+        }
 
 		p->notif.notify();
 	}
@@ -144,28 +155,38 @@ namespace SAS {
 	{
         while (enterContolledSection())
 		{
-            Private::Entry e = p->takeNext();
+            auto e = p->takeNext();
 
-            if (!e.id)
+            if (!e)
 				suspend();
 			else
 			{
-                if (std::chrono::system_clock::now() >= e.timestamp)
+                std::chrono::system_clock::time_point timestamp;
                 {
-					e.func(e.id);
-                    if(e.remaining == -1 || --e.remaining > 0)
-                        p->add(e.id, e.timestamp + e.period, e.period, e.func, e.remaining);
+                    std::unique_lock<std::mutex> __e_locker(e->mut);
+                    if (std::chrono::system_clock::now() >= e->timestamp)
+                    {
+                        e->func(e->id);
+                        if(e->remaining == -1 || --e->remaining > 0)
+                            p->add(e->id, e->timestamp + e->period, e->period, e->func, e->remaining);
+                    }
+                    else
+                        timestamp = e->timestamp;
                 }
-                else if (p->notif.wait(e.timestamp))
-				{
-                    p->restore();
-                    continue;
-				}
-				else
+                if(timestamp != std::chrono::system_clock::time_point())
                 {
-					e.func(e.id);
-                    if(e.remaining == -1 || --e.remaining > 0)
-                        p->add(e.id, e.timestamp + e.period, e.period, e.func, e.remaining);
+                    if (p->notif.wait(timestamp))
+                    {
+                        p->restore();
+                        continue;
+                    }
+                    else
+                    {
+                        std::unique_lock<std::mutex> __e_locker(e->mut);
+                        e->func(e->id);
+                        if(e->remaining == -1 || --e->remaining > 0)
+                            p->add(e->id, e->timestamp + e->period, e->period, e->func, e->remaining);
+                    }
                 }
 			}
 		}
