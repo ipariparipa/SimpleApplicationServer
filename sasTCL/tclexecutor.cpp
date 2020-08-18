@@ -47,8 +47,8 @@ namespace SAS {
 		Logging::LoggerPtr logger;
 	};
 
-	TCLExecutor::TCLExecutor(const std::string & name, Tcl_Interp * interp) : 
-		ControlledThread(), 
+    TCLExecutor::TCLExecutor(ThreadPool * pool, const std::string & name, Tcl_Interp * interp) :
+        ControlledThread(pool),
 		priv(new Priv(name, interp))
 	{ }
 
@@ -189,12 +189,14 @@ namespace SAS {
 
 	struct TCLExecutorPool::Priv
 	{
-		Priv(const std::string & name_, Tcl_Interp * interp_) :
+        Priv(ThreadPool * pool, const std::string & name_, Tcl_Interp * interp_) :
+            threadPool(pool),
 			name(name_),
 			interp(interp_),
 			logger(Logging::getLogger("SAS.TCLExecutorPool." + name_))
 		{ }
 
+        ThreadPool * threadPool;
 		std::mutex mut;
 		std::map<TCLExecutor*, size_t /*used*/> pool;
 
@@ -204,7 +206,7 @@ namespace SAS {
 
 	};
 
-	TCLExecutorPool::TCLExecutorPool(const std::string & name, Tcl_Interp * interp) : priv(new Priv(name, interp))
+    TCLExecutorPool::TCLExecutorPool(ThreadPool * pool, const std::string & name, Tcl_Interp * interp) : priv(new Priv(pool, name, interp))
 	{ }
 
 	TCLExecutorPool::~TCLExecutorPool()
@@ -249,7 +251,7 @@ namespace SAS {
 		//else
 		{
 			SAS_LOG_TRACE(priv->logger, "create new TCLExecutor");
-			ret = new TCLExecutor(priv->name, priv->interp);
+            ret = new TCLExecutor(priv->threadPool, priv->name, priv->interp);
 			SAS_LOG_TRACE(priv->logger, "start TCL executor thread");
 			if (!ret->start(ec))
 			{

@@ -27,6 +27,7 @@
 #include "include/sasCore/timerthread.h"
 #include "include/sasCore/logging.h"
 #include "include/sasCore/uniqueobjectmanager.h"
+#include "include/sasCore/application.h"
 
 #include <iostream>
 #include <sstream>
@@ -35,7 +36,10 @@ namespace SAS {
 
 	struct SessionManager::Priv
 	{
-		Priv(UniqueObjectManager * that_) : that(that_), cleaner(this), logger(Logging::getLogger("SAS.SessionManager"))
+        Priv(Application * app, UniqueObjectManager * that_) :
+            that(that_),
+            cleaner(app->threadPool(), this),
+            logger(Logging::getLogger("SAS.SessionManager"))
 		{ }
 
 		struct SessionObject : public UniqueObjectManager::Object
@@ -59,7 +63,7 @@ namespace SAS {
 
 		struct Cleaner : public TimerThread
 		{
-			Cleaner(Priv * priv_) : logger(Logging::getLogger("SAS.SessionManager.Cleaner")), priv(priv_)
+            Cleaner(ThreadPool * pool, Priv * priv_) : TimerThread(pool), logger(Logging::getLogger("SAS.SessionManager.Cleaner")), priv(priv_)
 			{ }
 
 			void shot() override
@@ -102,7 +106,7 @@ namespace SAS {
 		Logging::LoggerPtr logger;
 	};
 
-	SessionManager::SessionManager() : UniqueObjectManager(), priv(new Priv(this))
+    SessionManager::SessionManager(Application * app) : UniqueObjectManager(), priv(new Priv(app, this))
 	{ }
 
 	SessionManager::~SessionManager()
@@ -111,12 +115,12 @@ namespace SAS {
 		delete priv;
 	}
 
-	bool SessionManager::init(long default_max_idletime_secs,  ErrorCollector & ec)
+    bool SessionManager::init(std::chrono::seconds default_max_idletime,  ErrorCollector & ec)
 	{
         (void)ec;
         SAS_LOG_NDC();
-		SAS_LOG_VAR(priv->logger, default_max_idletime_secs);
-		priv->default_max_idletime = std::chrono::seconds(default_max_idletime_secs);
+        SAS_LOG_VAR(priv->logger, default_max_idletime.count());
+        priv->default_max_idletime = default_max_idletime;
 		SAS_LOG_INFO(priv->logger, "start session cleaner thread");
 		priv->cleaner.start(SAS_SESSION_CLEANER_INTERVAL);
 		return true;

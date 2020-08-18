@@ -51,7 +51,7 @@ namespace SAS {
 			threadPool(app, logger)
 		{ }
 
-		 virtual ~MQTTRunner() { }
+         virtual ~MQTTRunner() override = default;
 
 	private:
 		struct RunnerTask
@@ -67,7 +67,7 @@ namespace SAS {
 			Logging::LoggerPtr _logger;
 		public:
 			 RunnerThread(Application * app, const Logging::LoggerPtr & logger) :
-				 ThreadInPool(), _app(app), _logger(logger)
+                 ThreadInPool(app->threadPool()), _app(app), _logger(logger)
 			{ }
 		protected:
 			virtual bool complete(RunnerTask * task) override

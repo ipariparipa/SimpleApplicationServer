@@ -27,8 +27,8 @@ class SAS_CORE__CLASS ControlledThread : public Thread
 {
 	SAS_COPY_PROTECTOR(ControlledThread)
 public:
-	ControlledThread();
-	virtual ~ControlledThread();
+    ControlledThread(ThreadPool * pool);
+    virtual ~ControlledThread() override;
 
 	void suspend();
 	void resume();

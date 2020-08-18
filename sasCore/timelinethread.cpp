@@ -84,7 +84,7 @@ namespace SAS {
 
 	};
 
-    TimelineThread::TimelineThread() : ControlledThread(), p(new Private)
+    TimelineThread::TimelineThread(ThreadPool * pool) : ControlledThread(pool), p(new Private)
 	{ }
 
     TimelineThread::~TimelineThread() = default;

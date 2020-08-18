@@ -32,14 +32,14 @@ class SC_Module : public Module
 {
 	SAS_COPY_PROTECTOR(SC_Module)
 public:
-	SC_Module(const std::string & name);
+    SC_Module(Application * app, const std::string & name);
 	virtual ~SC_Module();
 
 	virtual std::string description() const final;
 	virtual std::string version() const final;
 	virtual std::string name() const final;
 
-	bool init(Application * app, ErrorCollector & ec);
+    bool init(ErrorCollector & ec);
 
 protected:
 	virtual Session * createSession(SessionID id, ErrorCollector & ec) final;

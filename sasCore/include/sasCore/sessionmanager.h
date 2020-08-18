@@ -26,6 +26,7 @@
 namespace SAS {
 
 	class ErrorCollector;
+    class Application;
 
 	class SAS_CORE__CLASS SessionManager : protected UniqueObjectManager
 	{
@@ -35,10 +36,10 @@ namespace SAS {
 		Priv * priv;
 
 	public:
-		SessionManager();
-		virtual ~SessionManager();
+        SessionManager(Application * app);
+        virtual ~SessionManager() override;
 
-		bool init(long default_session_lifetime_secs,  ErrorCollector & ec);
+        bool init(std::chrono::seconds default_session_lifetime,  ErrorCollector & ec);
 		void deinit();
 
 		Session * getSession(SessionID sid, ErrorCollector & ec);

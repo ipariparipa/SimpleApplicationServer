@@ -27,7 +27,7 @@ namespace SAS {
 	{
 		SAS_COPY_PROTECTOR(TimerThread)
 	public:
-		TimerThread();
+        TimerThread(ThreadPool * pool);
         virtual ~TimerThread() override;
 
         inline bool start(long milliseconds)

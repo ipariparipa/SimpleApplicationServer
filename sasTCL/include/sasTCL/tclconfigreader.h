@@ -23,13 +23,15 @@ along with sasTCL.  If not, see <http://www.gnu.org/licenses/>
 
 namespace SAS {
 
+    class ThreadPool;
+
 	class SAS_TCL__CLASS TCLConfigReader : public ConfigReader
 	{
 		struct Priv;
 		Priv * priv;
 	public:
-		TCLConfigReader();
-		virtual ~TCLConfigReader();
+        TCLConfigReader(ThreadPool * pool);
+        virtual ~TCLConfigReader() override;
 
 		bool init(const std::string & tclfile, ErrorCollector & ec);
 		bool init(const std::string & tclfile, const std::string & getter_function, ErrorCollector & ec);

@@ -25,6 +25,7 @@
 #include "include/sasCore/configreader.h"
 #include "include/sasCore/component.h"
 #include "include/sasCore/errorcodes.h"
+#include "include/sasCore/threadpool.h"
 
 #include <list>
 #include <memory>
@@ -36,14 +37,19 @@ namespace SAS {
 
 struct Application_priv
 {
-	Application_priv() : logger(Logging::getLogger("SAS.Application")), argc(0), argv(nullptr)
-	{
+    Application_priv() :
+        logger(Logging::getLogger("SAS.Application")),
+        threadPool("SAS.Application.ThreadPool"),
+        argc(0),
+        argv(nullptr)
+    {
 		srand((unsigned int)time(0));
 	}
 
 	ObjectRegistry objectRegistry;
 	std::vector<ComponentLoader*> componentLoaders;
 	Logging::LoggerPtr logger;
+    SimpleThreadPool threadPool;
 
 	int argc;
 	char ** argv;
@@ -141,6 +147,12 @@ void Application::deinit()
 		if(cl)
 			delete cl;
 	priv->componentLoaders.clear();
+}
+
+//virtual
+ThreadPool * Application::threadPool()
+{
+    return &priv->threadPool;
 }
 
 }

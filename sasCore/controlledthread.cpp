@@ -29,7 +29,7 @@ namespace SAS {
 	};
 
 
-	ControlledThread::ControlledThread() : Thread(), priv(new ControlledThread_priv)
+    ControlledThread::ControlledThread(ThreadPool * pool) : Thread(pool), priv(new ControlledThread_priv)
 	{ }
 
 	ControlledThread::~ControlledThread()

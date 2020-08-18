@@ -50,8 +50,8 @@ public:
 			size_t i(0);
 			for(auto & name : module_names)
 			{
-				auto m = new SC_Module(name);
-				if(!m->init(app, ec))
+                auto m = new SC_Module(app, name);
+                if(!m->init(ec))
 				{
 					delete m;
 					has_error = true;

@@ -21,7 +21,7 @@ namespace SAS {
 		using Func = std::function<void(Id id)>;
 
 
-		TimelineThread();
+        TimelineThread(ThreadPool * pool);
 		virtual ~TimelineThread() override;
 
 		void stop() final override;

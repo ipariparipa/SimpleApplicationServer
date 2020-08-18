@@ -31,7 +31,7 @@ namespace SAS
 class SAS_CORE__CLASS Module : public SessionManager, public Object
 {
 public:
-	Module();
+    Module(Application * app);
 	virtual ~Module();
 
 	virtual inline std::string type() const final

@@ -25,6 +25,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include <mutex>
 #include <memory>
 #include <deque>
+#include <list>
 
 namespace SAS {
 
@@ -68,7 +69,7 @@ namespace SAS {
 	class ThreadInPool : public ControlledThread
 	{
 	public:
-		ThreadInPool() : ControlledThread()
+        ThreadInPool(ThreadPool * pool) : ControlledThread(pool)
 		{ }
 
 		virtual ~ThreadInPool() { }

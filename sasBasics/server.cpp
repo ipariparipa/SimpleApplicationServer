@@ -56,7 +56,8 @@ namespace SAS {
 };
 
 Server::Server(int argc, char ** argv) : 
-	Application(argc, argv), InterfaceManager(), Watchdog(), priv(new Server_priv)
+    Application(argc, argv), InterfaceManager(this), Watchdog(),
+    priv(new Server_priv)
 { }
 
 Server::~Server()

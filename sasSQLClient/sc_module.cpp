@@ -236,12 +236,14 @@ private:
 
 struct SC_Module_priv
 {
-	SC_Module_priv(const std::string & name_) : 
-		name(name_), 
-		logger(Logging::getLogger("SAS.SQLClient.SC_Module." + name_)),
-		exec_pool(name_)
+    SC_Module_priv(Application * app, const std::string & name) :
+        app(app),
+        name(name),
+        logger(Logging::getLogger("SAS.SQLClient.SC_Module." + name)),
+        exec_pool(app->threadPool(), name)
 	{ }
 
+    Application * app;
 	std::string name;
 	Logging::LoggerPtr logger;
 	SQLConnector * conn = nullptr;
@@ -249,7 +251,7 @@ struct SC_Module_priv
 	SAS::TCLExecutorPool exec_pool;
 };
 
-SC_Module::SC_Module(const std::string & name) : Module(), priv(new SC_Module_priv(name))
+SC_Module::SC_Module(Application * app, const std::string & name) : Module(app), priv(new SC_Module_priv(app, name))
 { }
 
 SC_Module::~SC_Module()
@@ -272,26 +274,26 @@ std::string SC_Module::name() const
 	return priv->name;
 }
 
-bool SC_Module::init(Application * app, ErrorCollector & ec)
+bool SC_Module::init(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
 	long long default_session_lifetime;
 	std::string prefix = "SAS/SQL_CLIENT/" + priv->name;
-	if(!app->configReader()->getNumberEntry(prefix + "/DEFAULT_SESSION_LIFETIME", default_session_lifetime, 10, ec))
+    if(!priv->app->configReader()->getNumberEntry(prefix + "/DEFAULT_SESSION_LIFETIME", default_session_lifetime, 10, ec))
 		return false;
 
-	if(!SessionManager::init((long)default_session_lifetime, ec))
+    if(!SessionManager::init(std::chrono::seconds(default_session_lifetime), ec))
 		return false;
 
 	std::string conn_name;
-	if(!app->configReader()->getStringEntry(prefix + "/SQL_CONNECTOR", conn_name, ec))
+    if(!priv->app->configReader()->getStringEntry(prefix + "/SQL_CONNECTOR", conn_name, ec))
 	{
 		auto err = ec.add(-1, "connector name is not configured");
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
 
-	if(!(priv->conn = app->objectRegistry()->getObject<SQLConnector>(SAS_OBJECT_TYPE_SQL__CONNECTOR, conn_name, ec)))
+    if(!(priv->conn = priv->app->objectRegistry()->getObject<SQLConnector>(SAS_OBJECT_TYPE_SQL__CONNECTOR, conn_name, ec)))
 		return false;
 
 	if(!priv->conn->connect(ec))

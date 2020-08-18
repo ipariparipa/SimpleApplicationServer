@@ -79,9 +79,9 @@ public:
 				bool has_error(false);
 				for (size_t i(0), l(bypassmodule_names.size()); i < l; ++i)
 				{
-					auto mod = new BypassModule(bypassmodule_names[i]);
+                    auto mod = new BypassModule(app, bypassmodule_names[i]);
 					std::string config_path = "SAS/BYPASS/" + bypassmodule_names[i];
-					if (!mod->init(config_path, app, ec))
+                    if (!mod->init(config_path, ec))
 						has_error = true;
 					else
 						objs[i] = mod;

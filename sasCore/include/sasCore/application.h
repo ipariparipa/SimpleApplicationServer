@@ -30,11 +30,12 @@ namespace SAS
 class ConfigReader;
 class InterfaceManager;
 class ObjectRegistry;
+class ThreadPool;
 
 struct Application_priv;
 class SAS_CORE__CLASS Application
 {
-SAS_COPY_PROTECTOR(Application);
+    SAS_COPY_PROTECTOR(Application)
 public:
 	Application();
 	Application(int argc, char **argv);
@@ -51,6 +52,8 @@ public:
 	virtual void deinit();
 
 	virtual Logging::LoggerPtr logger();
+
+    virtual ThreadPool * threadPool();
 
 	virtual inline InterfaceManager * interfaceManager() { return nullptr; };
 	virtual ConfigReader * configReader() = 0;

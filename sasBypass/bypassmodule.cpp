@@ -97,9 +97,13 @@ namespace SAS {
 
 	struct BypassModule_priv
 	{
-		BypassModule_priv(const std::string & name_) : name(name_), logger(Logging::getLogger("SAS.BypassModule." + name_))
+        BypassModule_priv(Application * app, const std::string & name) :
+            app(app),
+            name(name),
+            logger(Logging::getLogger("SAS.BypassModule." + name))
 		{ }
 
+        Application * app;
 		std::string name;
 		std::string dest_module_name;
 		std::string version;
@@ -109,8 +113,8 @@ namespace SAS {
 		Connector * connector;
 	};
 
-	BypassModule::BypassModule(const std::string & name) : 
-		Module(), priv(new BypassModule_priv(name))
+    BypassModule::BypassModule(Application * app, const std::string & name) :
+        Module(app), priv(new BypassModule_priv(app, name))
 	{ }
 
 	BypassModule::~BypassModule()
@@ -131,12 +135,12 @@ namespace SAS {
 		return priv->name;
 	}
 
-	bool BypassModule::init(const std::string & config_path, Application * app, ErrorCollector & ec)
+    bool BypassModule::init(const std::string & config_path, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
 
 		std::string connector_name;
-		if (!app->configReader()->getStringEntry(config_path + "/CONNECTOR", connector_name, ec))
+        if (!priv->app->configReader()->getStringEntry(config_path + "/CONNECTOR", connector_name, ec))
 		{
 			auto err = ec.add(SAS_CORE__ERROR__MODULE__MISSING_CONFIG_ENTRY, "connector is not specified for bypass module '" + priv->name + "'");
 			SAS_LOG_ERROR(priv->logger, err);
@@ -146,23 +150,23 @@ namespace SAS {
 		SAS_LOG_VAR(priv->logger, connector_name);
 
 		SAS_LOG_TRACE(priv->logger, "get connector object");
-		if (!(priv->connector = app->objectRegistry()->getObject<Connector>(SAS_OBJECT_TYPE__CONNECTOR, connector_name, ec)))
+        if (!(priv->connector = priv->app->objectRegistry()->getObject<Connector>(SAS_OBJECT_TYPE__CONNECTOR, connector_name, ec)))
 			return false;
 		
 		SAS_LOG_TRACE(priv->logger, "activate connector");
 		if(!priv->connector->connect(ec))
 			return false;
 
-		if (!app->configReader()->getStringEntry(config_path + "/MODULE", priv->dest_module_name, priv->name, ec))
+        if (!priv->app->configReader()->getStringEntry(config_path + "/MODULE", priv->dest_module_name, priv->name, ec))
 			return false;
 
 		SAS_LOG_TRACE(priv->logger, "get module information");
 
 		long long default_session_lifetime;
-		if (!app->configReader()->getNumberEntry(config_path + "/DEFAULT_SESSION_LIFETIME", default_session_lifetime, 120, ec))
+        if (!priv->app->configReader()->getNumberEntry(config_path + "/DEFAULT_SESSION_LIFETIME", default_session_lifetime, 120, ec))
 			return false;
 
-		if (!SAS::SessionManager::init((long)default_session_lifetime, ec))
+        if (!SAS::SessionManager::init(std::chrono::seconds(default_session_lifetime), ec))
 			return false;
 
 		return priv->connector->getModuleInfo(priv->dest_module_name, priv->description, priv->version, ec);

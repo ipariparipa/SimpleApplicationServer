@@ -35,9 +35,9 @@ namespace SAS {
 		struct Priv;
 		Priv * priv;
 	public:
-		TCLExecutor(const std::string & name, Tcl_Interp * interp = nullptr);
+        TCLExecutor(ThreadPool * pool, const std::string & name, Tcl_Interp * interp = nullptr);
 
-		virtual ~TCLExecutor();
+        virtual ~TCLExecutor() override;
 
 		struct Run
 		{
@@ -77,7 +77,7 @@ namespace SAS {
 		struct Priv;
 		Priv * priv;
 	public:
-		TCLExecutorPool(const std::string & name, Tcl_Interp * interp = nullptr);
+        TCLExecutorPool(ThreadPool * pool, const std::string & name, Tcl_Interp * interp = nullptr);
 
 		~TCLExecutorPool();
 

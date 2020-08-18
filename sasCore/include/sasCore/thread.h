@@ -25,6 +25,8 @@
 namespace SAS
 {
 
+class ThreadPool;
+
 typedef std::thread::id ThreadId;
 
 struct Thread_priv;
@@ -41,10 +43,11 @@ public:
 		Stopped
 	};
 
-	Thread();
+    Thread(ThreadPool * pool);
 	virtual ~Thread();
 
 	ThreadId id();
+    std::string name() const;
 	virtual bool start();
 	virtual void stop();
 	void wait();

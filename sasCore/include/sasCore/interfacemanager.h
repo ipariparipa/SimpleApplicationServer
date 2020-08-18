@@ -28,6 +28,7 @@ namespace SAS {
 class ErrorCollector;
 class Interface;
 class Watchdog;
+class Application;
 
 struct InterfaceManager_priv;
 
@@ -35,7 +36,7 @@ class SAS_CORE__CLASS InterfaceManager
 {
 	SAS_COPY_PROTECTOR(InterfaceManager)
 public:
-	InterfaceManager();
+    InterfaceManager(Application * app);
 	virtual ~InterfaceManager();
 
 	bool start(ErrorCollector & ec);

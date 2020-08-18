@@ -28,7 +28,7 @@ namespace SAS {
         std::chrono::milliseconds interval;
     };
 
-	TimerThread::TimerThread() : priv(new TimerThread_priv)
+    TimerThread::TimerThread(ThreadPool * pool) : Thread(pool), priv(new TimerThread_priv)
 	{
 		priv->timer_not.notify();
 	}

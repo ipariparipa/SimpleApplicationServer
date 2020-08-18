@@ -29,14 +29,14 @@ namespace SAS {
 	{
 		SAS_COPY_PROTECTOR(BypassModule)
 	public:
-		BypassModule(const std::string & name);
+        BypassModule(Application * app, const std::string & name);
 		virtual ~BypassModule();
 
 		virtual std::string description() const final;
 		virtual std::string version() const final;
 		virtual std::string name() const final;
 
-		bool init(const std::string & config_path, Application * app, ErrorCollector & ec);
+        bool init(const std::string & config_path, ErrorCollector & ec);
 
 	protected:
 		virtual Session * createSession(SessionID id, ErrorCollector & ec) final;

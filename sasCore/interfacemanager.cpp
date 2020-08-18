@@ -22,6 +22,7 @@
 #include "include/sasCore/errorcollector.h"
 #include "include/sasCore/errorcodes.h"
 #include "include/sasCore/tools.h"
+#include "include/sasCore/application.h"
 
 #include <mutex>
 #include <map>
@@ -32,13 +33,17 @@ namespace SAS {
 
 struct InterfaceManager_priv
 {
-	InterfaceManager_priv() : logger(Logging::getLogger("SAS.InterfaceManager"))
+    InterfaceManager_priv(Application * app) :
+        logger(Logging::getLogger("SAS.InterfaceManager")),
+        app(app)
 	{ }
 
 	class InterfaceThread : public Thread
 	{
 	public:
-		InterfaceThread(Watchdog * wd, Interface * interface_) : _interface(interface_), _wd(wd)
+        InterfaceThread(ThreadPool * pool, Watchdog * wd, Interface * interface_) : Thread(pool),
+            _interface(interface_),
+            _wd(wd)
 		{ }
 
 		bool stop(ErrorCollector & ec)
@@ -66,6 +71,7 @@ struct InterfaceManager_priv
 		Watchdog * _wd;
 	};
 
+    Application * app;
 	std::mutex mut;
 	std::map<std::string, std::unique_ptr<InterfaceThread>> threads;
 
@@ -73,7 +79,7 @@ struct InterfaceManager_priv
 
 };
 
-InterfaceManager::InterfaceManager() : priv(new InterfaceManager_priv)
+InterfaceManager::InterfaceManager(Application * app) : priv(new InterfaceManager_priv(app))
 { }
 
 InterfaceManager::~InterfaceManager()
@@ -163,7 +169,7 @@ bool InterfaceManager::registerInterface(Interface * interface_, ErrorCollector 
 		SAS_LOG_ERROR(logger(), err);
 		return false;
 	}
-	priv->threads[interface_->name()].reset(new InterfaceManager_priv::InterfaceThread(watchdog(), interface_));
+    priv->threads[interface_->name()].reset(new InterfaceManager_priv::InterfaceThread(priv->app->threadPool(), watchdog(), interface_));
 	SAS_LOG_DEBUG(logger(), std::string("interface has been registered: ") + interface_->name());
 	return true;
 }
@@ -184,7 +190,7 @@ bool InterfaceManager::registerInterfaces(const std::vector<Interface *> & inter
 		}
 		else
 		{
-			priv->threads[intf->name()].reset(new InterfaceManager_priv::InterfaceThread(watchdog(), intf));
+            priv->threads[intf->name()].reset(new InterfaceManager_priv::InterfaceThread(priv->app->threadPool(), watchdog(), intf));
 			SAS_LOG_DEBUG(logger(), std::string("interface has been registered: ") + intf->name());
 		}
 	}

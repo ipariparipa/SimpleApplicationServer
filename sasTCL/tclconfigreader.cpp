@@ -32,9 +32,9 @@ namespace SAS {
 
 	struct TCLConfigReader::Priv : public TCLInterpInitializer
 	{
-		Priv() :
+        Priv(ThreadPool * pool) :
 			logger(Logging::getLogger("SAS.TCLConfigReader")),
-			exec("TCLConfigReader")
+            exec(pool, "TCLConfigReader")
 		{ }
 
 		virtual ~Priv() { }
@@ -84,7 +84,7 @@ namespace SAS {
 	};
 
 
-	TCLConfigReader::TCLConfigReader() : priv(new Priv)
+    TCLConfigReader::TCLConfigReader(ThreadPool * pool) : priv(new Priv(pool))
 	{ }
 
 	TCLConfigReader::~TCLConfigReader()

@@ -16,6 +16,7 @@
  */
 
 #include "include/sasCore/thread.h"
+#include "include/sasCore/threadpool.h"
 
 #include <mutex>
 #include <thread>
@@ -25,13 +26,19 @@ namespace SAS
 {
 	struct Thread_priv
 	{
-		Thread_priv() : status(Thread::Status::NotRunning), th(nullptr)
+        Thread_priv(ThreadPool * pool) :
+            pool(pool),
+            status(Thread::Status::NotRunning),
+            th(nullptr)
 		{ }
 		std::mutex status_mutex;
-		Thread::Status status;
+
+        ThreadPool * pool;
+        Thread::Status status;
 
 		std::timed_mutex th_mutex;
-		std::thread * th;
+        //std::thread * th;
+        ThreadPool::Thread * th;
 
 		static void runner(Thread * obj)
 		{
@@ -41,12 +48,10 @@ namespace SAS
 			obj->ended();
 			std::unique_lock<std::mutex> __status_mutex_locker(obj->priv->status_mutex);
 			obj->priv->status = Thread::Status::NotRunning;
-//			delete obj->priv->th;
-			obj->priv->th = nullptr;
 		}
 	};
 
-	Thread::Thread() : priv(new Thread_priv)
+    Thread::Thread(ThreadPool * pool) : priv(new Thread_priv(pool))
 	{ }
 
 	Thread::~Thread()
@@ -57,8 +62,13 @@ namespace SAS
 
 	ThreadId Thread::id()
 	{
-		return priv->th ? priv->th->get_id() : std::thread::id();
+        return priv->th ? priv->th->id() : ThreadId();
 	}
+
+    std::string Thread::name() const
+    {
+        return priv->th ? priv->th->name() : "(none)";
+    }
 
 	bool Thread::start()
 	{
@@ -66,7 +76,14 @@ namespace SAS
 		if(priv->status != Status::NotRunning)
 			return false;
 		priv->status = Status::Started;
-		priv->th = new std::thread(Thread_priv::runner, this);
+//		priv->th = new std::thread(Thread_priv::runner, this);
+
+        priv->th = priv->pool->allocate();
+        priv->th->run(std::bind(Thread_priv::runner, this), [this](){
+            this->priv->pool->release(priv->th);
+            priv->th = nullptr;
+        });
+
 		return true;
 	}
 

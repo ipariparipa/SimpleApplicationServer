@@ -19,7 +19,7 @@
 
 namespace SAS {
 
-Module::Module() : SessionManager()
+Module::Module(Application * app) : SessionManager(app)
 { }
 
 Module::~Module()
