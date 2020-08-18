@@ -23,6 +23,7 @@
 
 #include <sasCore/connector.h>
 #include <pidlCore/jsontools.h>
+#include <pidlCore/basictypes.h>
 
 namespace SAS {
 
@@ -38,12 +39,12 @@ namespace SAS {
 		virtual ~PIDLJSONClient()
 		{ }
 
-		virtual PIDL::JSONTools::InvokeStatus _invoke(const rapidjson::Value & root, rapidjson::Document & retval, PIDL::ErrorCollector & ec) override
+        virtual PIDL::InvokeStatus _invoke(const rapidjson::Value & root, rapidjson::Document & retval, PIDL::ErrorCollector & ec) override
 		{
 			PIDL_SASErrorCollector sas_ec(ec);
 			std::vector<char> in;
 			if (!_helper.accept(root, in, sas_ec))
-				return PIDL::JSONTools::InvokeStatus::MarshallingError;
+                return PIDL::InvokeStatus::MarshallingError;
 
 			std::vector<char> out;
 			auto stat = _conn->invoke(in, out, sas_ec);
@@ -53,21 +54,21 @@ namespace SAS {
 				if(!out.size() || out.back() != '\0')
 					out.push_back('\0');
 				if(!_helper.parse(out, retval, sas_ec))
-					return PIDL::JSONTools::InvokeStatus::MarshallingError;
+                    return PIDL::InvokeStatus::MarshallingError;
 			}
 
 			switch(stat)
 			{
 			case Invoker::Status::OK:
-				return PIDL::JSONTools::InvokeStatus::Ok;
+                return PIDL::InvokeStatus::Ok;
 			case Invoker::Status::Error:
-				return PIDL::JSONTools::InvokeStatus::Error;
+                return PIDL::InvokeStatus::Error;
 			case Invoker::Status::NotImplemented:
-				return PIDL::JSONTools::InvokeStatus::NotImplemented;
+                return PIDL::InvokeStatus::NotImplemented;
 			case Invoker::Status::FatalError:
 				break;
 			}
-			return PIDL::JSONTools::InvokeStatus::FatalError;
+            return PIDL::InvokeStatus::FatalError;
 		}
 
 	};

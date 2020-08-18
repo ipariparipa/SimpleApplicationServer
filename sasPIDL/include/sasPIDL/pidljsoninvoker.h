@@ -21,6 +21,7 @@
 #include "config.h"
 #include "errorcollector.h"
 #include <sasCore/invoker.h>
+#include <pidlCore/basictypes.h>
 #include <pidlCore/jsontools.h>
 
 #include <vector>
@@ -57,15 +58,15 @@ namespace SAS {
 			outdoc.SetObject();
 			switch(srv->_invoke(indoc, outdoc, _ec))
 			{
-			case PIDL::JSONTools::InvokeStatus::Ok:
+            case PIDL::InvokeStatus::Ok:
 				break;
-			case PIDL::JSONTools::InvokeStatus::Error:
-			case PIDL::JSONTools::InvokeStatus::MarshallingError:
-			case PIDL::JSONTools::InvokeStatus::NotSupportedMarshaklingVersion:
+            case PIDL::InvokeStatus::Error:
+            case PIDL::InvokeStatus::MarshallingError:
+            case PIDL::InvokeStatus::NotSupportedMarshallingVersion:
 				return Status::Error;
-			case PIDL::JSONTools::InvokeStatus::FatalError:
+            case PIDL::InvokeStatus::FatalError:
 				return Status::FatalError;
-			case PIDL::JSONTools::InvokeStatus::NotImplemented:
+            case PIDL::InvokeStatus::NotImplemented:
 				return Status::NotImplemented;
 			}
 
