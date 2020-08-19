@@ -19,18 +19,20 @@ SUBDIRS += \
     sasCorba \
     sasTCL \
     sasPIDL \
-    sasgetpidl
+    sasgetpidl \
+    test
 
 sasBasics.depends = sasCore
 sas.depends = sasCore sasBasics
 sasTCLTools.depends = sasCore
 sasClient.depends = sasCore sasTCLTools sasBasics
-sasBypass = sasCore
-sasJSON = sasCore
-sasSQL = sasCore
-sasMySQL = sasSQL sasCore
-sasODBC = sasSQL sasCore
-sasOracle = sasSQL sasCore
-sasTCL = sasCore sasTCLTools
-sasPIDL = sasCore
-sasgetpidl = sasCore sasPIDL
+sasBypass.depends = sasCore
+sasJSON.depends = sasCore
+sasSQL.depends = sasCore
+sasMySQL.depends = sasSQL sasCore
+sasODBC.depends = sasSQL sasCore
+sasOracle.depends = sasSQL sasCore
+sasTCL.depends = sasCore sasTCLTools
+sasPIDL.depends = sasCore
+sasgetpidl.depends = sasCore sasPIDL
+test.depends = sasCore sasBasics sasSQL
