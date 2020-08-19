@@ -1,18 +1,18 @@
 /*
-    This file is part of sasgetpidl.
+    This file is part of pidlsas.
 
-    sasgetpidl is free software: you can redistribute it and/or modify
+    pidlsas is free software: you can redistribute it and/or modify
     it under the terms of the Lesser GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    sasgetpidl is distributed in the hope that it will be useful,
+    pidlsas is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with sasgetpidl.  If not, see <http://www.gnu.org/licenses/>
+    along with pidlsas.  If not, see <http://www.gnu.org/licenses/>
  */
 
 #include <pidlBackend/job_json.h>
@@ -90,16 +90,16 @@ protected:
 	}
 };
 
-class PIDL_SAS_JSONReaderFactory : public PIDL::ReaderFactory_JSON
+class SAS_PIDL_JSONReaderFactory : public PIDL::ReaderFactory_JSON
 {
 	SAS::Connector * _conn;
 public:
-	PIDL_SAS_JSONReaderFactory(SAS::Connector * conn) :
+    SAS_PIDL_JSONReaderFactory(SAS::Connector * conn) :
 		ReaderFactory_JSON(),
 		_conn(conn)
 	{ }
 
-	virtual ~PIDL_SAS_JSONReaderFactory() = default;
+    virtual ~SAS_PIDL_JSONReaderFactory() = default;
 
 	virtual bool build(const rapidjson::Value & value, std::shared_ptr<PIDL::Reader> & ret, PIDL::ErrorCollector & ec) override
 	{
@@ -227,7 +227,7 @@ int main(int argc, char **argv)
 
 	auto job = std::make_shared<PIDL::Job_JSON>();
 
-	job->factoryRegistry()->add(std::make_shared<PIDL_SAS_JSONReaderFactory>(conn));
+    job->factoryRegistry()->add(std::make_shared<SAS_PIDL_JSONReaderFactory>(conn));
 
 	if (!job->build(*jsonreader.document(), pidl_ec))
 		return 1;

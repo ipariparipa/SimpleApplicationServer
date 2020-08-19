@@ -19,7 +19,7 @@ SUBDIRS += \
     sasCorba \
     sasTCL \
     sasPIDL \
-    sasgetpidl \
+    pidlsas \
     test
 
 sasBasics.depends = sasCore
