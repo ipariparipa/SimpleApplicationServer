@@ -23,7 +23,9 @@
 #include <ctime>
 
 #include <time.h>
+#include <math.h>
 #include <chrono>
+#include <sasCore/tools.h>
 
 #if SAS_OS == SAS_OS_WINDOWS
 extern "C" char* strptime(const char* s,
@@ -87,14 +89,39 @@ struct SQLDateTime::Priv
 		ret.tm_sec = seconds;
 	}
 
-	static bool to_tm(const char * str, tm & ret)
+    static bool to_tm(const char * str, tm & ret, int & ms, short & prec)
 	{
+        std::list<std::string> strl;
+        SAS::str_split(str, '.', strl);
+        if(!strl.size())
+            return false;
+
 		std::memset(&ret, 0, sizeof(tm));
-		auto tmp = strptime(str, "%Y-%m-%dT%H:%M:%S", &ret);
+        auto tmp = strptime(strl.front().c_str(), "%Y-%m-%dT%H:%M:%S", &ret);
 		if (!tmp && !*tmp)
 			return false;
 		ret.tm_isdst = -1;
 		std::mktime(&ret);
+
+        if(strl.size() >= 2)
+        {
+            try
+            {
+                auto & n = *std::next(strl.begin());
+                ms = std::stoi(n);
+                prec = static_cast<short>(n.length());
+            }
+            catch(...)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            ms = -1;
+            prec = 0;
+        }
+
 		return true;
 	}
 
@@ -121,14 +148,17 @@ struct SQLDateTime::Priv
 		daylightSaveTime = t->tm_isdst != 0;
 	}
 
-	static void to_tm(time_t t, tm & ret)
+    static void to_tm(time_t t, tm & ret, bool asUTC = true)
 	{
+        if(asUTC)
 #if SAS_OS == SAS_OS_LINUX
-		gmtime_r(&t, &ret);
+            gmtime_r(&t, &ret);
 #else
-		gmtime_s(&ret, &t);
+            gmtime_s(&ret, &t);
 #endif
-	}
+        else
+            localtime_r(&t, &ret);
+    }
 
 };
 
@@ -156,7 +186,7 @@ SQLDateTime::SQLDateTime(time_t t) : priv(new Priv)
 	priv->ms_precision = 0;
 }
 
-SQLDateTime::SQLDateTime(time_t t, unsigned int milliseconds, short ms_precision) : priv(new Priv)
+SQLDateTime::SQLDateTime(time_t t, int milliseconds, short ms_precision) : priv(new Priv)
 {
 	tm tmp;
 
@@ -165,6 +195,54 @@ SQLDateTime::SQLDateTime(time_t t, unsigned int milliseconds, short ms_precision
 
 	priv->msecs = milliseconds;
 	priv->ms_precision = ms_precision;
+}
+
+SQLDateTime::SQLDateTime(std::chrono::system_clock::time_point tp, short ms_precision) : priv(new Priv)
+{
+    tm tmp;
+
+    auto ep = tp.time_since_epoch();
+    auto t = std::chrono::duration_cast<std::chrono::seconds>(ep);
+    Priv::to_tm(t.count(), tmp, false);
+    priv->from_tm(&tmp);
+
+    switch(priv->ms_precision = ms_precision)
+    {
+    case 0:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 1>>>(ep-t).count();
+        break;
+    case 1:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 10>>>(ep-t).count();
+        break;
+    case 2:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 100>>>(ep-t).count();
+        break;
+    case 3:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 1000>>>(ep-t).count();
+        break;
+    case 4:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 10000>>>(ep-t).count();
+        break;
+    case 5:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 100000>>>(ep-t).count();
+        break;
+    case 6:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 1000000>>>(ep-t).count();
+        break;
+    case 7:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 10000000>>>(ep-t).count();
+        break;
+    case 8:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 100000000>>>(ep-t).count();
+        break;
+    case 9:
+        priv->msecs = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1, 1000000000>>>(ep-t).count();
+        break;
+    default:
+        priv->ms_precision = static_cast<short>(::log10(std::chrono::system_clock::duration::period::den));
+        priv->msecs = static_cast<int>(std::chrono::duration_cast<std::chrono::system_clock::duration>(ep-t).count());
+        break;
+    }
 }
 
 SQLDateTime::SQLDateTime(const tm * t) : priv(new Priv)
@@ -244,14 +322,12 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
 SQLDateTime::SQLDateTime(const std::string & str) : priv(new Priv)
 {
 	tm t;
-	if(Priv::to_tm(str.c_str(), t))
+    if(Priv::to_tm(str.c_str(), t, priv->msecs, priv->ms_precision))
 	{
 		priv->from_tm(&t);
 
-		priv->msecs = -1;
 		priv->negative = false;
 		priv->isNull = false;
-		priv->ms_precision = 0;
 	}
 }
 
@@ -358,6 +434,36 @@ bool SQLDateTime::daylightSaveTime() const
 bool SQLDateTime::negative() const
 {
 	return priv->negative;
+}
+
+std::chrono::system_clock::time_point SQLDateTime::toTimePoint() const
+{
+    auto t = std::chrono::seconds(to_time_t());
+    switch(priv->ms_precision)
+    {
+    case 0:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 1>>(priv->msecs)));
+    case 1:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 10>>(priv->msecs)));
+    case 2:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 100>>(priv->msecs)));
+    case 3:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 1000>>(priv->msecs)));
+    case 4:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 10000>>(priv->msecs)));
+    case 5:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 100000>>(priv->msecs)));
+    case 6:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 1000000>>(priv->msecs)));
+    case 7:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 10000000>>(priv->msecs)));
+    case 8:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 100000000>>(priv->msecs)));
+    case 9:
+        return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::duration<int, std::ratio<1, 1000000000>>(priv->msecs)));
+    }
+
+    return std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(t + std::chrono::system_clock::duration(priv->msecs)));
 }
 
 std::string SQLDateTime::toString() const
