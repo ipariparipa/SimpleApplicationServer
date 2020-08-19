@@ -93,46 +93,51 @@ bool Application::init(ErrorCollector & ec)
 
 	SAS_LOG_INFO(logger(), "activating components");
 	std::vector<std::string> comp_paths;
-	if (!configReader()->getStringListEntry("SAS/COMPONENTS", comp_paths, ec) || !comp_paths.size())
-	{
-		auto err = ec.add(SAS_CORE__ERROR__APPLICATION__NO_COMPONENTS, "components are not set");
-		SAS_LOG_ERROR(logger(), err);
-		return false;
-	}
+    if (configReader()->getStringListEntry("SAS/COMPONENTS", comp_paths, ec))
+    {
+        if(!comp_paths.size())
+        {
+            auto err = ec.add(SAS_CORE__ERROR__APPLICATION__NO_COMPONENTS, "components are not set");
+            SAS_LOG_ERROR(logger(), err);
+            return false;
+        }
 
-	priv->componentLoaders.resize(comp_paths.size());
+        priv->componentLoaders.resize(comp_paths.size());
 
-	bool has_error(false);
-	for(size_t i = 0, l = comp_paths.size(); i < l; ++i)
-	{
-		SAS_LOG_VAR(logger(), comp_paths[i]);
-		auto cl = new ComponentLoader(comp_paths[i]);
-		if(!cl->load(ec))
-		{
-			delete cl;
-			has_error = true;
-		}
-		else
-			priv->componentLoaders[i] = cl;
-	}
-	if(has_error)
-	{
-		deinit();
-		return false;
-	}
+        bool has_error(false);
+        for(size_t i = 0, l = comp_paths.size(); i < l; ++i)
+        {
+            SAS_LOG_VAR(logger(), comp_paths[i]);
+            auto cl = new ComponentLoader(comp_paths[i]);
+            if(!cl->load(ec))
+            {
+                delete cl;
+                has_error = true;
+            }
+            else
+                priv->componentLoaders[i] = cl;
+        }
+        if(has_error)
+        {
+            deinit();
+            return false;
+        }
 
-	SAS_LOG_INFO(logger(), "initializing components");
-	for(auto cl : priv->componentLoaders)
-	{
-		if(!cl->component()->init(this, ec))
-			has_error = true;
-	}
+        SAS_LOG_INFO(logger(), "initializing components");
+        for(auto cl : priv->componentLoaders)
+        {
+            if(!cl->component()->init(this, ec))
+                has_error = true;
+        }
 
-	if(has_error)
-	{
-		deinit();
-		return false;
-	}
+        if(has_error)
+        {
+            deinit();
+            return false;
+        }
+    }
+    else
+        SAS_LOG_WARN(logger(), "no components are set");
 
 	return true;
 }
