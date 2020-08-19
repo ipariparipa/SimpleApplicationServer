@@ -32,7 +32,7 @@ namespace SAS {
 
 	struct MQTTClient_priv;
 
-	class MQTTClient
+    class SAS_MQTT__CLASS MQTTClient
 	{
 		SAS_COPY_PROTECTOR(MQTTClient);
 	public:

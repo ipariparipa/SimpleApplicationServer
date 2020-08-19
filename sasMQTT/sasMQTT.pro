@@ -18,15 +18,15 @@ SOURCES += \
     mqttasync.cpp \
     mqttclient.cpp \
     mqttcomponent.cpp \
-    mqttconnectionoption.cpp \
     mqttconnector.cpp \
-    mqttinterface.cpp
+    mqttinterface.cpp \
+    mqttconnectionoptions.cpp
 
 HEADERS += \
-    mqttasync.h \
-    mqttclient.h \
-    mqttconnectionoptions.h \
+    include/sasMQTT/mqttasync.h \
+    include/sasMQTT/mqttclient.h \
+    include/sasMQTT/mqttconnectionoptions.h \
     mqttconnector.h \
     mqttinterface.h \
-    config.h \
+    include/sasMQTT/config.h \
     threading.h

@@ -15,18 +15,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "mqttclient.h"
+#include "include/sasMQTT/mqttclient.h"
 
 #include <sasCore/logging.h>
 #include <sasCore/errorcollector.h>
 #include <sasCore/thread.h>
 #include <sasCore/notifier.h>
 
-#include "mqttconnectionoptions.h"
+#include "include/sasMQTT/mqttconnectionoptions.h"
 
 #include <MQTTClient.h>
 #include <MQTTClientPersistence.h>
-#include "mqttasync.h"
+#include "include/sasMQTT/mqttasync.h"
 
 #include <memory>
 #include <mutex>
@@ -39,7 +39,7 @@ namespace SAS {
 	struct MQTTClient_priv
 	{
 		MQTTClient_priv(const std::string & name_) :
-			logger(Logging::getLogger("SAS.MQTTClient." + name_)),
+            logger(Logging::getLogger("SAS.MQTTClient[" + name_ + "]")),
 			mqtt_handle(NULL),
 			async(this, name_)
 		{ }
@@ -103,7 +103,7 @@ namespace SAS {
 					if (count >= 0)
 						++i;
 
-					if (t.notifier.wait(this->connectOptions().receive_timeout))
+                    if (t.notifier.wait(this->connectOptions().receiveTimeout()))
 					{
 						std::unique_lock<std::mutex> __ticket_locker(ticket_mut);
 						this->unsubscribe(ec);

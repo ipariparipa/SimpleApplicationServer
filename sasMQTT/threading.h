@@ -18,7 +18,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #ifndef sasMQTT__threading_h
 #define sasMQTT__threading_h
 
-#include "config.h"
+#include "include/sasMQTT/config.h"
 
 #include <sasCore/controlledthread.h>
 

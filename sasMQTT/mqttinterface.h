@@ -18,7 +18,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #ifndef sasMQTT__mqttinterface_h
 #define sasMQTT__mqttinterface_h
 
-#include "config.h"
+#include "include/sasMQTT/config.h"
 
 #include <sasCore/interface.h>
 #include <sasCore/logging.h>

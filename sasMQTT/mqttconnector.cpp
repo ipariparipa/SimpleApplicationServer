@@ -24,8 +24,8 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/configreader.h>
 #include <sasCore/session.h>
 
-#include "mqttclient.h"
-#include "mqttconnectionoptions.h"
+#include "include/sasMQTT/mqttclient.h"
+#include "include/sasMQTT/mqttconnectionoptions.h"
 
 #include <rapidjson/document.h>
 
@@ -60,7 +60,7 @@ namespace SAS {
 			std::unique_lock<std::mutex> __locker(mut);
 			if (!_client.init(options, ec))
 				return false;
-			_clientId = options.clientId;
+            _clientId = options.clientId();
 			return _client.connect(ec);
 		}
 

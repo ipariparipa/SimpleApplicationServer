@@ -1,11 +1,21 @@
 /*
- * mqttasync.cpp
- *
- *  Created on: 2017.09.19.
- *      Author: apps
- */
+This file is part of sasMQTT.
 
-#include "mqttasync.h"
+sasMQTT is free software: you can redistribute it and/or modify
+it under the terms of the Lesser GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+sasMQTT is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
+*/
+
+#include "include/sasMQTT/mqttasync.h"
 
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
@@ -83,16 +93,16 @@ struct MQTTAsync::Priv
 		std::unique_lock<std::mutex> __locker(mut);
 
 		MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
-		conn_opts.keepAliveInterval = options.keepalive;
+        conn_opts.keepAliveInterval = static_cast<int>(options.keepalive().count());
 		conn_opts.automaticReconnect = 0;
-		conn_opts.cleansession = (int)options.cleanSession;
-		conn_opts.username = options.username.c_str();
-		conn_opts.password = options.password.c_str();
+        conn_opts.cleansession = static_cast<int>(options.cleanSession());
+        conn_opts.username = options.username().c_str();
+        conn_opts.password = options.password().c_str();
 		conn_opts.context = this;
 		conn_opts.onSuccess = Priv::_onConnected;
 		conn_opts.onFailure = Priv::_onConnectionFailed;
 		conn_opts.maxInflight = 100;
-		conn_opts.connectTimeout = options.connectTimeout;
+        conn_opts.connectTimeout = static_cast<int>(options.connectTimeout().count());
 		int rc;
 		SAS_LOG_TRACE(logger, "MQTTAsync_connect");
 		if ((rc = MQTTAsync_connect(mqtt_handle, &conn_opts)) != MQTTASYNC_SUCCESS)
@@ -102,7 +112,7 @@ struct MQTTAsync::Priv
 			return false;
 		}
 
-		if (!conn_not.wait(2000 * options.connectTimeout))
+        if (!conn_not.wait(2 * std::chrono::duration_cast<std::chrono::milliseconds>(options.connectTimeout())))
 			return false;
 
 		return true;
@@ -121,7 +131,7 @@ struct MQTTAsync::Priv
 	static void _connected(void* context, char* cause)
 	{
 		SAS_LOG_NDC();
-		auto priv = (Priv*)context;
+        auto priv = (Priv*)context;
 		SAS_LOG_DEBUG(priv->logger, "MQTT connected: '" + std::string(cause ? cause : "(no_cause)") + "'");
 		priv->conn_not.notify();
 	}
@@ -239,14 +249,14 @@ bool MQTTAsync::init(const MQTTConnectionOptions & conn_opts, ErrorCollector & e
 	if (!(uid = priv->uniqueIdProvider.get(ec)))
 		return false;
 
-	priv->client_id = conn_opts.clientId + "_" + std::to_string(uid);
+    priv->client_id = conn_opts.clientId() + "_" + std::to_string(uid);
 
-	SAS_LOG_VAR(priv->logger, conn_opts.serverUri);
+    SAS_LOG_VAR(priv->logger, conn_opts.serverUri());
 	SAS_LOG_VAR(priv->logger, priv->client_id);
 
 	int rc;
 	SAS_LOG_TRACE(priv->logger, "MQTTAsync_create");
-	if ((rc = MQTTAsync_create(&priv->mqtt_handle, conn_opts.serverUri.c_str(), priv->client_id.c_str(), MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTASYNC_SUCCESS)
+    if ((rc = MQTTAsync_create(&priv->mqtt_handle, conn_opts.serverUri().c_str(), priv->client_id.c_str(), MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTASYNC_SUCCESS)
 	{
 		auto err = ec.add(-1, "could not initialize MQTT ("+std::to_string(rc)+")");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -331,14 +341,14 @@ bool MQTTAsync::subscribe(const std::vector<std::string> & topics, int qos, Erro
 bool MQTTAsync::unsubscribe(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-	int _count = priv->topics.size();
+    auto _count = priv->topics.size();
 	std::vector<char*> _topic(_count);
-	for(int i = 0; i < _count; ++i)
+    for(size_t i = 0; i < _count; ++i)
 		_topic[i] = (char *)priv->topics[i].c_str();
 
 	int rc;
 	SAS_LOG_TRACE(priv->logger, "MQTTAsync_unsubscribeMany");
-	if((rc = MQTTAsync_unsubscribeMany(priv->mqtt_handle, _count, &_topic[0], NULL) != MQTTASYNC_SUCCESS))
+    if((rc = MQTTAsync_unsubscribeMany(priv->mqtt_handle, static_cast<int>(_count), &_topic[0], nullptr) != MQTTASYNC_SUCCESS))
 	{
 		auto err = ec.add(-1, "could not cancel subscribtion for MQTT topics ("+std::to_string(rc)+")");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -365,10 +375,10 @@ bool MQTTAsync::send(const std::string & topic, const std::vector<char> & payloa
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
-	if (priv->options.publish_timeout > 0)
+    if (priv->options.publishTimeout().count() > 0)
 	{
 		SAS_LOG_TRACE(priv->logger, "MQTTAsync_waitForCompletion");
-		if ((rc = MQTTAsync_waitForCompletion(priv->mqtt_handle, resp.token, priv->options.publish_timeout) != MQTTASYNC_SUCCESS))
+        if ((rc = MQTTAsync_waitForCompletion(priv->mqtt_handle, resp.token, static_cast<unsigned long>(priv->options.publishTimeout().count())) != MQTTASYNC_SUCCESS))
 		{
 			auto err = ec.add(-1, "MQTT message is lost (" + std::to_string(rc) + ")");
 			SAS_LOG_ERROR(priv->logger, err);
@@ -391,6 +401,7 @@ bool MQTTAsync::run(ErrorCollector & ec)
 
 bool MQTTAsync::shutdown(ErrorCollector & ec)
 {
+    (void)ec;
 	//SAS_LOG_NDC();
 	priv->runner_not.notify();
 	return true;

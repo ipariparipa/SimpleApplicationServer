@@ -20,7 +20,7 @@ namespace SAS {
 
 class ErrorCollector;
 
-class MQTTAsync
+class SAS_MQTT__CLASS MQTTAsync
 {
 	friend struct MQTTAsync_priv;
 	SAS_COPY_PROTECTOR(MQTTAsync);

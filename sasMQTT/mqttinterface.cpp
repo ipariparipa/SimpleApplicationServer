@@ -28,9 +28,9 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include "rapidjson/writer.h"
 
 #include "threading.h"
-#include "mqttconnectionoptions.h"
-#include "mqttclient.h"
-#include "mqttasync.h"
+#include "include/sasMQTT/mqttconnectionoptions.h"
+#include "include/sasMQTT/mqttclient.h"
+#include "include/sasMQTT/mqttasync.h"
 
 #include <list>
 #include <deque>
