@@ -27,6 +27,8 @@
 #include <pidlCore/jsontools.h>
 #include <pidlBackend/readerfactory_json.h>
 #include <pidlBackend/jsonreader.h>
+#include <pidlBackend/cppcodegen.h>
+#include <pidlBackend/cppcodegenfactory_json.h>
 
 #include <sasBasics/logging.h>
 #include <sasBasics/streamerrorcollector.h>
@@ -150,6 +152,119 @@ public:
 	}
 };
 
+class SAS_CPP_Logging : public PIDL::CPPCodeGenLogging
+{
+    PIDL::IncludeType _sasIncludeType;
+    std::string _sasCoreIncludeDir;
+public:
+    SAS_CPP_Logging(PIDL::IncludeType sasIncludeType, const std::string & sasCoreIncludeDir) :
+        _sasIncludeType(sasIncludeType),
+        _sasCoreIncludeDir(sasCoreIncludeDir)
+    { }
+
+    std::vector<PIDL::Include> includes() const final override
+    {
+        std::vector<PIDL::Include> ret(1);
+        ret[0] = std::make_pair(_sasIncludeType, _sasCoreIncludeDir.length() ? _sasCoreIncludeDir + "/logging.h" : "sasCore/logging.h");
+
+        return ret;
+    }
+
+    std::string initLogger(const std::string & scope) const final override
+    {
+        return "SAS::Logging::getLogger(" + scope + ")";
+    }
+
+    std::string loggerType() const final override
+    {
+        return "SAS::Logging::LoggerPtr";
+    }
+
+    std::string loggingStart(const std::string & logger) const final override
+    {
+        (void)logger;
+        return "SAS_LOG_NDC()";
+    }
+
+    std::string loggingAssert(const std::string & logger, const std::string & expression, const std::string & message) const final override
+    {
+        return "SAS_LOG_ASSERT(" + logger + ", " + expression + ", " + message + ")";
+    }
+
+    std::string loggingTrace(const std::string & logger, const std::string & message) const final override
+    {
+        return "SAS_LOG_TRACE(" + logger + ", " + message + ")";
+    }
+
+    std::string loggingDebug(const std::string & logger, const std::string & message) const final override
+    {
+        return "SAS_LOG_DEBUG(" + logger + ", " + message + ")";
+    }
+
+    std::string loggingInfo(const std::string & logger, const std::string & message) const final override
+    {
+        return "SAS_LOG_INFO(" + logger + ", " + message + ")";
+    }
+
+    std::string loggingWarning(const std::string & logger, const std::string & message) const final override
+    {
+        return "SAS_LOG_WARN(" + logger + ", " + message + ")";
+    }
+
+    std::string loggingError(const std::string & logger, const std::string & message) const final override
+    {
+        return "SAS_LOG_ERROR(" + logger + ", " + message + ")";
+    }
+
+    std::string loggingFatal(const std::string & logger, const std::string & message) const final override
+    {
+        return "SAS_LOG_FATAL(" + logger + ", " + message + ")";
+    }
+
+};
+
+class SAS_CPP_Logging_Factory : public PIDL::CPPCodeGenLoggingFactory_JSON
+{
+    bool build(const rapidjson::Value & value, std::shared_ptr<PIDL::CPPCodeGenLogging> & ret, PIDL::ErrorCollector & ec)
+    {
+        if(!isValid(value))
+        {
+            ec.add(-1, "unexpected: invalid json object");
+            return false;
+        }
+
+        std::string includeType_str, sasCoreIncludeDir;
+
+        if(value.IsObject())
+        {
+            PIDL::JSONTools::getValue(value, "include_type", includeType_str);
+            PIDL::JSONTools::getValue(value, "sas_core_include_dir", sasCoreIncludeDir);
+        }
+
+        PIDL::IncludeType includeType = PIDL::IncludeType::Local;
+        if(!includeType_str.length() || includeType_str == "global")
+            includeType = PIDL::IncludeType::GLobal;
+        else if(includeType_str == "local")
+            includeType = PIDL::IncludeType::Local;
+        else
+        {
+            ec.add(-1, "unsupported include type: '"+includeType_str+"'");
+            return false;
+        }
+
+        ret = std::make_shared<SAS_CPP_Logging>(includeType, sasCoreIncludeDir);
+
+        return true;
+    }
+
+    bool isValid(const rapidjson::Value & value) const
+    {
+        std::string type;
+        return ((value.IsString() && PIDL::JSONTools::getValue(value, type)) || (value.IsObject() && PIDL::JSONTools::getValue(value, "type", type))) && type == "sas_cpp";
+    }
+
+};
+
 int main(int argc, char **argv)
 {
 	SAS::StreamErrorCollector<std::ostream> ec(std::cerr);
@@ -221,13 +336,18 @@ int main(int argc, char **argv)
 	if (!app.init(ec))
 		return 1;
 
+    auto job = std::make_shared<PIDL::Job_JSON>();
+    std::string connector;
+    if(!app.configReader()->getStringEntry("SAS/ADM_CONNECTOR", connector, "default", ec))
+        return 1;
+
 	SAS::Connector * conn;
-	if (!(conn = app.objectRegistry()->getObject<SAS::Connector>(SAS_OBJECT_TYPE__CONNECTOR, "default", ec)))
-		return 1;
+    if ((conn = app.objectRegistry()->getObject<SAS::Connector>(SAS_OBJECT_TYPE__CONNECTOR, connector, ec)))
+    {
+        job->factoryRegistry()->add(std::make_shared<SAS_PIDL_JSONReaderFactory>(conn));
+    }
 
-	auto job = std::make_shared<PIDL::Job_JSON>();
-
-    job->factoryRegistry()->add(std::make_shared<SAS_PIDL_JSONReaderFactory>(conn));
+    job->factoryRegistry()->add(std::make_shared<SAS_CPP_Logging_Factory>());
 
 	if (!job->build(*jsonreader.document(), pidl_ec))
 		return 1;
