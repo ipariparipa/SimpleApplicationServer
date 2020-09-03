@@ -139,6 +139,28 @@ bool ObjectRegistry::registerObjects(std::vector<Object *> obj, ErrorCollector &
 	return priv->registerObjects(tmp, ec);
 }
 
+void ObjectRegistry::destroyObject(const std::string & type, const std::string & name)
+{
+    SAS_LOG_NDC();
+    auto tr = priv->getTypeReg(type);
+    if(!tr)
+    {
+        SAS_LOG_WARN(priv->logger, "type is not found in object registry: '" + type + "'");
+        return;
+    }
+
+    std::unique_lock<std::mutex> __locker(tr->mut);
+    auto it = tr->reg.find(name);
+    if(it == tr->reg.end())
+    {
+        SAS_LOG_WARN(priv->logger, "object is not found in registry: '" + type + "/" + name + "'");
+        return;
+    }
+
+    SAS_LOG_TRACE(priv->logger, std::string("object is found in registry: '")+type+"/"+name+"'");
+    tr->reg.erase(it);
+}
+
 Object * ObjectRegistry::getObject(const std::string & type, const std::string & name, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
@@ -150,14 +172,15 @@ Object * ObjectRegistry::getObject(const std::string & type, const std::string &
 		return nullptr;
 	}
 	std::unique_lock<std::mutex> __locker(tr->mut);
-	if(!tr->reg.count(name))
-	{
+    auto it = tr->reg.find(name);
+    if(it == tr->reg.end())
+    {
 		auto err = ec.add(SAS_CORE__ERROR__OBJECT_REGISTRY__OBJECT_NOT_FOUND, "object is not found in registry: '" + type + "/" + name + "'");
 		SAS_LOG_ERROR(priv->logger, err);
 		return nullptr;
 	}
 	SAS_LOG_TRACE(priv->logger, std::string("object is found in registry: '")+type+"/"+name+"'");
-	return tr->reg[name];
+    return it->second;
 }
 
 std::vector<Object *> ObjectRegistry::getObjects(const std::string & type, ErrorCollector & ec)
