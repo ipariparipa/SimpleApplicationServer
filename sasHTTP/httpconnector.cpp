@@ -357,6 +357,7 @@ namespace SAS {
 			SAS_LOG_NDC();
 			NullEC ec;
 			endSession(ec);
+            deinit();
 		}
 
 		bool init(HTTPConnectionOptions & options, ErrorCollector & ec)
