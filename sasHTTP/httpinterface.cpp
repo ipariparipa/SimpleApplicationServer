@@ -63,8 +63,9 @@ namespace SAS {
 
 		struct Options
 		{
-			short port = 0;
+            unsigned short port = 0;
 			std::string responseContentType;
+            unsigned connectionTimeout = 60; //seconds
 		} options;
 
 		struct connection_info_struct
@@ -505,10 +506,10 @@ namespace SAS {
 
 		SAS_LOG_TRACE(priv->logger, "MHD_start_daemon");
         if(!(priv->daemon = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION,
-								 priv->options.port, NULL, NULL,
-								 &Priv::answer_to_connection, (void*)priv,
-								 MHD_OPTION_NOTIFY_COMPLETED, &Priv::request_completed, (void*)priv,
-                                 MHD_OPTION_CONNECTION_TIMEOUT, 60,
+                                 priv->options.port, nullptr, nullptr,
+                                 &Priv::answer_to_connection, static_cast<void*>(priv),
+                                 MHD_OPTION_NOTIFY_COMPLETED, &Priv::request_completed, static_cast<void*>(priv),
+                                 MHD_OPTION_CONNECTION_TIMEOUT, priv->options.connectionTimeout,
 								 MHD_OPTION_END)))
 		{
 			auto err = ec.add(-1, std::string() + "could not start HTTP daemon");
@@ -542,7 +543,10 @@ namespace SAS {
 		long long _ll_tmp;
 		if(!priv->app->configReader()->getNumberEntry(config_path + "/PORT", _ll_tmp, 80, ec))
 			return false;
-		priv->options.port = (short)_ll_tmp;
+        priv->options.port = static_cast<unsigned short>(_ll_tmp);
+
+        if(priv->app->configReader()->getNumberEntry(config_path + "/CONNECTION_TIMEOUT", _ll_tmp, 60, ec))
+            priv->options.connectionTimeout = static_cast<unsigned>(_ll_tmp);
 
 		if(!priv->app->configReader()->getStringEntry(config_path + "/RESPONSE_CONTENT_TYPE", priv->options.responseContentType, "application/octet-stream", ec))
 			return false;
