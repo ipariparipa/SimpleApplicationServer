@@ -34,5 +34,5 @@ sasODBC.depends = sasSQL sasCore
 sasOracle.depends = sasSQL sasCore
 sasTCL.depends = sasCore sasTCLTools
 sasPIDL.depends = sasCore
-sasgetpidl.depends = sasCore sasPIDL
+pidlsas.depends = sasCore sasPIDL
 test.depends = sasCore sasBasics sasSQL
