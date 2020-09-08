@@ -35,8 +35,7 @@ defined(PIDL_BUILD_PATH, var) {
             cd $$_PRO_FILE_PWD_; \
             rm generated/*; \
             ./prebuild.sh -file ./pidljob.json )
-}
-!defined(PIDL_BUILD_PATH, var) {
+} else {
     system( echo "Generating interface files..."; \
             cd $$_PRO_FILE_PWD_; \
             rm generated/*; \
