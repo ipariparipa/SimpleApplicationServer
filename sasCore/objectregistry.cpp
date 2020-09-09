@@ -158,6 +158,7 @@ void ObjectRegistry::destroyObject(const std::string & type, const std::string &
     }
 
     SAS_LOG_TRACE(priv->logger, std::string("object is found in registry: '")+type+"/"+name+"'");
+    delete it->second;
     tr->reg.erase(it);
 }
 
