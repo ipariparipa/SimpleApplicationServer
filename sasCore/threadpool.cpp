@@ -22,13 +22,21 @@ namespace SAS {
                 while(true)
                 {
                     notif.wait();
-                    released = false;
-                    if(!running)
-                        break;
+                    {
+                        std::unique_lock<std::mutex> __locker(flag_mut);
+                        if(!running)
+                            break;
+                        released = false;
+                    }
                     std::unique_lock<std::mutex> __locker(func_mut);
                     if(func)
                         func();
-                    released = true;
+                    {
+                        std::unique_lock<std::mutex> __locker(flag_mut);
+                        if(!running)
+                            break;
+                        released = true;
+                    }
                     if(end)
                         end();
                 }
@@ -37,15 +45,27 @@ namespace SAS {
 
         ~Private()
         {
-            running = false;
-            notif.notify();
+            bool has_to_join = false;
+            {
+                std::unique_lock<std::mutex> __locker(flag_mut);
+                running = false;
+                if(released)
+                {
+                    has_to_join = true;
+                    notif.notify();
+                }
+            }
+            if(has_to_join)
+                thread->join();
         }
 
         std::string name;
         Logging::LoggerPtr logger;
 
-        std::atomic_bool running;
-        std::atomic_bool released;
+        std::mutex flag_mut;
+        bool running;
+        bool released;
+
         Notifier notif;
         std::thread * thread;
         std::mutex func_mut;
