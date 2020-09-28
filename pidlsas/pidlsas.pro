@@ -29,22 +29,11 @@ defined(PIDL_PROJ_PATH, var) {
 
 LIBS += -lpidlBackend -lpidlCore
 
-defined(PIDL_BUILD_PATH, var) {
-    system( echo "Generating interface files..."; \
-            export PIDLDIR="$$PIDL_BUILD_PATH"; \
-            cd $$_PRO_FILE_PWD_; \
-            rm generated/*; \
-            ./prebuild.sh -file ./pidljob.json )
-} else {
-    system( echo "Generating interface files..."; \
-            cd $$_PRO_FILE_PWD_; \
-            rm generated/*; \
-            ./prebuild.sh -file ./pidljob.json )
-}
+include("pidl-build.pri")
 
 SOURCES += \
     main.cpp \
-    generated/pidladmin.cpp \
 
-HEADERS += \
-    generated/pidladmin.h \
+DISTFILES += \
+    $$INTERFACE_HEADER_INPUT
+    $$INTERFACE_SOURCE_INPUT

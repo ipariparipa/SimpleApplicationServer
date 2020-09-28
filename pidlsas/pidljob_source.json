@@ -1,0 +1,29 @@
+{
+	"nature": "group",
+	"operations": [
+		{
+			"nature": "read", 
+			"name": "default",
+			"type": "xml", 
+			"filename": "pidladmin.xml"
+		},
+		{
+			"nature": "write",
+			"type": "c++",
+			"read": "default",
+			"role": "client",
+			"mode": "source",
+			"codegen": { 
+				"type": "json_stl",
+				"helper": {
+					"type": "basic",
+					"includes" : [
+						{ "type": "local", "path": "pidladmin.h" }
+					]
+				}
+			},
+			"filename": "generated/pidladmin.cpp"
+		}
+	
+	]
+}

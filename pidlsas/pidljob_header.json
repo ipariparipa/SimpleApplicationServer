@@ -1,0 +1,21 @@
+{
+	"nature": "group",
+	"operations": [
+		{
+			"nature": "read", 
+			"name": "default",
+			"type": "xml", 
+			"filename": "pidladmin.xml"
+		},
+		{
+			"nature": "write",
+			"type": "c++",
+			"read": "default",
+			"role": "client",
+			"mode": "include",
+			"codegen": { "type": "json_stl" },
+			"filename": "generated/pidladmin.h"
+		}
+	
+	]
+}
