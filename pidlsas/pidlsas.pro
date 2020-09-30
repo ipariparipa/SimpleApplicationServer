@@ -35,5 +35,5 @@ SOURCES += \
     main.cpp \
 
 DISTFILES += \
-    $$INTERFACE_HEADER_INPUT
-    $$INTERFACE_SOURCE_INPUT
+    pidladmin.xml \
+    pidljob.json

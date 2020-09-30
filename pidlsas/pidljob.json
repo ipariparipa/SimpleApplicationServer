@@ -32,7 +32,13 @@
 				}
 			},
 			"filename": "generated/pidladmin.cpp"
-		}
+		},
+        {
+            "nature": "write",
+            "type": "json",
+            "read": "default",
+            "filename": "generated/pidladmin.json"
+        }
 	
 	]
 }
