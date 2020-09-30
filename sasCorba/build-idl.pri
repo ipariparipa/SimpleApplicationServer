@@ -1,5 +1,5 @@
-DUMMY_FILE = generated/corbadummy
-INTERFACE_INPUT = corbasas.idl
+DUMMY_FILE = $$_PRO_FILE_PWD_/generated/corbadummy
+INTERFACE_INPUT = $$_PRO_FILE_PWD_/corbasas.idl
 
 idlCompile.input = INTERFACE_INPUT
 idlCompile.output = $$DUMMY_FILE

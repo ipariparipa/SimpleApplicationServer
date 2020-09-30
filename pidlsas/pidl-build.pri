@@ -1,5 +1,5 @@
-DUMMY_FILE = generated/pidladmin.json
-INTERFACE_INPUT = pidljob.json
+DUMMY_FILE = $$_PRO_FILE_PWD_/generated/pidladmin.json
+INTERFACE_INPUT = $$_PRO_FILE_PWD_/pidljob.json
 
 # Generating interface files
 pidlCompile.input = INTERFACE_INPUT
@@ -7,11 +7,11 @@ pidlCompile.output = $$DUMMY_FILE
 pidlCompile.variable_out = DISTFILES
 pidlCompile.commands = if [ -z $$PIDL_BUILD_PATH ]; then \
                            cd $$_PRO_FILE_PWD_; \
-                           ./prebuild.sh -file ${QMAKE_FILE_IN}; \
+                           ./prebuild.sh -file pidljob.json; \
                        else \
                            export PIDLDIR="$$PIDL_BUILD_PATH"; \
                            cd $$_PRO_FILE_PWD_; \
-                           ./prebuild.sh -file ${QMAKE_FILE_IN}; \
+                           ./prebuild.sh -file pidljob.json; \
                        fi;
 QMAKE_EXTRA_COMPILERS += pidlCompile
 
