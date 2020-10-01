@@ -21,6 +21,4 @@ along with sasCore.  If not, see <http://www.gnu.org/licenses/>
 #ifndef sasCore__platform_h
 #define sasCore__platform_h
 
-#define SAS_LOG4CXX_ENABLED
-
 #endif // sasCore__platform_h
