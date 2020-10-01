@@ -7,6 +7,25 @@ CONFIG -= qt
 
 LIBS += -llog4cxx -ldl -lpthread
 
+TARGET_FILE = $$_PRO_FILE_PWD_/include/sasCore/platform.h
+unix {
+    TEMPLATE_FILE = $$_PRO_FILE_PWD_/include/sasCore/_platform_linux.h_
+}
+
+win32 {
+    TEMPLATE_PATH = $_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
+}
+
+win64 {
+    TEMPLATE_PATH = $_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
+}
+
+platform.input = TEMPLATE_FILE
+platform.output = $$TARGET_FILE
+platform.variable_out = HEADERS
+platform.commands = cp $$TEMPLATE_FILE $$TARGET_FILE
+QMAKE_EXTRA_COMPILERS += platform
+
 SOURCES += \
     application.cpp \
     component.cpp \
