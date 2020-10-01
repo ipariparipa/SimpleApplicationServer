@@ -5,7 +5,12 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-LIBS += -llog4cxx -ldl -lpthread
+CONFIG(SAS_LOG4CXX_ENABLED) {
+    LIBS += -llog4cxx
+    DEFINES += SAS_LOG4CXX_ENABLED
+}
+
+LIBS += -ldl -lpthread
 
 TARGET_FILE = $$_PRO_FILE_PWD_/include/sasCore/platform.h
 unix {

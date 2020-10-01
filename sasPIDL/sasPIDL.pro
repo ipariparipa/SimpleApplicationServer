@@ -9,7 +9,11 @@ CONFIG -= qt
 
 INCLUDEPATH += ../sasCore/include
 
-LIBS += -llog4cxx
+CONFIG(SAS_LOG4CXX_ENABLED) {
+    LIBS += -llog4cxx
+    DEFINES += SAS_LOG4CXX_ENABLED
+}
+
 LIBS += -L../sasCore -lsasCore
 
 defined(PIDL_PROJ_PATH, var) {

@@ -8,7 +8,11 @@ CONFIG -= qt
 INCLUDEPATH += ../sasCore/include
 INCLUDEPATH += ../sasSQL/include
 
-LIBS += -llog4cxx
+CONFIG(SAS_LOG4CXX_ENABLED) {
+    LIBS += -llog4cxx
+    DEFINES += SAS_LOG4CXX_ENABLED
+}
+
 LIBS += -lodpic
 LIBS += -ldl
 LIBS += -L../sasCore -lsasCore
