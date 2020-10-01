@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include <atomic>
 
+namespace SAS {
 
 struct Notifier::Priv
 {
@@ -89,4 +90,6 @@ bool Notifier::tryWait()
          return true;
     }
     return false;
+}
+
 }

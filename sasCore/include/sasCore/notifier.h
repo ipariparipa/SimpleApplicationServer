@@ -4,6 +4,8 @@
 #include "defines.h"
 #include <chrono>
 
+namespace SAS {
+
 class SAS_CORE__CLASS Notifier
 {
     SAS_COPY_PROTECTOR(Notifier)
@@ -30,5 +32,7 @@ public:
 #endif
     bool tryWait();
 };
+
+}
 
 #endif // SAS_CORE__NOTIFIER_H
