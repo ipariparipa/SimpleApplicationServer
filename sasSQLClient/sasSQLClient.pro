@@ -10,7 +10,11 @@ INCLUDEPATH += ../sasSQL/include
 INCLUDEPATH += ../sasTCL/include
 INCLUDEPATH += ../sasTCLTools/include
 
-LIBS += -llog4cxx
+CONFIG(SAS_LOG4CXX_ENABLED) {
+    LIBS += -llog4cxx
+    DEFINES += SAS_LOG4CXX_ENABLED
+}
+
 LIBS += -L../sasCore -lsasCore
 LIBS += -L../sasSQL -lsasSQL
 LIBS += -L../sasTCL -lsasTCL

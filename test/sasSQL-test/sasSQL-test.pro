@@ -22,4 +22,9 @@ INCLUDEPATH += ../../sasCore/include
 INCLUDEPATH += ../../sasBasics/include
 INCLUDEPATH += ../../sasSQL/include
 
+CONFIG(SAS_LOG4CXX_ENABLED) {
+    LIBS += -llog4cxx
+    DEFINES += SAS_LOG4CXX_ENABLED
+}
+
 LIBS += -lcppunit -lcrypto -lpthread

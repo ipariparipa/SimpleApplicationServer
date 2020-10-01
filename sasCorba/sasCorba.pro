@@ -7,21 +7,27 @@ CONFIG -= qt
 
 INCLUDEPATH += ../sasCore/include
 
-LIBS += -llog4cxx
+CONFIG(SAS_LOG4CXX_ENABLED) {
+    LIBS += -llog4cxx
+    DEFINES += SAS_LOG4CXX_ENABLED
+}
+
 LIBS += -lomniORB4
 LIBS += -L../sasCore -lsasCore
+
+include("build-idl.pri")
 
 SOURCES += \
     corbacomponent.cpp \
     corbaconnector.cpp \
     corbainterface.cpp \
-    tools.cpp
+    tools.cpp \
 
 HEADERS += \
     config.h \
     corbaconnector.h \
     corbainterface.h \
-    tools.h
+    tools.h \
 
 DISTFILES += \
     corbasas.idl

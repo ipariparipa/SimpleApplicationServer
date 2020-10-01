@@ -1,5 +1,4 @@
 TEMPLATE = subdirs
-CONFIG += ordered
 
 SUBDIRS += \
     sasCore \
@@ -29,10 +28,14 @@ sasClient.depends = sasCore sasTCLTools sasBasics
 sasBypass.depends = sasCore
 sasJSON.depends = sasCore
 sasSQL.depends = sasCore
-sasMySQL.depends = sasSQL sasCore
-sasODBC.depends = sasSQL sasCore
-sasOracle.depends = sasSQL sasCore
+sasSQLClient.depends = sasCore sasSQL sasTCL sasTCLTools
+sasMySQL.depends = sasCore sasSQL
+sasHTTP.depends = sasCore sasJSON
+sasMQTT.depends = sasCore sasJSON
+sasCorba.depends = sasCore
+sasODBC.depends = sasCore sasSQL
+sasOracle.depends = sasCore sasSQL
 sasTCL.depends = sasCore sasTCLTools
 sasPIDL.depends = sasCore
-sasgetpidl.depends = sasCore sasPIDL
+pidlsas.depends = sasCore sasBasics sasJSON sasPIDL
 test.depends = sasCore sasBasics sasSQL

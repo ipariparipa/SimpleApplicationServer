@@ -8,7 +8,11 @@ CONFIG -= qt
 INCLUDEPATH += ../sasCore/include
 INCLUDEPATH += ../sasJSON/include
 
-LIBS += -llog4cxx
+CONFIG(SAS_LOG4CXX_ENABLED) {
+    LIBS += -llog4cxx
+    DEFINES += SAS_LOG4CXX_ENABLED
+}
+
 LIBS += -lpaho-mqtt3c
 LIBS += -lpaho-mqtt3a
 LIBS += -L../sasCore -lsasCore
