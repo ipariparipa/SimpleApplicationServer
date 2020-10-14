@@ -18,11 +18,11 @@ unix {
 }
 
 win32 {
-    TEMPLATE_PATH = $_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
+    TEMPLATE_FILE = $_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
 }
 
 win64 {
-    TEMPLATE_PATH = $_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
+    TEMPLATE_FILE = $_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
 }
 
 platform.input = TEMPLATE_FILE
