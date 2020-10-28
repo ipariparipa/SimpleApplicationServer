@@ -71,7 +71,8 @@ namespace SAS {
 
 
 		bool build(const std::string & config_path, ConfigReader * cr, ErrorCollector & ec);
-	};
+        bool build(const std::string & connection_str, const std::string & config_path, ConfigReader * cr, ErrorCollector & ec);
+    };
 
 }
 

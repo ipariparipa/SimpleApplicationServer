@@ -24,8 +24,6 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 
 #include "include/sasMQTT/mqttconnectionoptions.h"
 
-#include <MQTTClient.h>
-#include <MQTTClientPersistence.h>
 #include "include/sasMQTT/mqttasync.h"
 
 #include <memory>
@@ -40,21 +38,17 @@ namespace SAS {
 	{
 		MQTTClient_priv(const std::string & name_) :
             logger(Logging::getLogger("SAS.MQTTClient[" + name_ + "]")),
-			mqtt_handle(NULL),
 			async(this, name_)
 		{ }
 
 		MQTTClient_priv(const Logging::LoggerPtr & logger_) :
 			logger(logger_),
-			mqtt_handle(NULL),
 			async(this, logger_)
 		{ }
 
 		Logging::LoggerPtr logger;
 
 		MQTTConnectionOptions options;
-
-		::MQTTClient mqtt_handle;
 
 		class Async : public MQTTAsync
 		{
@@ -184,9 +178,9 @@ namespace SAS {
 		return priv->async.exchange(std::string(), std::vector<char>(), 0, subscribe, ss_qos, topic, payload, tmp_qos, count, ec);
 	}
 
-	bool MQTTClient::receive(const std::vector<std::string> & subscribe, long qus, std::string & topic, std::vector<char> & payload, ErrorCollector & ec)
+    bool MQTTClient::receive(const std::vector<std::string> & subscribe, long qos, std::string & topic, std::vector<char> & payload, ErrorCollector & ec)
 	{
-		return receive(subscribe, qus, topic, payload, -1, ec);
+        return receive(subscribe, qos, topic, payload, -1, ec);
 	}
 
 	bool MQTTClient::exchange(const std::string & in_topic, const std::vector<char> & in_payload, long in_qos,
@@ -207,6 +201,7 @@ namespace SAS {
 
 	bool MQTTClient::disconnect(long timeout, ErrorCollector & ec)
 	{
+        (void)timeout;
 		SAS_LOG_NDC();
 		return priv->async.disconnect(ec);
 	}

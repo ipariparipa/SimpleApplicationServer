@@ -158,11 +158,14 @@ struct MQTTAsync::Priv
 
 	static void _deliveryComplete(void* context, MQTTAsync_token token)
 	{
+        (void)context;
+        (void)token;
 		SAS_LOG_NDC();
 	}
 
 	static void _onConnected(void* context, MQTTAsync_successData* response)
 	{
+        (void)response;
 		SAS_LOG_NDC();
 		NullEC ec;
 		auto priv = (Priv*)context;
@@ -183,6 +186,7 @@ struct MQTTAsync::Priv
 
 	static void _onDisconnected(void* context, MQTTAsync_successData* response)
 	{
+        (void)response;
 		SAS_LOG_NDC();
 		NullEC ec;
 		auto priv = (Priv*)context;

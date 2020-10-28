@@ -47,8 +47,8 @@ namespace SAS {
 		bool receive(const std::vector<std::string> & subscribe, long qos, std::string & topic, std::vector<char> & payload, long count, ErrorCollector & ec);
 		bool receive(const std::vector<std::string> & subscribe, long qos, std::string & topic, std::vector<char> & payload, ErrorCollector & ec);
 
-		bool exchange(const std::string & in_topic, const std::vector<char> & in_payload, long in_qus,
-				const std::vector<std::string> & subscribe, long out_qus, std::string & out_topic, std::vector<char> & out_payload, long count,
+        bool exchange(const std::string & in_topic, const std::vector<char> & in_payload, long in_qos,
+                const std::vector<std::string> & subscribe, long out_qos, std::string & out_topic, std::vector<char> & out_payload, long count,
 				ErrorCollector & ec);
 
 		bool connect(ErrorCollector & ec);
