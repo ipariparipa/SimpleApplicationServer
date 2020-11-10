@@ -25,7 +25,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 
 #include "mqttinterface.h"
 #include "mqttconnector.h"
-#include "mqttconnectorfactrory.h"
+#include "mqttconnectorfactory.h"
 #include "include/sasMQTT/mqttasync.h"
 
 #include <numeric>

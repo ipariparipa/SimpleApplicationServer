@@ -15,7 +15,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 */
 
-#include "mqttconnectorfactrory.h"
+#include "mqttconnectorfactory.h"
 
 #include <sasCore/logging.h>
 #include "mqttconnector.h"

@@ -24,7 +24,7 @@ SOURCES += \
     mqttconnector.cpp \
     mqttinterface.cpp \
     mqttconnectionoptions.cpp \
-    mqttconnectorfactrory.cpp
+    mqttconnectorfactory.cpp
 
 HEADERS += \
     include/sasMQTT/mqttasync.h \
@@ -34,4 +34,4 @@ HEADERS += \
     mqttinterface.h \
     include/sasMQTT/config.h \
     threading.h \
-    mqttconnectorfactrory.h
+    mqttconnectorfactory.h
