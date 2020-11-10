@@ -59,6 +59,7 @@ namespace SAS {
 			 MQTTAsync * mqtt;
 			 std::string topic;
 			 std::vector<char> payload;
+             int qos;
 		};
 
 		class RunnerThread : public ThreadInPool<RunnerTask>
@@ -268,7 +269,8 @@ namespace SAS {
 					case Out_Error:
 						out_doc.AddMember("errors", ec.errors(), out_doc.GetAllocator());
 						//no break
-					case Out_JSon:
+                    [[clang::fallthrough]];
+                    case Out_JSon:
 						{
 							rapidjson::StringBuffer sb;
 							rapidjson::Writer<rapidjson::StringBuffer> w(sb);
@@ -316,13 +318,14 @@ namespace SAS {
 		} threadPool;
 
 	protected:
-		virtual bool messageArrived(const std::string & topic, const std::vector<char> & payload, int qus) override
+        virtual bool messageArrived(const std::string & topic, const std::vector<char> & payload, int qos) override
 		{
 			auto th = threadPool.get();
 			auto task = new RunnerTask;
 			task->mqtt = this;
 			task->payload = payload;
 			task->topic = topic;
+            task->qos = qos;
 			th->add(task);
 			return true;
 		}

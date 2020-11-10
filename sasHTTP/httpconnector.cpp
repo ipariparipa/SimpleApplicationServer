@@ -47,10 +47,18 @@ namespace SAS {
 		HTTPMethod method_invoke;
 		HTTPMethod method_control;
 
-		bool build(const std::string & path, ConfigReader * cr, ErrorCollector & ec)
+        bool build(const std::string & path, ConfigReader * cr, ErrorCollector & ec)
+        {
+            std::string tmp;
+            if(!cr->getStringEntry(path + "/BASE_URL", tmp, ec))
+                return false;
+
+            return build(tmp, path, cr, ec);
+        }
+
+        bool build(const std::string & baseURL, const std::string & path, ConfigReader * cr, ErrorCollector & ec)
 		{
-			if(!cr->getStringEntry(path + "/BASE_URL", baseURL, ec))
-				return false;
+            this->baseURL = baseURL;
 
 			if(!cr->getStringEntry(path + "/CONTENT_TYPE", contentType, "application/octet-stream", ec))
 				return false;
@@ -110,6 +118,7 @@ namespace SAS {
 
 		bool init(const HTTPConnectionOptions & options, ErrorCollector & ec)
 		{
+            (void)ec;
 			SAS_LOG_NDC();
 			std::unique_lock<std::mutex> __locker(mut);
 
@@ -128,13 +137,16 @@ namespace SAS {
 
 		bool connect(ErrorCollector & ec)
 		{
+            (void)ec;
 			// nothing to do
 			return true;
 		}
 
 		bool disconnect(long timeout, ErrorCollector & ec)
 		{
-			// nothing to do
+            (void)ec;
+            (void)timeout;
+            // nothing to do
 			return true;
 		}
 
@@ -204,6 +216,9 @@ namespace SAS {
 
 			auto _accept = [](void *userdata, ne_request *req, const ne_status *st) -> int
 			{
+                (void)userdata;
+                (void)req;
+                (void)st;
 				return 1;
 			};
 
@@ -352,7 +367,7 @@ namespace SAS {
 		{ }
 
 
-		virtual ~HTTPConnection()
+        virtual ~HTTPConnection() override
 		{
 			SAS_LOG_NDC();
 			NullEC ec;
@@ -475,17 +490,27 @@ namespace SAS {
 		return priv->name;
 	}
 
-	bool HTTPConnector::init(const std::string & path, ErrorCollector & ec)
+    bool HTTPConnector::init(const std::string & cfgPath, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-		if(!priv->options.build(path, priv->app->configReader(), ec))
+        if(!priv->options.build(cfgPath, priv->app->configReader(), ec))
 			return false;
 
 		return true;
 	}
 
+    bool HTTPConnector::init(const std::string & connectionString, const std::string & cfgPath, ErrorCollector & ec)
+    {
+        SAS_LOG_NDC();
+        if(!priv->options.build(connectionString, cfgPath, priv->app->configReader(), ec))
+            return false;
+
+        return true;
+    }
+
 	bool HTTPConnector::connect(ErrorCollector & ec)
 	{
+        (void)ec;
 		SAS_LOG_NDC();
 		// nothing to do
 		return true;

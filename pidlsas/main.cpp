@@ -132,9 +132,9 @@ public:
 		{
 			str = adm.getPIDL();
 		}
-		catch (PIDL::Exception * ex)
+        catch (PIDL::Exception & ex)
 		{
-			ex->get(ec);
+            ex.get(ec);
 			return false;
 		}
 

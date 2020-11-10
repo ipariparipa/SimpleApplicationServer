@@ -37,17 +37,18 @@ namespace SAS {
 		friend class MQTTConnector_internal;
 	public:
 		MQTTConnector(const std::string & name, Application * app);
-		virtual ~MQTTConnector();
+        virtual ~MQTTConnector() override;
 
 		virtual std::string name() const final;
 
-		virtual bool init(const std::string & path, ErrorCollector & ec) final;
+        bool init(const std::string & cfgPath, ErrorCollector & ec);
+        bool init(const std::string & connectionString, const std::string & cfgPath, ErrorCollector & ec);
 
-		virtual bool connect(ErrorCollector & ec) final;
+        bool connect(ErrorCollector & ec) final override;
 
-		virtual Connection * createConnection(const std::string & module_name, const std::string & invoker_name, ErrorCollector & ec) final;
+        Connection * createConnection(const std::string & module_name, const std::string & invoker_name, ErrorCollector & ec) final override;
 
-		virtual bool getModuleInfo(const std::string & moduleName, std::string & description, std::string & version, ErrorCollector & ec) final;
+        bool getModuleInfo(const std::string & moduleName, std::string & description, std::string & version, ErrorCollector & ec) final override;
 
 	private:
 

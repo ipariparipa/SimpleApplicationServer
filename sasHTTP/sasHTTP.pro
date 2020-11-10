@@ -21,10 +21,12 @@ LIBS += -L../sasJSON -lsasJSON
 SOURCES += \
     httpcomponent.cpp \
     httpconnector.cpp \
-    httpinterface.cpp
+    httpinterface.cpp \
+    httpconnectorfactory.cpp
 
 HEADERS += \
     config.h \
     httpcommon.h \
     httpconnector.h \
-    httpinterface.h
+    httpinterface.h \
+    httpconnectorfactory.h

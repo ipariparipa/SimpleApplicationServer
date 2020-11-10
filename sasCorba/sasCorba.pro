@@ -22,12 +22,14 @@ SOURCES += \
     corbaconnector.cpp \
     corbainterface.cpp \
     tools.cpp \
+    corbaconnectorfactory.cpp
 
 HEADERS += \
     config.h \
     corbaconnector.h \
     corbainterface.h \
     tools.h \
+    corbaconnectorfactory.h
 
 DISTFILES += \
     corbasas.idl

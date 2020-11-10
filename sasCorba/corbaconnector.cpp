@@ -31,6 +31,9 @@
 #include "tools.h"
 #include "generated/corbasas.hh"
 
+#include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
+
 namespace SAS {
 
 	class CorbaConnector_internal
@@ -413,45 +416,118 @@ namespace SAS {
 		return CORBA::Object::_nil();
 	}
 
-	bool CorbaConnector::init(const CORBA::ORB_var & orb, const std::string & config_path, ErrorCollector & ec)
+    bool CorbaConnector::init(const CORBA::ORB_var & orb, const std::string & config_path, ErrorCollector & ec)
+    {
+        return init(orb, std::string(), config_path, ec);
+    }
+
+    bool CorbaConnector::init(const CORBA::ORB_var & orb, const std::string & connection_string, const std::string & config_path, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
 		std::vector<std::string> ops;
 
 		SAS_LOG_VAR_NAME(priv->logger, "connector_name", priv->name);
 
-		if(!priv->app->configReader()->getBoolEntry(config_path + "/USE_NAME_SERVER", priv->connectionData.use_name_server, true, ec))
-			return false;
+        if(connection_string.length())
+        {
+            rapidjson::Document doc;
+            if(doc.Parse(connection_string.c_str()).HasParseError())
+            {
+                ec.add(-1, "json parse error '"+ std::string(rapidjson::GetParseError_En(doc.GetParseError())) +"'");
+                return false;
+            }
 
-		if(priv->connectionData.use_name_server)
-		{
-			SAS_LOG_TRACE(priv->logger, "get name server connection info");
-			if(!priv->app->configReader()->getStringEntry(config_path + "/SERVICE_NAME", priv->connectionData.service_name, ec) || !priv->connectionData.service_name.length())
-			{
-				SAS_LOG_TRACE(priv->logger, "service name is not defined for, get default value");
-				if(!priv->app->configReader()->getStringEntry("SAS/CORBA/SERVICE_NAME", priv->connectionData.service_name, ec) || !priv->connectionData.service_name.length())
-				{
-					SAS_LOG_DEBUG(priv->logger, "default service name is not set");
-					priv->connectionData.service_name = "SAS";
-				}
-			}
-			if(!priv->app->configReader()->getStringEntry(config_path + "/INTERFACE_NAME", priv->connectionData.interface_mame, ec) || !priv->connectionData.interface_mame.length())
-			{
-				SAS_LOG_WARN(priv->logger, "interface name is not defined, use connector name instead");
-				priv->connectionData.interface_mame = priv->name;
-			}
-		}
-		else
-		{
-			SAS_LOG_TRACE(priv->logger, "name server is not used");
-			if(!priv->app->configReader()->getStringEntry(config_path + "/IOR", priv->connectionData.ior, ec) || !priv->connectionData.ior.length())
-			{
-				SAS_LOG_DEBUG(priv->logger, "IOR data is not defined");
-				auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__MISSING_CONNECTION_DATA, "connector '" + priv->name + "' cannot be initializes because of the insufficient connection data");
-				SAS_LOG_ERROR(priv->logger, err);
-				return false;
-			}
-		}
+            if(!doc.IsObject())
+            {
+                if(doc.HasMember("use_ns"))
+                {
+                    auto & use_ns_v = doc["use_ns"];
+                    if(!use_ns_v.IsBool())
+                    {
+                        ec.add(-1, "'use_ns' in connection string is not boolean");
+                        return false;
+                    }
+                    priv->connectionData.use_name_server = use_ns_v.GetBool();
+                }
+                else
+                    priv->connectionData.use_name_server = true;
+
+                if(doc.HasMember("service"))
+                {
+                    auto & service_v = doc["service"];
+                    if(!service_v.IsString())
+                    {
+                        ec.add(-1, "'service' in connection string is not string");
+                        return false;
+                    }
+                    priv->connectionData.service_name = service_v.GetString();
+                }
+                else
+                {
+                    SAS_LOG_DEBUG(priv->logger, "default service name is not set");
+                    priv->connectionData.service_name = "SAS";
+                }
+
+                if(doc.HasMember("interface"))
+                {
+                    auto & interface_v = doc["interface"];
+                    if(!interface_v.IsString())
+                    {
+                        ec.add(-1, "'interface' in connection string is not string");
+                        return false;
+                    }
+                    priv->connectionData.interface_mame = interface_v.GetString();
+                }
+                else
+                {
+                    SAS_LOG_WARN(priv->logger, "interface name is not defined, use connector name instead");
+                    priv->connectionData.interface_mame = priv->name;
+                }
+            }
+            else if(doc.IsString())
+                priv->connectionData.ior = doc.GetString();
+            else
+            {
+                ec.add(-1, "connection string is invalid");
+                return false;
+            }
+        }
+        else
+        {
+
+            if(!priv->app->configReader()->getBoolEntry(config_path + "/USE_NAME_SERVER", priv->connectionData.use_name_server, true, ec))
+                return false;
+
+            if(priv->connectionData.use_name_server)
+            {
+                SAS_LOG_TRACE(priv->logger, "get name server connection info");
+                if(!priv->app->configReader()->getStringEntry(config_path + "/SERVICE_NAME", priv->connectionData.service_name, ec) || !priv->connectionData.service_name.length())
+                {
+                    SAS_LOG_TRACE(priv->logger, "service name is not defined for, get default value");
+                    if(!priv->app->configReader()->getStringEntry("SAS/CORBA/SERVICE_NAME", priv->connectionData.service_name, ec) || !priv->connectionData.service_name.length())
+                    {
+                        SAS_LOG_DEBUG(priv->logger, "default service name is not set");
+                        priv->connectionData.service_name = "SAS";
+                    }
+                }
+                if(!priv->app->configReader()->getStringEntry(config_path + "/INTERFACE_NAME", priv->connectionData.interface_mame, ec) || !priv->connectionData.interface_mame.length())
+                {
+                    SAS_LOG_WARN(priv->logger, "interface name is not defined, use connector name instead");
+                    priv->connectionData.interface_mame = priv->name;
+                }
+            }
+            else
+            {
+                SAS_LOG_TRACE(priv->logger, "name server is not used");
+                if(!priv->app->configReader()->getStringEntry(config_path + "/IOR", priv->connectionData.ior, ec) || !priv->connectionData.ior.length())
+                {
+                    SAS_LOG_DEBUG(priv->logger, "IOR data is not defined");
+                    auto err = ec.add(SAS_CORE__ERROR__CONNECTOR__MISSING_CONNECTION_DATA, "connector '" + priv->name + "' cannot be initializes because of the insufficient connection data");
+                    SAS_LOG_ERROR(priv->logger, err);
+                    return false;
+                }
+            }
+        }
 
 		long long tmp_ll;
 		if (!priv->app->configReader()->getNumberEntry(config_path + "/MAX_RECONNECT_NUM", tmp_ll, 10, ec))

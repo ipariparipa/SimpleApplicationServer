@@ -40,7 +40,8 @@ public:
 
 	virtual std::string name() const final;
 
-	virtual bool init(const CORBA::ORB_var & orb, const std::string & path, ErrorCollector & ec) final;
+    virtual bool init(const CORBA::ORB_var & orb, const std::string & configPath, ErrorCollector & ec) final;
+    virtual bool init(const CORBA::ORB_var & orb, const std::string & connectionString, const std::string & configPath, ErrorCollector & ec) final;
 
 	virtual bool connect(ErrorCollector & ec) final;
 

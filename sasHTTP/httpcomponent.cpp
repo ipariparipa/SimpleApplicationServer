@@ -25,6 +25,7 @@ along with sasHTTP.  If not, see <http://www.gnu.org/licenses/>
 
 #include "httpinterface.h"
 #include "httpconnector.h"
+#include "httpconnectorfactory.h"
 
 #include <numeric>
 
@@ -44,67 +45,101 @@ namespace SAS {
 
 			this->app = app;
 
+            std::vector<Object*> objects;
+
 #ifdef SAS_HTTP__HAVE_MICROHTTPD
-			std::vector<std::string> interface_names;
-			if (app->configReader()->getStringListEntry("SAS/HTTP/INTERFACES", interface_names, interface_names, ec))
-			{
-				if (interface_names.size())
-				{
-					auto im = app->interfaceManager();
-					if (!im)
-					{
-						auto err = ec.add(-1, "interface manager is not existing, could not register HTTP interface");
-						SAS_LOG_ERROR(logger, err);
-						return false;
-					}
+            //create interfaces
+            {
+                std::vector<std::string> names;
+                if (app->configReader()->getStringListEntry("SAS/HTTP/INTERFACES", names, names, ec))
+                {
+                    if (names.size())
+                    {
+                        auto im = app->interfaceManager();
+                        if (!im)
+                        {
+                            auto err = ec.add(-1, "interface manager is not existing, could not register HTTP interface");
+                            SAS_LOG_ERROR(logger, err);
+                            return false;
+                        }
 
-					bool has_error(false);
-					std::vector<Interface*> interfaces(interface_names.size());
-					for (size_t i = 0, l = interface_names.size(); i < l; ++i)
-					{
-						auto intf = new HTTPInterface(interface_names[i], app);
-						if (!intf->init(std::string("SAS/HTTP/") + interface_names[i], ec))
-							has_error = true;
-						else
-							interfaces[i] = intf;
-					}
-					if (has_error)
-						return false;
+                        bool has_error(false);
+                        std::vector<Interface*> interfaces(names.size());
+                        for (size_t i = 0, l = names.size(); i < l; ++i)
+                        {
+                            auto intf = new HTTPInterface(names[i], app);
+                            if (!intf->init(std::string("SAS/HTTP/") + names[i], ec))
+                                has_error = true;
+                            else
+                                interfaces[i] = intf;
+                        }
+                        if (has_error)
+                            return false;
 
-					if (!im->registerInterfaces(interfaces, ec))
-						return false;
-				}
-				else
-					SAS_LOG_INFO(logger, "no HTTP interface is defined.");
-			}
+                        SAS_LOG_DEBUG(logger, "registering interfaces");
+                        if (!im->registerInterfaces(interfaces, ec))
+                            return false;
+                    }
+                    else
+                        SAS_LOG_INFO(logger, "no HTTP interface is defined.");
+                }
+            }
 #endif // SAS_HTTP__HAVE_MICROHTTPD
+            //create connectors
+            {
+                std::vector<std::string> names;
+                if (app->configReader()->getStringListEntry("SAS/HTTP/CONNECTORS", names, names, ec))
+                {
+                    if (names.size())
+                    {
+                        ne_sock_init();
 
-			std::vector<std::string> connector_names;
-			if (app->configReader()->getStringListEntry("SAS/HTTP/CONNECTORS", connector_names, connector_names, ec))
-			{
-				if (connector_names.size())
-				{
-					ne_sock_init();
+                        bool has_error(false);
+                        for (size_t i = 0, l = names.size(); i < l; ++i)
+                        {
+                            auto conn = new HTTPConnector(names[i], app);
+                            if (!conn->init(std::string("SAS/HTTP/") + names[i], ec))
+                                has_error = true;
+                            else
+                                objects.push_back(conn);
+                        }
+                        if (has_error)
+                            return false;
+                    }
+                    else
+                        SAS_LOG_INFO(logger, "no HTTP connector is defined.");
+                }
+            }
 
-					bool has_error(false);
-					std::vector<Object*> connectors(connector_names.size());
-					for (size_t i = 0, l = connector_names.size(); i < l; ++i)
-					{
-						auto conn = new HTTPConnector(connector_names[i], app);
-						if (!conn->init(std::string("SAS/HTTP/") + connector_names[i], ec))
-							has_error = true;
-						else
-							connectors[i] = conn;
-					}
-					if (has_error)
-						return false;
+            //create connector factories
+            {
+                std::vector<std::string> names;
+                if (app->configReader()->getStringListEntry("SAS/HTTP/CONNECTOR_FACTORIES", names, names, ec))
+                {
+                    if (names.size())
+                    {
+                        ne_sock_init();
 
-					if (!app->objectRegistry()->registerObjects(connectors, ec))
-						return false;
-				}
-				else
-					SAS_LOG_INFO(logger, "no HTTP connector is defined.");
-			}
+                        bool has_error(false);
+                        for (size_t i = 0, l = names.size(); i < l; ++i)
+                        {
+                            auto conn = new HTTPConnectorFactory(names[i], app);
+                            if (!conn->init(std::string("SAS/HTTP/") + names[i], ec))
+                                has_error = true;
+                            else
+                                objects.push_back(conn);
+                        }
+                        if (has_error)
+                            return false;
+                    }
+                    else
+                        SAS_LOG_INFO(logger, "no HTTP connector factory is defined.");
+                }
+            }
+
+            SAS_LOG_INFO(logger, "registering objects");
+            if (!app->objectRegistry()->registerObjects(objects, ec))
+                return false;
 
 			return true;
 		}

@@ -25,6 +25,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 
 #include "mqttinterface.h"
 #include "mqttconnector.h"
+#include "mqttconnectorfactory.h"
 #include "include/sasMQTT/mqttasync.h"
 
 #include <numeric>
@@ -44,63 +45,94 @@ namespace SAS {
 			this->app = app;
 
 			MQTTAsync::globalInit();
-			std::vector<std::string> interface_names;
-			if (app->configReader()->getStringListEntry("SAS/MQTT/INTERFACES", interface_names, interface_names, ec) && interface_names.size())
-			{
-				if(interface_names.size())
-				{
-					auto im = app->interfaceManager();
-					if (!im)
-					{
-						auto err = ec.add(-1, "interface manager is not existing, could not register MQTT interface");
-						SAS_LOG_ERROR(logger, err);
-						return false;
-					}
 
-					bool has_error(false);
-					std::vector<SAS::Interface*> interfaces(interface_names.size());
-					for (size_t i = 0, l = interface_names.size(); i < l; ++i)
-					{
-						auto intf = new MQTTInterface(interface_names[i], app);
-						if (!intf->init(std::string("SAS/MQTT/") + interface_names[i], ec))
-							has_error = true;
-						else
-							interfaces[i] = intf;
-					}
-					if (has_error)
-						return false;
+            //create interfaces
+            {
+                std::vector<std::string> names;
+                if (app->configReader()->getStringListEntry("SAS/MQTT/INTERFACES", names, names, ec))
+                {
+                    if(names.size())
+                    {
+                        auto im = app->interfaceManager();
+                        if (!im)
+                        {
+                            auto err = ec.add(-1, "interface manager is not existing, could not register MQTT interface");
+                            SAS_LOG_ERROR(logger, err);
+                            return false;
+                        }
 
-					if (!im->registerInterfaces(interfaces, ec))
-						return false;
-				}
-				else
-					SAS_LOG_INFO(logger, "not MQTT interface is defined.");
-			}
+                        bool has_error(false);
+                        std::vector<SAS::Interface*> interfaces(names.size());
+                        for (size_t i = 0, l = names.size(); i < l; ++i)
+                        {
+                            auto intf = new MQTTInterface(names[i], app);
+                            if (!intf->init(std::string("SAS/MQTT/") + names[i], ec))
+                                has_error = true;
+                            else
+                                interfaces[i] = intf;
+                        }
+                        if (has_error)
+                            return false;
 
-			std::vector<std::string> connector_names;
-			if (app->configReader()->getStringListEntry("SAS/MQTT/CONNECTORS", connector_names, connector_names, ec), connector_names.size())
-			{
-				if(connector_names.size())
-				{
-					bool has_error(false);
-					std::vector<Object*> connectors(connector_names.size());
-					for (size_t i = 0, l = connector_names.size(); i < l; ++i)
-					{
-						auto conn = new MQTTConnector(connector_names[i], app);
-						if (!conn->init(std::string("SAS/MQTT/") + connector_names[i], ec))
-							has_error = true;
-						else
-							connectors[i] = conn;
-					}
-					if (has_error)
-						return false;
+                        if (!im->registerInterfaces(interfaces, ec))
+                            return false;
+                    }
+                    else
+                        SAS_LOG_INFO(logger, "no MQTT interface is defined.");
+                }
+            }
 
-					if (!app->objectRegistry()->registerObjects(connectors, ec))
-						return false;
-				}
-				else
-					SAS_LOG_INFO(logger, "not MQTT connector is defined.");
-			}
+            std::vector<Object*> objects;
+
+            {
+                std::vector<std::string> names;
+                if (app->configReader()->getStringListEntry("SAS/MQTT/CONNECTORS", names, names, ec))
+                {
+                    if(names.size())
+                    {
+                        bool has_error(false);
+                        for (size_t i = 0, l = names.size(); i < l; ++i)
+                        {
+                            auto conn = new MQTTConnector(names[i], app);
+                            if (!conn->init(std::string("SAS/MQTT/") + names[i], ec))
+                                has_error = true;
+                            else
+                                objects.push_back(conn);
+                        }
+                        if (has_error)
+                            return false;
+                    }
+                    else
+                        SAS_LOG_INFO(logger, "no MQTT connector is defined.");
+                }
+            }
+
+            {
+                std::vector<std::string> names;
+                if (app->configReader()->getStringListEntry("SAS/MQTT/CONNECTOR_FACTORIES", names, names, ec))
+                {
+                    if(names.size())
+                    {
+                        bool has_error(false);
+                        for (size_t i = 0, l = names.size(); i < l; ++i)
+                        {
+                            auto conn = new MQTTConnectorFactory(names[i], app);
+                            if (!conn->init(std::string("SAS/MQTT/") + names[i], ec))
+                                has_error = true;
+                            else
+                                objects.push_back(conn);
+                        }
+                        if (has_error)
+                            return false;
+                    }
+                    else
+                        SAS_LOG_INFO(logger, "no MQTT connector is defined.");
+                }
+            }
+
+            SAS_LOG_DEBUG(logger, "registreing objects");
+            if (!app->objectRegistry()->registerObjects(objects, ec))
+                return false;
 
 			return true;
 		}

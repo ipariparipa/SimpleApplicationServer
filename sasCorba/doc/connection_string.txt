@@ -1,0 +1,8 @@
+connect with name server:
+{ "use_ns": true, "service": "<service_name>", "interface": "<interface_name>" }
+{ "service": "<service_name>", "interface": "<interface_name>" }
+{ }
+
+connect with IOR:
+"<ior_data>"
+

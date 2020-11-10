@@ -13,7 +13,6 @@ CONFIG(SAS_LOG4CXX_ENABLED) {
     DEFINES += SAS_LOG4CXX_ENABLED
 }
 
-LIBS += -lpaho-mqtt3c
 LIBS += -lpaho-mqtt3a
 LIBS += -L../sasCore -lsasCore
 LIBS += -L../sasJSON -lsasJSON
@@ -24,7 +23,8 @@ SOURCES += \
     mqttcomponent.cpp \
     mqttconnector.cpp \
     mqttinterface.cpp \
-    mqttconnectionoptions.cpp
+    mqttconnectionoptions.cpp \
+    mqttconnectorfactory.cpp
 
 HEADERS += \
     include/sasMQTT/mqttasync.h \
@@ -33,4 +33,5 @@ HEADERS += \
     mqttconnector.h \
     mqttinterface.h \
     include/sasMQTT/config.h \
-    threading.h
+    threading.h \
+    mqttconnectorfactory.h

@@ -22,6 +22,9 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 #include <sasCore/tools.h>
 #include <sasCore/logging.h>
 
+#include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
+
 namespace SAS {
 
     struct MQTTConnectionOptions::Priv
@@ -163,22 +166,113 @@ namespace SAS {
     }
 
 
-	bool MQTTConnectionOptions::build(const std::string & config_path, ConfigReader * cr, ErrorCollector & ec)
+    bool MQTTConnectionOptions::build(const std::string & config_path, ConfigReader * cr, ErrorCollector & ec)
+    {
+        SAS_LOG_NDC();
+
+        return build(std::string(), config_path, cr,ec);
+    }
+
+    bool MQTTConnectionOptions::build(const std::string & connection_str, const std::string & config_path, ConfigReader * cr, ErrorCollector & ec)
 	{
-		SAS_LOG_NDC();
+        SAS_LOG_NDC();
 
-		long long ll_tmp;
+        if(connection_str.length())
+        {
+            rapidjson::Document doc;
+            if(doc.Parse(connection_str.c_str(), connection_str.length()).HasParseError())
+            {
+                ec.add(-1, "json parse error '"+ std::string(rapidjson::GetParseError_En(doc.GetParseError())) +"'");
+                return false;
+            }
 
-        if(!cr->getStringEntry(config_path + "/CLIENT_ID", p->clientId, genRandomString(32), ec))
+            if(!doc.IsObject())
+            {
+                if(doc.HasMember("uri"))
+                {
+                    auto & uri_v = doc["uri"];
+                    if(!uri_v.IsString())
+                    {
+                        ec.add(-1, "'uri' in connection string is not string");
+                        return false;
+                    }
+                    p->serverUri = uri_v.GetString();
+                }
+                else
+                    p->serverUri = "localhost:1883";
+
+                if(doc.HasMember("id"))
+                {
+                    auto & id_v = doc["id"];
+                    if(!id_v.IsString())
+                    {
+                        ec.add(-1, "'id' in connection string is not string");
+                        return false;
+                    }
+                    p->clientId = id_v.GetString();
+                }
+                else
+                    p->clientId = genRandomString(32);
+
+                if(doc.HasMember("user"))
+                {
+                    auto & user_v = doc["user"];
+                    if(!user_v.IsString())
+                    {
+                        ec.add(-1, "'user' in connection string is not string");
+                        return false;
+                    }
+                    p->username = user_v.GetString();
+                }
+                else
+                    p->username.clear();
+
+                if(doc.HasMember("passwd"))
+                {
+                    auto & passwd_v = doc["passwd"];
+                    if(!passwd_v.IsString())
+                    {
+                        ec.add(-1, "'passwd' in connection string is not string");
+                        return false;
+                    }
+                    p->password = passwd_v.GetString();
+                }
+                else
+                    p->password.clear();
+            }
+            else if(doc.IsString())
+            {
+                p->serverUri = doc.GetString();
+                p->clientId = genRandomString(32);
+                p->username.clear();
+                p->password.clear();
+            }
+            else
+            {
+                ec.add(-1, "connection string is invalid");
+                return false;
+            }
+        }
+        else
+        {
+            p->serverUri = "localhost:1883";
+            p->clientId = genRandomString(32);
+            p->username.clear();
+            p->password.clear();
+        }
+
+        long long ll_tmp;
+
+        if(!cr->getStringEntry(config_path + "/CLIENT_ID", p->clientId, p->clientId, ec))
+            return false;
+
+        if(!cr->getStringEntry(config_path + "/SERVER_URI", p->serverUri, p->serverUri, ec))
+            return false;
+
+        if(!cr->getStringEntry(config_path + "/USERNAME", p->username, p->username, ec))
 			return false;
 
-        if(!cr->getStringEntry(config_path + "/SERVER_URI", p->serverUri, "localhost:1883", ec))
-			return false;
-
-        if(!cr->getStringEntry(config_path + "/USERNAME", p->username, std::string(), ec))
-			return false;
-
-        if(!cr->getStringEntry(config_path + "/PASSWORD", p->password, std::string(), ec))
+        if(!cr->getStringEntry(config_path + "/PASSWORD", p->password, p->password, ec))
 			return false;
 
         if(!cr->getBoolEntry(config_path + "/CLEAN_SESSION", p->cleanSession, p->cleanSession, ec))
@@ -196,9 +290,9 @@ namespace SAS {
 			return false;
         p->retryInterval = std::chrono::seconds(ll_tmp);
 
-		//if(!cr->getNumberEntry(config_path + "/QUS", ll_tmp, 2, ec))
+        //if(!cr->getNumberEntry(config_path + "/QOS", ll_tmp, 2, ec))
 		//	return false;
-		//options.qus = (long) ll_tmp;
+        //options.qos = (long) ll_tmp;
 
         if(!cr->getNumberEntry(config_path + "/PUBLISH_TIMEOUT", ll_tmp, p->publish_timeout.count(), ec))
 			return false;

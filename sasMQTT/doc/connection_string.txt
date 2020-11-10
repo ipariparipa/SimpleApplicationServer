@@ -1,0 +1,4 @@
+{ "uri": "<server_uri>", "id": "<unique_client_id>", "user": "<user_name>", "passwd": "<password>" }
+{ "uri": "<server_uri>" }
+{ }
+"<server_uri>"

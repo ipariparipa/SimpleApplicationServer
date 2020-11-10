@@ -56,7 +56,8 @@ SOURCES += \
 	uniqueobjectmanager.cpp \
     notifier.cpp \
     timelinethread.cpp \
-    threadpool.cpp
+    threadpool.cpp \
+    connectorfactory.cpp
 
 HEADERS += \
     include/sasCore/application.h \
@@ -89,7 +90,8 @@ HEADERS += \
 	include/sasCore/uniqueobjectmanager.h \
     include/sasCore/notifier.h \
     include/sasCore/timelinethread.h \
-    include/sasCore/threadpool.h
+    include/sasCore/threadpool.h \
+    include/sasCore/connectorfactory.h
 
 
 

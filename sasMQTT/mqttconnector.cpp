@@ -348,30 +348,35 @@ namespace SAS {
 		priv(std::make_unique<MQTTConnector_priv>(name, app))
 	{ }
 
-	MQTTConnector::~MQTTConnector()
-	{ }
+    MQTTConnector::~MQTTConnector() = default;
 
 	std::string MQTTConnector::name() const
 	{
 		return priv->name;
 	}
 
-	bool MQTTConnector::init(const std::string & path, ErrorCollector & ec)
+    bool MQTTConnector::init(const std::string & cfgPath, ErrorCollector & ec)
 	{
-		SAS_LOG_NDC();
-		if(!priv->options.build(path, priv->app->configReader(), ec))
-			return false;
-
-		long long ll_tmp;
-		if(!priv->app->configReader()->getNumberEntry(path + "/RECEIVE_COUNT", ll_tmp, priv->rec_count, ec))
-			return false;
-		ll_tmp = priv->rec_count;
-
-		return true;
+        return init(std::string(), cfgPath, ec);
 	}
+
+    bool MQTTConnector::init(const std::string & connectionString, const std::string & cfgPath, ErrorCollector & ec)
+    {
+        SAS_LOG_NDC();
+        if(!priv->options.build(connectionString, cfgPath, priv->app->configReader(), ec))
+            return false;
+
+        long long ll_tmp;
+        if(!priv->app->configReader()->getNumberEntry(cfgPath + "/RECEIVE_COUNT", ll_tmp, priv->rec_count, ec))
+            return false;
+        ll_tmp = priv->rec_count;
+
+        return true;
+    }
 
 	bool MQTTConnector::connect(ErrorCollector & ec)
 	{
+        (void)ec;
 		SAS_LOG_NDC();
 		// nothing to do
 		return true;
