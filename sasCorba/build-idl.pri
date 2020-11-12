@@ -1,11 +1,11 @@
-DUMMY_FILE = $$_PRO_FILE_PWD_/generated/corbadummy
+DUMMY_FILE = $$_PRO_FILE_PWD_/generated/.generated
 INTERFACE_INPUT = $$_PRO_FILE_PWD_/corbasas.idl
 
 idlCompile.input = INTERFACE_INPUT
 idlCompile.output = $$DUMMY_FILE
 idlCompile.variable_out = DISTFILES
 idlCompile.commands =  cd $$_PRO_FILE_PWD_; \
-                       omniidl -bcxx -Cgenerated ${QMAKE_FILE_IN}; \
+                       omniidl -bcxx -Cgenerated $$INTERFACE_INPUT; \
                        touch $$DUMMY_FILE;
 QMAKE_EXTRA_COMPILERS += idlCompile
 
