@@ -29,8 +29,15 @@ namespace SAS {
             bool done = false;
             std::recursive_mutex mut;
             std::atomic_bool active;
+            std::function<void(const Entry::Ptr &)> onChanged;
 
-        protected:
+            void callOnChanged(const Entry::Ptr & e)
+            {
+                std::unique_lock<std::recursive_mutex> __locaker(mut);
+                if(onChanged)
+                    onChanged(e);
+            }
+
             std::chrono::system_clock::time_point timestamp() final override
             {
                 std::unique_lock<std::recursive_mutex> __locaker(mut);
@@ -53,6 +60,12 @@ namespace SAS {
             {
                 std::unique_lock<std::recursive_mutex> __locaker(mut);
                 return m_handlerDescriptor;
+            }
+
+            void setOnChanged(std::function<void(const TimelineThread::Entry::Ptr &)> func) final override
+            {
+                std::unique_lock<std::recursive_mutex> __locaker(mut);
+                onChanged = func;
             }
 
         };
@@ -118,7 +131,6 @@ namespace SAS {
             {
                 std::unique_lock<std::recursive_mutex> __e_locker(current_entry->mut);
                 entries[current_entry->m_timestamp].push_back(current_entry);
-                callOnChanged();
             }
 		}
 
@@ -129,7 +141,7 @@ namespace SAS {
 		}
 
 
-        void add(TimelineThread::Id id, std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, const std::string & handlerDescriptor, long cycle)
+        void add(TimelineThread::Id id, std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, const std::string & handlerDescriptor, long cycle, std::function<void(Entry::Ptr)> onChanged = nullptr)
         {
             auto e = std::make_shared<Private::Entry>();
             e->id = id;
@@ -139,8 +151,10 @@ namespace SAS {
             e->m_remaining = cycle;
             e->m_handlerDescriptor = handlerDescriptor;
             e->active = true;
+            e->onChanged = onChanged;
 
             add(e);
+            e->callOnChanged(e);
         }
 
         void add(const Entry::Ptr & e)
@@ -166,23 +180,23 @@ namespace SAS {
 		p->notif.notifyAll();
 	}
 
-    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::duration timeout, Func func, const std::string & handlerDescriptor, long cycle)
+    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::duration timeout, Func func, const std::string & handlerDescriptor, long cycle, std::function<void(const Entry::Ptr &)> onChanged)
     {
-        return add(std::chrono::system_clock::now() + timeout, timeout, func, handlerDescriptor, cycle);
+        return add(std::chrono::system_clock::now() + timeout, timeout, func, handlerDescriptor, cycle, onChanged);
     }
 
-    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::time_point timestamp, Func func, const std::string & handlerDescriptor)
+    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::time_point timestamp, Func func, const std::string & handlerDescriptor, std::function<void(const Entry::Ptr &)> onChanged)
     {
-        return add(timestamp, std::chrono::system_clock::duration(), func, handlerDescriptor, 1);
+        return add(timestamp, std::chrono::system_clock::duration(), func, handlerDescriptor, 1, onChanged);
     }
 
-    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, const std::string & handlerDescriptor, long cycle)
+    TimelineThread::Id TimelineThread::add(std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, const std::string & handlerDescriptor, long cycle, std::function<void(const Entry::Ptr &)> onChanged)
     {
         std::mutex mut;
         std::unique_lock<std::mutex> __locker(mut);
         static Id id(0);
 
-        p->add(++id, timestamp, period, func, handlerDescriptor, cycle);
+        p->add(++id, timestamp, period, func, handlerDescriptor, cycle, onChanged);
 
         resume();
 
@@ -200,9 +214,9 @@ namespace SAS {
                 if (p->current_entry->id == id)
                 {
                     p->current_entry->m_remaining = 0;
+                    p->current_entry->mut.unlock();
                     p->current_entry = nullptr;
                     p->notif.notify();
-                    p->current_entry->mut.unlock();
                     return;
                 }
                 p->current_entry->mut.unlock();
@@ -216,6 +230,7 @@ namespace SAS {
                 if ((*it_l)->id == id)
                 {
                     it->second.erase(it_l);
+                    (*it_l)->callOnChanged(nullptr);
                     if (!it->second.size())
                         p->entries.erase(it);
 
@@ -230,6 +245,21 @@ namespace SAS {
     {
         std::unique_lock<std::mutex> __locker(p->onChanged_mut);
         p->onChanged = func;
+    }
+
+    bool TimelineThread::setOnChanged(Id id, std::function<void(const Entry::Ptr &)> func)
+    {
+        std::unique_lock<std::recursive_mutex> __locaker(p->entries_mut);
+
+        for(auto & t : p->entries)
+            for(auto & e : t.second)
+                if(e->id == id)
+                {
+                    e->setOnChanged(func);
+                    return true;
+                }
+
+        return false;
     }
 
 	void TimelineThread::execute() //final override
@@ -252,7 +282,10 @@ namespace SAS {
                         {
                             e->m_timestamp += e->m_period;
                             p->add(e); // append a new repetitive entry to the timeline
+                            e->callOnChanged(e);
                         }
+                        else
+                            e->callOnChanged(nullptr);
                     }
                     else
                         timestamp = e->m_timestamp;
@@ -262,6 +295,8 @@ namespace SAS {
                     if (p->notif.wait(timestamp)) // waiting for the time point of next entry
                     { // something happened in the timeline, so let's do again
                         p->restore();
+                        //e->callOnChanged(e); // did not changed
+                        p->callOnChanged();
                         continue;
                     }
                     else if(e->active)
@@ -272,12 +307,27 @@ namespace SAS {
                         {
                             e->m_timestamp += e->m_period;
                             p->add(e); // append a new repetitive entry to the timeline
+                            e->callOnChanged(e);
                         }
+                        else
+                            e->callOnChanged(nullptr);
                     }
                 }
 			}
 		}
 	}
+
+    TimelineThread::Entry::Ptr TimelineThread::entry(Id id)
+    {
+        std::unique_lock<std::recursive_mutex> __locaker(p->entries_mut);
+
+        for(auto & t : p->entries)
+            for(auto & e : t.second)
+                if(e->id == id)
+                    return e;
+
+        return nullptr;
+    }
 
     std::vector<TimelineThread::Entry::Ptr> TimelineThread::entries()
     {
