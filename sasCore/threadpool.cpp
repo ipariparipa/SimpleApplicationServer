@@ -30,15 +30,25 @@ namespace SAS {
                     }
                     std::unique_lock<std::mutex> __locker(func_mut);
                     if(func)
+                    {
                         func();
+                        func = nullptr;
+                    }
+
                     {
                         std::unique_lock<std::mutex> __locker(flag_mut);
                         if(!running)
+                        {
+                            end = nullptr;
                             break;
+                        }
                         released = true;
                     }
                     if(end)
+                    {
                         end();
+                        end = nullptr;
+                    }
                 }
             }))
         { }
@@ -88,8 +98,15 @@ namespace SAS {
 
     void ThreadPool::Thread::join()
     {
-        p->func_mut.lock();
-        p->func_mut.unlock();
+        try
+        {
+            p->func_mut.lock();
+            p->func_mut.unlock();
+        }
+        catch (std::exception & ex)
+        {
+            SAS_LOG_ERROR(p->logger, ex.what());
+        }
     }
 
     bool ThreadPool::Thread::isReleased()
@@ -125,6 +142,13 @@ namespace SAS {
         Private(const std::string & name) :
             logger(Logging::getLogger(name))
         { }
+
+        ~Private()
+        {
+            freeThreads.clear();
+            for(auto & th : threads)
+                th.reset();
+        }
 
         Logging::LoggerPtr logger;
         std::mutex mut;
