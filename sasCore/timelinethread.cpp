@@ -87,12 +87,15 @@ namespace SAS {
     TimelineThread::TimelineThread(ThreadPool * pool) : ControlledThread(pool), p(new Private)
 	{ }
 
-    TimelineThread::~TimelineThread() = default;
+    TimelineThread::~TimelineThread()
+    {
+        wait();
+    }
 
 	void TimelineThread::stop() // final override
 	{
 		ControlledThread::stop();
-		p->notif.notifyAll();
+        resume();
 	}
 
     TimelineThread::Id TimelineThread::add(std::chrono::system_clock::duration timeout, Func func, long cycle)
@@ -155,6 +158,9 @@ namespace SAS {
 	{
         while (enterContolledSection())
 		{
+            if(status() == Status::Stopped)
+                break;
+
             auto e = p->takeNext();
 
             if (!e)

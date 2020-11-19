@@ -35,6 +35,8 @@ public:
 
 	bool reserveSuspended();
 
+    virtual void stop() override;
+
 protected:
 	virtual void begun() override;
 	virtual void ended() override;
