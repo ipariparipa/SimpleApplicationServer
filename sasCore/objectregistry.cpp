@@ -34,7 +34,7 @@ struct ObjectRegistry_priv
 	{ }
 
 	Logging::LoggerPtr logger;
-	std::mutex mut;
+    std::recursive_mutex mut;
 	struct TypeReg
 	{
 		std::mutex mut;
@@ -43,9 +43,12 @@ struct ObjectRegistry_priv
 
 	std::map<std::string /*type*/, std::shared_ptr<TypeReg>> reg;
 
+    std::mutex lst_mut;
+    std::list<std::pair<std::string, std::string>> lst;
+
 	TypeReg * setTypeReg(const std::string & type)
 	{
-		std::unique_lock<std::mutex> __locker(mut);
+        std::unique_lock<std::recursive_mutex> __locker(mut);
 		if(reg.count(type))
 			return reg[type].get();
 		auto r = std::make_shared<TypeReg>();
@@ -55,7 +58,7 @@ struct ObjectRegistry_priv
 
 	TypeReg * getTypeReg(const std::string & type)
 	{
-		std::unique_lock<std::mutex> __locker(mut);
+        std::unique_lock<std::recursive_mutex> __locker(mut);
 		return reg.count(type) ? reg.at(type).get() : nullptr;
 	}
 
@@ -87,6 +90,10 @@ struct ObjectRegistry_priv
 				else
 				{
 					tr->reg[o->name()] = o;
+                    {
+                        std::unique_lock<std::mutex> __locker(lst_mut);
+                        this->lst.push_front(std::make_pair(o->type(), o->name()));
+                    }
 					SAS_LOG_DEBUG(logger, "object '"+o->type()+"/"+o->name()+"' has been registered");
 				}
 			}
@@ -100,7 +107,10 @@ ObjectRegistry::ObjectRegistry() : priv(new ObjectRegistry_priv)
 { }
 
 ObjectRegistry::~ObjectRegistry()
-{ delete priv; }
+{
+    clear();
+    delete priv;
+}
 
 bool ObjectRegistry::registerObject(Object * obj, ErrorCollector & ec)
 {
@@ -210,6 +220,14 @@ std::vector<Object *> ObjectRegistry::getObjects(const std::string & type, Error
 	for(auto & o : tr->reg)
 		ret[i++] = o.second;
 	return ret;
+}
+
+void ObjectRegistry::clear()
+{
+    std::unique_lock<std::mutex> __locker(priv->lst_mut);
+    for(auto e : priv->lst)
+        destroyObject(e.first, e.second);
+    priv->lst.clear();
 }
 
 }

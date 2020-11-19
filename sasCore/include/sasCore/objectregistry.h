@@ -41,8 +41,6 @@ public:
 
 	bool registerObjects(std::vector<Object *> obj, ErrorCollector & ec);
 
-    void destroyObject(const std::string & type, const std::string & name);
-
 	Object * getObject(const std::string & type, const std::string & name, ErrorCollector & ec);
 
 	template<class Object_T>
@@ -65,7 +63,11 @@ public:
 		}
 		return ret;
 	}
+
+    void clear();
 private:
+    void destroyObject(const std::string & type, const std::string & name);
+
 	ObjectRegistry_priv * priv;
 };
 
