@@ -61,6 +61,13 @@ namespace SAS {
 		return true;
 	}
 
+    //virtual
+    void ControlledThread::stop() //override
+    {
+        Thread::stop();
+        resume();
+    }
+
 	void ControlledThread::begun()
 	{ }
 
