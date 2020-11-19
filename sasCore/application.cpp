@@ -65,7 +65,10 @@ Application::Application(int argc, char **argv) : priv(new Application_priv)
 }
 
 Application::~Application()
-{ delete priv; }
+{
+    deinit();
+    delete priv;
+}
 
 int Application::argc() const
 {
@@ -145,10 +148,14 @@ bool Application::init(ErrorCollector & ec)
 void Application::deinit()
 {
 	SAS_LOG_NDC();
-	auto im = interfaceManager();
+
+    auto im = interfaceManager();
 	if(im)
 		im->terminate();
-	for(auto cl : priv->componentLoaders)
+
+    priv->objectRegistry.clear();
+
+    for(auto cl : priv->componentLoaders)
 		if(cl)
 			delete cl;
 	priv->componentLoaders.clear();

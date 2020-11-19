@@ -29,7 +29,6 @@
 #include "include/sasCore/uniqueobjectmanager.h"
 #include "include/sasCore/application.h"
 
-#include <iostream>
 #include <sstream>
 
 namespace SAS {
