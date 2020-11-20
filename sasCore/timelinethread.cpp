@@ -252,7 +252,8 @@ namespace SAS {
 
     bool TimelineThread::setOnChanged(Id id, std::function<void(const Entry::Ptr &)> func)
     {
-        std::unique_lock<std::recursive_mutex> __locaker(p->entries_mut);
+        std::unique_lock<std::recursive_mutex> __locker(p->entries_mut);
+
 
         for(auto & t : p->entries)
             for(auto & e : t.second)
