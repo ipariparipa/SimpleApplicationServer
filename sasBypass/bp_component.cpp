@@ -80,7 +80,7 @@ public:
                         objects.push_back(new LoopbackConnectorFactory(names[i], app));
                 }
                 else
-                    SAS_LOG_INFO(logger, "no HTTP connector factory is defined.");
+                    SAS_LOG_INFO(logger, "no loopback connector factory is defined.");
             }
         }
 
