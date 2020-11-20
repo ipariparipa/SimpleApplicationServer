@@ -28,7 +28,7 @@ namespace SAS {
 		Session_priv(SessionID id_) : id(id_)
 		{ }
 
-		std::mutex active_mutex;
+        std::recursive_mutex active_mutex;
 
 		SessionID id;
 	};
