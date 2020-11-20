@@ -23,6 +23,7 @@
 #include <sasCore/objectregistry.h>
 
 #include "loopbackconnector.h"
+#include "loopbackconnectorfactory.h"
 #include "bypassmodule.h"
 
 namespace SAS {
@@ -54,28 +55,40 @@ public:
 		SAS_LOG_NDC();
 		Logging::LoggerPtr logger = Logging::getLogger("SAS.BP_Component");
 
+        std::vector<Object*> objects;
+
+        //creating loopback connectors
 		{
 			std::vector<std::string> loopback_names;
 			if (app->configReader()->getStringListEntry("SAS/BYPASS/LOOPBACK_CONNECTORS", loopback_names, loopback_names, ec) && loopback_names.size())
 			{
-				std::vector<Object*> objs(loopback_names.size());
 				for (size_t i(0), l(loopback_names.size()); i < l; ++i)
-					objs[i] = new LoopbackConnector(app, loopback_names[i]);
-
-				if (!app->objectRegistry()->registerObjects(objs, ec))
-					return false;
+                    objects.push_back(new LoopbackConnector(app, loopback_names[i]));
 			}
 			else
-			{
 				SAS_LOG_INFO(logger, "no loopback connectors are set");
-			}
 		}
 
+        //create loopback connector factories
+        {
+            std::vector<std::string> names;
+            if (app->configReader()->getStringListEntry("SAS/BYPASS/LOOPBACK_CONNECTOR_FACTORIES", names, names, ec))
+            {
+                if (names.size())
+                {
+                    for (size_t i = 0, l = names.size(); i < l; ++i)
+                        objects.push_back(new LoopbackConnectorFactory(names[i], app));
+                }
+                else
+                    SAS_LOG_INFO(logger, "no HTTP connector factory is defined.");
+            }
+        }
+
+        //creating bypass modules
 		{
 			std::vector<std::string> bypassmodule_names;
 			if (app->configReader()->getStringListEntry("SAS/BYPASS/MODULES", bypassmodule_names, bypassmodule_names, ec) && bypassmodule_names.size())
 			{
-				std::vector<Object*> objs(bypassmodule_names.size());
 				bool has_error(false);
 				for (size_t i(0), l(bypassmodule_names.size()); i < l; ++i)
 				{
@@ -84,22 +97,19 @@ public:
                     if (!mod->init(config_path, ec))
 						has_error = true;
 					else
-						objs[i] = mod;
+                        objects.push_back(mod);
 				}
 				
 				if (has_error)
-					return false;
-
-				if (!app->objectRegistry()->registerObjects(objs, ec))
 					return false;
 			}
 			else
 			{
 				SAS_LOG_INFO(logger, "no bypass modules are set");
 			}
-		}
+        }
 
-		return true;
+        return app->objectRegistry()->registerObjects(objects, ec);
 	}
 
 };

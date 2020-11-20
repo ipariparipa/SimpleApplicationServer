@@ -22,6 +22,7 @@ along with sasCore.  If not, see <http://www.gnu.org/licenses/>
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <vector>
 
 namespace SAS {
 
@@ -34,8 +35,22 @@ namespace SAS {
 
 		using Id = unsigned long long;
 
-		using Func = std::function<void(Id id)>;
+        class Entry
+        {
+        public:
+            using Ptr = std::shared_ptr<Entry>;
 
+            inline virtual ~Entry() = default;
+
+            virtual std::chrono::system_clock::time_point timestamp() = 0;
+            virtual std::chrono::system_clock::duration period() = 0;
+            virtual long remaining() = 0;
+            virtual std::string handlerDescriptor() = 0;
+
+            virtual void setOnChanged(std::function<void(const Entry::Ptr &)> func) = 0;
+        };
+
+        using Func = std::function<void(Id id, const Entry::Ptr & e)>;
 
         TimelineThread(ThreadPool * pool);
 		virtual ~TimelineThread() override;
@@ -43,18 +58,26 @@ namespace SAS {
 		void stop() final override;
 
 		template<typename DurationT>
-        Id add(DurationT timeout, Func func, long cycle = 1) //cycle=-1 to infinity
-		{
-            return add(std::chrono::duration_cast<std::chrono::system_clock::duration>(timeout), func, cycle);
+        Id add(DurationT timeout, Func func, const std::string & handlerDescriptor, long cycle = 1) //cycle=-1 to infinity
+        {
+            return add(std::chrono::duration_cast<std::chrono::system_clock::duration>(timeout), func, handlerDescriptor, cycle);
 		}
 
-        Id add(std::chrono::system_clock::duration timeout, Func func, long cycle = 1); //cycle=-1 to infinity
+        Id add(std::chrono::system_clock::duration timeout, Func func, const std::string & handlerDescriptor, long cycle = 1, std::function<void(const Entry::Ptr &)> onChanged = nullptr); //cycle=-1 to infinity
 
-        Id add(std::chrono::system_clock::time_point timestamp, Func func);
+        Id add(std::chrono::system_clock::time_point timestamp, Func func, const std::string & handlerDescriptor, std::function<void(const Entry::Ptr &)> onChanged = nullptr);
 
-        Id add(std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, long cycle);
+        Id add(std::chrono::system_clock::time_point timestamp, std::chrono::system_clock::duration period, Func func, const std::string & handlerDescriptor, long cycle, std::function<void(const Entry::Ptr &)> onChanged = nullptr);
 
 		void cancel(Id id);
+
+        void setOnChanged(std::function<void(const std::vector<Entry::Ptr> &)> func);
+
+        bool setOnChanged(Id id, std::function<void(const Entry::Ptr &)> func);
+
+        Entry::Ptr entry(Id id);
+
+        std::vector<Entry::Ptr> entries();
 
 	private:
 		void execute() final override;
