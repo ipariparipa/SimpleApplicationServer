@@ -17,9 +17,11 @@ LIBS += -L../sasCore -lsasCore
 SOURCES += \
     bp_component.cpp \
     bypassmodule.cpp \
-    loopbackconnector.cpp
+    loopbackconnector.cpp \
+    loopbackconnectorfactory.cpp
 
 HEADERS += \
     bypassmodule.h \
     config.h \
-    loopbackconnector.h
+    loopbackconnector.h \
+    loopbackconnectorfactory.h
