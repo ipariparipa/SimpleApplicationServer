@@ -85,7 +85,8 @@ namespace SAS {
 
         std::vector<TimelineThread::Entry::Ptr> getEntries()
         {
-            std::unique_lock<std::recursive_mutex> __locaker(entries_mut);
+            std::unique_lock<std::recursive_mutex> __locker(entries_mut);
+
 
             size_t cnt = 0;
             for(auto & t : entries)
