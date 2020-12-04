@@ -23,6 +23,7 @@
 #include "logging.h"
 
 #include <vector>
+#include <mutex>
 
 namespace SAS
 {
@@ -57,7 +58,49 @@ public:
 
 	virtual inline InterfaceManager * interfaceManager() { return nullptr; };
 	virtual ConfigReader * configReader() = 0;
+
+    template<typename RetT>
+    bool callIfEnabled(RetT & ret, std::function<RetT()> func)
+    {
+        std::unique_lock<Application> __locker(*this);
+        if(isEnabled())
+        {
+            ret = func();
+            return true;
+        }
+
+        return false;
+    }
+
+    template<typename RetT>
+    RetT callIfEnabled(std::function<RetT()> func, const RetT & defaultRet)
+    {
+        std::unique_lock<Application> __locker(*this);
+        if(isEnabled())
+            return func();
+
+        return defaultRet;
+    }
+
+    bool callIfEnabled(std::function<void()> func)
+    {
+        std::unique_lock<Application> __locker(*this);
+        if(isEnabled())
+        {
+            func();
+            return true;
+        }
+
+        return false;
+    }
+
 private:
+    friend class std::unique_lock<Application>;
+
+    void lock();
+    void unlock();
+    bool isEnabled();
+
 	Application_priv * priv;
 };
 
