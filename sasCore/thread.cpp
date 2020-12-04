@@ -56,6 +56,8 @@ namespace SAS
 
 	Thread::~Thread()
 	{
+        stop();
+        wait(std::chrono::milliseconds(200));
 		terminate();
 		delete priv;
 	}
@@ -76,7 +78,6 @@ namespace SAS
 		if(priv->status != Status::NotRunning)
 			return false;
 		priv->status = Status::Started;
-//		priv->th = new std::thread(Thread_priv::runner, this);
 
         priv->th = priv->pool->allocate();
         priv->th->run(std::bind(Thread_priv::runner, this), [this](){
@@ -107,7 +108,7 @@ namespace SAS
 		std::unique_lock<std::mutex> __status_mutex_locker(priv->status_mutex);
 		if(priv->th)
 		{
-			delete priv->th;
+            priv->pool->release(priv->th);
 			priv->th = nullptr;
 		}
 	}
