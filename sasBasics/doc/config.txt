@@ -1,11 +1,20 @@
 command line arguments:
+
 log4cxx:
--log4cxx-xml-config <path_to_xml_config_file>
--log4cxx-property-config <path_to_property_config_file>
--log4cxx-basic-config
+    -log4cxx-xml-config <path/to/xml/config/file>
+    -log4cxx-property-config <path/to/property/config/file>
+    -log4cxx-basic-config
+    -log4cxx-level {trace|debug|info|warn|error|fatal|all|off}
+    -log4cxx-appender {{console <target>}|{file <path/to/log/file>}}
+    -log4cxx-layout {{pattern <pattern>}|simple|basic|xml|html}
+
+    more info: 
+        https://logging.apache.org/log4cxx/latest_stable/apidocs/classlog4cxx_1_1_pattern_layout.html
+        https://logging.apache.org/log4cxx/latest_stable/apidocs/classlog4cxx_1_1_console_appender.html
+
 
 embedded logging:
--log-stdout
--log-stderr
--log-file <path_to_log_file>
--log-min-prio {trace|debug|info|warn|error|fatal}
+    -log-stdout
+    -log-stderr
+    -log-file <path/to/log/file>
+    -log-min-prio {trace|debug|info|warn|error|fatal}
