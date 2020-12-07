@@ -74,10 +74,7 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
                 else if(arg == "-log4cxx-property-config")
 					st = PropertyConfig;
                 else if(arg == "-log4cxx-basic-config")
-                {
-                    appender = new log4cxx::ConsoleAppender();
-                    layout = nullptr;
-                }
+                    layout = new log4cxx::PatternLayout("%t [%-5p] - %c - %m {%F:%L}%n");
                 else if(arg == "-log4cxx-appender")
                     st = Appender;
                 else if(arg == "-log4cxx-layout")
