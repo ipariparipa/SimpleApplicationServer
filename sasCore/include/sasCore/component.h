@@ -21,6 +21,7 @@
 #include "defines.h"
 
 #include <string>
+#include <map>
 
 namespace SAS
 {
@@ -37,6 +38,8 @@ namespace SAS
 		virtual inline std::string name() const { return std::string(); }
 		virtual inline std::string description() const { return std::string(); }
 		virtual inline std::string version() const { return std::string(); }
+        virtual inline std::string vendor() const { return std::string(); }
+        virtual inline std::map<std::string, std::string> customInfo() const { return std::map<std::string, std::string>(); }
 
 		virtual bool init(Application * app, ErrorCollector & ec) = 0;
 
