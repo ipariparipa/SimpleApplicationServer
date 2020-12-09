@@ -22,9 +22,11 @@
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <map>
 
 #include <pidlCore/errorcollector.h>
 #include <pidlCore/jsontools.h>
+#include <pidlBackend/configreader.h>
 #include <pidlBackend/readerfactory_json.h>
 #include <pidlBackend/jsonreader.h>
 #include <pidlBackend/cppcodegen.h>
@@ -274,9 +276,26 @@ int main(int argc, char **argv)
 
 	std::shared_ptr<std::istream> in;
 
+    struct CLAConfigReader : public PIDL::ConfigReader
+    {
+        std::map<std::string, std::string> data;
+
+        Status getAsString(const std::string & name, std::string & ret, PIDL::ErrorCollector & ec) final override
+        {
+            (void)ec;
+            if(!data.count(name))
+                return Status::NotFound;
+            ret = data[name];
+            return Status::OK;
+        }
+
+    };
+
+    auto cr = std::make_shared<CLAConfigReader>();
+
 	enum class Stat
 	{
-		None, File
+        None, File, Config
 	} stat = Stat::None;
 
 	for (int i = 1; i < argc; ++i)
@@ -290,13 +309,16 @@ int main(int argc, char **argv)
 				std::cout << "-help" << std::endl;
 				std::cout << "-stdin" << std::endl;
 				std::cout << "-file <filename>" << std::endl;
+                std::cout << "-cfg <varname>=<value>" << std::endl;
 				return 0;
 			}
 			if (a == "-stdin")
 				in = std::shared_ptr<std::istream>(&std::cin, [](void*){});
 			else if (a == "-file")
 				stat = Stat::File;
-			else
+            else if (a == "-cfg")
+                stat = Stat::Config;
+            else
 			{
 				//noop
 			}
@@ -310,7 +332,20 @@ int main(int argc, char **argv)
 			in = std::make_shared<std::ifstream>(a);
 			stat = Stat::None;
 			break;
-		}
+        case Stat::Config:
+        {
+            auto f = a.find('=');
+            if(f == std::string::npos)
+            {
+                ec.add(-1, "invalid config format");
+                return 1;
+            }
+
+            cr->data[a.substr(0, f-1)] = a.substr(f+1);
+            stat = Stat::None;
+        }
+            break;
+        }
 	}
 
 	if (stat != Stat::None)
@@ -336,10 +371,11 @@ int main(int argc, char **argv)
 	if (!app.init(ec))
 		return 1;
 
-    auto job = std::make_shared<PIDL::Job_JSON>();
     std::string connector;
     if(!app.configReader()->getStringEntry("SAS/ADM_CONNECTOR", connector, "default", ec))
         return 1;
+
+    auto job = std::make_shared<PIDL::Job_JSON>(cr);
 
 	SAS::Connector * conn;
     if ((conn = app.objectRegistry()->getObject<SAS::Connector>(SAS_OBJECT_TYPE__CONNECTOR, connector, ec)))
