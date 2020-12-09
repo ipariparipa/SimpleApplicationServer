@@ -61,7 +61,7 @@ namespace SAS {
 	bool ComponentLoader::load(ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-		SAS_LOG_VAR(priv->logger, priv->filename);
+        SAS_LOG_INFO(priv->logger, "loading library '"+priv->filename+"'");
 		if(!priv->loader.load(priv->filename, ec))
 			return false;
 		bool has_error(false);
@@ -74,7 +74,7 @@ namespace SAS {
 
 		if(!(priv->comp = priv->attacher()))
 		{
-			auto err = ec.add(SAS_CORE__ERROR__COMPONENT_LOADER__NO_ENTRANCE, "unable to get entrance object of the component '" + priv->filename + "'");
+            auto err = ec.add(SAS_CORE__ERROR__COMPONENT_LOADER__NO_ENTRANCE, "unable to get entrance object of the library '" + priv->filename + "'");
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}

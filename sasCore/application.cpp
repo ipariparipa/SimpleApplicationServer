@@ -104,6 +104,7 @@ bool Application::init(ErrorCollector & ec)
 
         priv->componentLoaders.resize(comp_paths.size());
 
+        SAS_LOG_INFO(logger(), "loading component libraries...");
         bool has_error(false);
         for(size_t i = 0, l = comp_paths.size(); i < l; ++i)
         {
@@ -119,22 +120,38 @@ bool Application::init(ErrorCollector & ec)
         }
         if(has_error)
         {
+            SAS_LOG_ERROR(logger(), "loading component libraries... ..error");
             deinit();
             return false;
         }
+        SAS_LOG_INFO(logger(), "loading component libraries... ..done");
 
-        SAS_LOG_INFO(logger(), "initializing components");
+        SAS_LOG_INFO(logger(), "initializing components...");
         for(auto cl : priv->componentLoaders)
         {
-            if(!cl->component()->init(this, ec))
-                has_error = true;
+            auto comp = cl->component();
+            SAS_LOG_ASSERT(logger(), comp, "component is not available");
+            SAS_LOG_INFO(logger(), "component: '"+comp->name()+"'; version: '"+comp->version()+"'; vendor: '"+comp->vendor()+"'");
+            std::stringstream ss;
+            bool first = true;
+            for(auto & v : comp->customInfo())
+            {
+                if(first)
+                    first = false;
+                else
+                    ss << "; ";
+                ss << v.first << ": '" << v.second << "'";
+            }
+            SAS_LOG_INFO(logger(), ss.str());
+            SAS_LOG_DEBUG(logger(), "initializing component '"+comp->name()+"'...");
+            if(!comp->init(this, ec))
+            {
+                SAS_LOG_ERROR(logger(), "initializing component '"+comp->name()+"'... ..error");
+                return false;
+            }
+            SAS_LOG_INFO(logger(), "initializing component '"+comp->name()+"'... ..done");
         }
-
-        if(has_error)
-        {
-            deinit();
-            return false;
-        }
+        SAS_LOG_INFO(logger(), "initializing components... ..done");
     }
     else
         SAS_LOG_WARN(logger(), "no components are set");
