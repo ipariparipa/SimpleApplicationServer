@@ -52,7 +52,7 @@ namespace SAS {
 	struct UniqueObjectManager::Depot::Priv
 	{
 		std::map<UniqueId, Object*> data;
-		std::mutex mutex;
+        std::recursive_mutex mutex;
 	};
 
 	UniqueObjectManager::Depot::Depot() : priv(new Priv)
@@ -195,7 +195,8 @@ namespace SAS {
 
 	void UniqueObjectManager::clear()
 	{
-		SAS_LOG_NDC();
+        SAS_LOG_NDC();
+        std::unique_lock<Depot> __mutex_locker(priv->depot);
 		for (auto it : priv->depot.data())
 		{
 			SAS_LOG_TRACE(priv->logger, "destroy object");

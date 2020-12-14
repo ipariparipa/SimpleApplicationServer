@@ -28,10 +28,11 @@ namespace SAS {
 
 	struct LoopbackConnection_priv
 	{
-		LoopbackConnection_priv(Module * module_, const std::string & invoker_name_) :
-			module(module_), invoker_name(invoker_name_), session_id(0)
+        LoopbackConnection_priv(Application * app_, Module * module_, const std::string & invoker_name_) :
+            app(app_), module(module_), invoker_name(invoker_name_), session_id(0)
 		{ }
 
+        Application * app;
 		Module * module;
 		std::string invoker_name;
 
@@ -39,12 +40,10 @@ namespace SAS {
 		SessionID session_id;
 	};
 
-	LoopbackConnection::LoopbackConnection(Module * module, const std::string & invoker_name) :
+    LoopbackConnection::LoopbackConnection(Application * app, Module * module, const std::string & invoker_name) :
 			Connection(),
-			priv(new LoopbackConnection_priv(module, invoker_name))
-	{
-
-	}
+            priv(new LoopbackConnection_priv(app, module, invoker_name))
+    { }
 
 	LoopbackConnection::~LoopbackConnection()
 	{
@@ -53,42 +52,46 @@ namespace SAS {
 
 	Invoker::Status LoopbackConnection::invoke(const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec)
 	{
-		SAS::Session * sess;
-		{
-			std::unique_lock<std::mutex> __locker(priv->session_id_mut);
-			sess = priv->module->getSession(priv->session_id, ec);
-			if (!sess)
-				return Invoker::Status::Error;
-			priv->session_id = sess->id();
-		}
-		auto ret = sess->invoke(priv->invoker_name, input, output, ec);
-		sess->unlock();
-		return ret;
+        return priv->app->callIfEnabled<Invoker::Status>([&]() {
+            SAS::Session * sess;
+            {
+                std::unique_lock<std::mutex> __locker(priv->session_id_mut);
+                if (!(sess = priv->module->getSession(priv->session_id, ec)))
+                    return Invoker::Status::Error;
+                priv->session_id = sess->id();
+            }
+            auto ret = sess->invoke(priv->invoker_name, input, output, ec);
+            sess->unlock();
+            return ret;
+        }, Invoker::Status::Error);
 	}
 
 	bool LoopbackConnection::getSession(ErrorCollector & ec)
 	{
-		std::unique_lock<std::mutex> __locker(priv->session_id_mut);
-		Session * sess;
-		if (!(sess = priv->module->getSession(priv->session_id, ec)))
-			return false;
-		priv->session_id = sess->id();
-		sess->unlock();
-		return true;
-	}
+        return priv->app->callIfEnabled<bool>([&]() {
+            std::unique_lock<std::mutex> __locker(priv->session_id_mut);
+            Session * sess;
+            if (!(sess = priv->module->getSession(priv->session_id, ec)))
+                return false;
+            priv->session_id = sess->id();
+            sess->unlock();
+            return true;
+        }, false);
+    }
 
 
 	struct LoopbackConnector_priv
 	{
-		Application * app;
+        LoopbackConnector_priv(Application * app, const std::string & name) :
+            app(app), name(name)
+        { }
+
+        Application * app;
 		std::string name;
 	};
 
-	LoopbackConnector::LoopbackConnector(Application * app, const std::string & name) : priv(new LoopbackConnector_priv)
-	{
-		priv->app = app;
-		priv->name = name;
-	}
+    LoopbackConnector::LoopbackConnector(Application * app, const std::string & name) : priv(new LoopbackConnector_priv(app, name))
+    { }
 
 	LoopbackConnector::~LoopbackConnector()
 	{
@@ -108,12 +111,14 @@ namespace SAS {
 
 	bool LoopbackConnector::getModuleInfo(const std::string & module_name, std::string & description, std::string & version, ErrorCollector & ec)
 	{
-		auto mod = priv->app->objectRegistry()->getObject<SAS::Module>(SAS_OBJECT_TYPE__MODULE, module_name, ec);
-		if(!mod)
-			return false;
-		description = mod->description();
-		version = mod->version();
-		return true;
+        return priv->app->callIfEnabled<bool>([&]() {
+            auto mod = priv->app->objectRegistry()->getObject<SAS::Module>(SAS_OBJECT_TYPE__MODULE, module_name, ec);
+            if(!mod)
+                return false;
+            description = mod->description();
+            version = mod->version();
+            return true;
+        }, false);
 	}
 
 	Connection * LoopbackConnector::createConnection(const std::string & module_name, const std::string & invoker_name, ErrorCollector & ec)
@@ -121,7 +126,7 @@ namespace SAS {
 		auto mod = priv->app->objectRegistry()->getObject<SAS::Module>(SAS_OBJECT_TYPE__MODULE, module_name, ec);
 		if(!mod)
 			return nullptr;
-		return new LoopbackConnection(mod, invoker_name);
+        return new LoopbackConnection(priv->app, mod, invoker_name);
 	}
 
 }

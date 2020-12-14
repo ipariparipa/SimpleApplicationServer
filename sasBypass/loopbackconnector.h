@@ -30,7 +30,7 @@ namespace SAS {
 	{
 		SAS_COPY_PROTECTOR(LoopbackConnection)
 	public:
-		LoopbackConnection(Module * module, const std::string & invoker_name);
+        LoopbackConnection(Application * app, Module * module, const std::string & invoker_name);
 		virtual ~LoopbackConnection();
 
 		virtual Status invoke(const std::vector<char> & input, std::vector<char> & output, ErrorCollector & ec) final;
