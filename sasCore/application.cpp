@@ -192,27 +192,39 @@ void Application::deinit()
 	SAS_LOG_NDC();
 
     //set app to disable
+    SAS_LOG_INFO(priv->logger, "shutting down SAS..");
+    while(true)
     {
     #ifdef SAS_APP_SMART_LOCKING
-        std::unique_lock<std::mutex> __locker(priv->lock_mut);
-        priv->lock_cv.wait(__locker, [&]() { return priv->lock_counter == 0; });
+            std::unique_lock<std::mutex> __locker(priv->lock_mut);
+            if(!priv->lock_cv.wait_for(__locker, std::chrono::milliseconds(200), [&]() { return priv->lock_counter == 0; }))
+                continue;
     #else
         std::unique_lock<std::recursive_mutex> __locker(priv->lock_mut);
     #endif
 
         priv->enabled = false;
+        break;
     }
 
+    SAS_LOG_INFO(priv->logger, "terminating interfaces...");
     auto im = interfaceManager();
 	if(im)
 		im->terminate();
+    SAS_LOG_INFO(priv->logger, "terminating interfaces... ..done");
 
+    SAS_LOG_INFO(priv->logger, "cleaning up object registry...");
     priv->objectRegistry.clear();
+    SAS_LOG_INFO(priv->logger, "cleaning up object registry... ..done");
 
+    SAS_LOG_INFO(priv->logger, "unloading components...");
     for(auto cl : priv->componentLoaders)
 		if(cl)
 			delete cl;
 	priv->componentLoaders.clear();
+    SAS_LOG_INFO(priv->logger, "unloading components... ..done");
+
+    SAS_LOG_INFO(priv->logger, "SAS is ended.");
 }
 
 //virtual

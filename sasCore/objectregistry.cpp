@@ -43,8 +43,8 @@ struct ObjectRegistry_priv
 
 	std::map<std::string /*type*/, std::shared_ptr<TypeReg>> reg;
 
-    std::mutex lst_mut;
-    std::list<std::pair<std::string, std::string>> lst;
+    std::recursive_mutex lst_mut;
+    std::list<std::pair<std::pair<std::string, std::string>, Object*>> lst;
 
 	TypeReg * setTypeReg(const std::string & type)
 	{
@@ -91,8 +91,8 @@ struct ObjectRegistry_priv
 				{
 					tr->reg[o->name()] = o;
                     {
-                        std::unique_lock<std::mutex> __locker(lst_mut);
-                        this->lst.push_front(std::make_pair(o->type(), o->name()));
+                        std::unique_lock<std::recursive_mutex> __locker(lst_mut);
+                        this->lst.push_front(std::make_pair(std::make_pair(o->type(), o->name()), o));
                     }
 					SAS_LOG_DEBUG(logger, "object '"+o->type()+"/"+o->name()+"' has been registered");
 				}
@@ -224,9 +224,21 @@ std::vector<Object *> ObjectRegistry::getObjects(const std::string & type, Error
 
 void ObjectRegistry::clear()
 {
-    std::unique_lock<std::mutex> __locker(priv->lst_mut);
+    std::unique_lock<std::recursive_mutex> __locker(priv->lst_mut);
+
     for(auto e : priv->lst)
-        destroyObject(e.first, e.second);
+    {
+        auto name = e.second->name();
+        SAS_LOG_INFO(priv->logger, "deinit object '"+name+"'...");
+        e.second->deinit();
+        SAS_LOG_INFO(priv->logger, "deinit object '"+name+"'... ..done");
+    }
+
+    SAS_LOG_INFO(priv->logger, "destroying objects...");
+    for(auto e : priv->lst)
+        destroyObject(e.first.first, e.first.second);
+    SAS_LOG_INFO(priv->logger, "destroying objects... ..done");
+
     priv->lst.clear();
 }
 

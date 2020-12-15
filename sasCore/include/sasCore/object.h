@@ -33,6 +33,8 @@ public:
 
 	virtual std::string type() const = 0;
 	virtual std::string name() const = 0;
+
+    virtual inline void deinit() { }
 };
 
 }
