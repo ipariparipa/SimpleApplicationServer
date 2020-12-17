@@ -125,6 +125,7 @@ bool Application::init(ErrorCollector & ec)
 
             priv->componentLoaders.resize(comp_paths.size());
 
+            SAS_LOG_INFO(logger(), "loading component libraries...");
             for(size_t i = 0, l = comp_paths.size(); i < l; ++i)
             {
                 SAS_LOG_VAR(logger(), comp_paths[i]);
@@ -137,15 +138,41 @@ bool Application::init(ErrorCollector & ec)
                 else
                     priv->componentLoaders[i] = cl;
             }
-            if(!has_error)
+            if(has_error)
             {
-                SAS_LOG_INFO(logger(), "initializing components");
-                for(auto cl : priv->componentLoaders)
-                {
-                    if(!cl->component()->init(this, ec))
-                        has_error = true;
-                }
+                SAS_LOG_ERROR(logger(), "loading component libraries... ..error");
+                deinit();
+                return false;
             }
+            SAS_LOG_INFO(logger(), "loading component libraries... ..done");
+
+            SAS_LOG_INFO(logger(), "initializing components...");
+            for(auto cl : priv->componentLoaders)
+            {
+                auto comp = cl->component();
+                SAS_LOG_ASSERT(logger(), comp, "component is not available");
+                SAS_LOG_INFO(logger(), "component: '"+comp->name()+"'; version: '"+comp->version()+"'; vendor: '"+comp->vendor()+"'");
+                std::stringstream ss;
+                bool first = true;
+                for(auto & v : comp->customInfo())
+                {
+                    if(first)
+                        first = false;
+                    else
+                        ss << "; ";
+                    ss << v.first << ": '" << v.second << "'";
+                }
+                SAS_LOG_INFO(logger(), ss.str());
+                SAS_LOG_DEBUG(logger(), "initializing component '"+comp->name()+"'...");
+                if(!comp->init(this, ec))
+                {
+                    SAS_LOG_ERROR(logger(), "initializing component '"+comp->name()+"'... ..error");
+                    deinit();
+                    return false;
+                }
+                SAS_LOG_INFO(logger(), "initializing component '"+comp->name()+"'... ..done");
+            }
+            SAS_LOG_INFO(logger(), "initializing components... ..done");
         }
         else
             SAS_LOG_WARN(logger(), "no components are set");
@@ -165,27 +192,39 @@ void Application::deinit()
 	SAS_LOG_NDC();
 
     //set app to disable
+    SAS_LOG_INFO(priv->logger, "shutting down SAS..");
+    while(true)
     {
     #ifdef SAS_APP_SMART_LOCKING
-        std::unique_lock<std::mutex> __locker(priv->lock_mut);
-        priv->lock_cv.wait(__locker, [&]() { return priv->lock_counter == 0; });
+            std::unique_lock<std::mutex> __locker(priv->lock_mut);
+            if(!priv->lock_cv.wait_for(__locker, std::chrono::milliseconds(200), [&]() { return priv->lock_counter == 0; }))
+                continue;
     #else
         std::unique_lock<std::recursive_mutex> __locker(priv->lock_mut);
     #endif
 
         priv->enabled = false;
+        break;
     }
 
+    SAS_LOG_INFO(priv->logger, "terminating interfaces...");
     auto im = interfaceManager();
 	if(im)
 		im->terminate();
+    SAS_LOG_INFO(priv->logger, "terminating interfaces... ..done");
 
+    SAS_LOG_INFO(priv->logger, "cleaning up object registry...");
     priv->objectRegistry.clear();
+    SAS_LOG_INFO(priv->logger, "cleaning up object registry... ..done");
 
+    SAS_LOG_INFO(priv->logger, "unloading components...");
     for(auto cl : priv->componentLoaders)
 		if(cl)
 			delete cl;
 	priv->componentLoaders.clear();
+    SAS_LOG_INFO(priv->logger, "unloading components... ..done");
+
+    SAS_LOG_INFO(priv->logger, "SAS is ended.");
 }
 
 //virtual

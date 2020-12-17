@@ -25,10 +25,16 @@
 #  include <log4cxx/xml/domconfigurator.h>
 #  include <log4cxx/propertyconfigurator.h>
 #  include <log4cxx/consoleappender.h>
+#  include <log4cxx/patternlayout.h>
+#  include <log4cxx/xml/xmllayout.h>
+#  include <log4cxx/fileappender.h>
+#  include <log4cxx/simplelayout.h>
+#  include <log4cxx/htmllayout.h>
 #else
 #  include <iostream>
 #  include <fstream>
 #endif
+
 
 namespace SAS { namespace Logging {
 
@@ -40,37 +46,143 @@ extern SAS_BASICS__FUNCTION bool init(int argc, char *argv[], ErrorCollector & e
 	{
 		None,
 		XMLConfig,
-		PropertyConfig
-	} st(None), config_type(None);
+        PropertyConfig,
+        Level,
+        Pattern,
+        Appender,
+        Layout,
+        Filename,
+        Target
+    } st(None);
+
+    bool basic_config = true;
+
+    log4cxx::AppenderPtr appender;
+    log4cxx::LayoutPtr layout;
+    log4cxx::LevelPtr level;
+
 	for(int i = 0; i < argc ; ++i)
 	{
+        std::string arg=argv[i];
 		switch(st)
 		{
 		case None:
 			if(st == None)
 			{
-				if(std::string(argv[i]) == "-log4cxx-xml-config")
+                if(arg == "-log4cxx-xml-config")
 					st = XMLConfig;
-				else if(std::string(argv[i]) == "-log4cxx-property-config")
+                else if(arg == "-log4cxx-property-config")
 					st = PropertyConfig;
-				else if(std::string(argv[i]) == "-log4cxx-basic-config")
-					log4cxx::BasicConfigurator::configure(new log4cxx::ConsoleAppender());
-			}
+                else if(arg == "-log4cxx-basic-config")
+                    layout = new log4cxx::PatternLayout("%t [%-5p] - %c - %m {%F:%L}%n");
+                else if(arg == "-log4cxx-appender")
+                    st = Appender;
+                else if(arg == "-log4cxx-layout")
+                    st = Layout;
+                else if(arg == "-log4cxx-level")
+                    st = Level;
+            }
 			break;
 		case XMLConfig:
-			log4cxx::xml::DOMConfigurator::configure(argv[i]);
-			config_type = st;
+            log4cxx::xml::DOMConfigurator::configure(arg);
 			st = None;
+            basic_config = false;
 			break;
 		case PropertyConfig:
-			log4cxx::PropertyConfigurator::configure(argv[i]);
-			config_type = st;
-			st = None;
-			break;
-		}
+            st = None;
+            log4cxx::PropertyConfigurator::configure(arg);
+            basic_config = false;
+            break;
+        case Level:
+            st = None;
+            if(arg == "trace")
+                level = log4cxx::Level::getTrace();
+            else if(arg == "debug")
+                level = log4cxx::Level::getDebug();
+            else if(arg == "info")
+                level = log4cxx::Level::getInfo();
+            else if(arg == "warn")
+                level = log4cxx::Level::getWarn();
+            else if(arg == "error")
+                level = log4cxx::Level::getError();
+            else if(arg == "fatal")
+                level = log4cxx::Level::getFatal();
+            else if(arg == "off")
+                level = log4cxx::Level::getOff();
+            else if(arg == "all")
+                level = log4cxx::Level::getAll();
+            else
+            {
+                ec.add(-1, "invalid log level '"+arg+"'");
+                return false;
+            }
+            break;
+        case Layout:
+            st = None;
+            if(arg == "basic")
+                layout = nullptr;
+            if(arg == "simple")
+                layout = new log4cxx::SimpleLayout();
+            else if(arg == "pattern")
+                st = Pattern;
+            else if(arg == "xml")
+                layout = new log4cxx::xml::XMLLayout();
+            else if(arg == "html")
+                layout = new log4cxx::HTMLLayout();
+            else
+            {
+                ec.add(-1, "invalid layout '"+arg+"'");
+                return false;
+            }
+            break;
+        case Pattern:
+            st = None;
+            layout = new log4cxx::PatternLayout(arg);
+            break;
+        case Appender:
+            st = None;
+            if(arg == "file")
+                st = Filename;
+            else if(arg == "console")
+                st = Target;
+            else
+            {
+                ec.add(-1, "invalid appender '"+arg+"'");
+                return false;
+            }
+            break;
+        case Filename:
+            st = None;
+            appender = new log4cxx::FileAppender(new log4cxx::SimpleLayout, arg, true);
+            break;
+        case Target:
+            st = None;
+            appender = new log4cxx::ConsoleAppender(new log4cxx::SimpleLayout, arg);
+        }
 	}
-	if(config_type == None)
-		log4cxx::BasicConfigurator::configure();
+
+    if(st != None)
+    {
+        ec.add(-1, "invalid command line arguments");
+        return false;
+    }
+
+    if(basic_config)
+    {
+        if(appender && layout)
+            appender->setLayout(layout);
+        else if(layout)
+            appender = new log4cxx::ConsoleAppender(layout);
+
+        if(appender)
+            log4cxx::BasicConfigurator::configure(appender);
+        else
+            log4cxx::BasicConfigurator::configure();
+    }
+
+    if(level)
+        log4cxx::Logger::getRootLogger()->setLevel(level);
+
 #else // SAS_LOG4CXX_ENABLED
     (void)ec;
 	enum State
@@ -168,6 +280,9 @@ extern SAS_BASICS__FUNCTION void writeUsage(std::ostream & os)
 	os << "\t-log4cxx-xml-config <xml_file>" << std::endl;
 	os << "\t-log4cxx-property-config <property_file>" << std::endl;
 	os << "\t-log4cxx-basic-config" << std::endl;
+    os << "\t-log4cxx-level {trace|debug|info|warn|error|fatal|all|off}" << std::endl;
+    os << "\t-log4cxx-appender {{console <target>}|{file <filename>}}" << std::endl;
+    os << "\t-log4cxx-layout {{pattern <pattern>}|simple|basic|xml|html}" << std::endl;
 #else
 	os << "\t-log-stdout" << std::endl;
 	os << "\t-log-stderr" << std::endl;

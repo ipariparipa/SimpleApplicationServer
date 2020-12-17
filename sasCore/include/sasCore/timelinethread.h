@@ -50,7 +50,7 @@ namespace SAS {
             virtual void setOnChanged(std::function<void(const Entry::Ptr &)> func) = 0;
         };
 
-        using Func = std::function<void(Id id, const Entry::Ptr & e)>;
+        using Func = std::function<bool(Id id, const Entry::Ptr & e)>;
 
         TimelineThread(ThreadPool * pool);
 		virtual ~TimelineThread() override;

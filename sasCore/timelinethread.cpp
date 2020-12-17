@@ -285,8 +285,7 @@ namespace SAS {
                     std::unique_lock<std::recursive_mutex> __e_locker(e->mut);
                     if (std::chrono::system_clock::now() >= e->m_timestamp)
                     { // the entry was relevant in the past
-                        e->func(e->id, e);
-                        if(e->m_remaining == -1 || --e->m_remaining > 0)
+                        if(e->func(e->id, e) && (e->m_remaining == -1 || --e->m_remaining > 0))
                         {
                             e->m_timestamp += e->m_period;
                             p->add(e); // append a new repetitive entry to the timeline
@@ -310,8 +309,7 @@ namespace SAS {
                     else if(e->active)
                     { // next time point reached
                         std::unique_lock<std::recursive_mutex> __e_locker(e->mut);
-                        e->func(e->id, e);
-                        if(e->m_remaining == -1 || --e->m_remaining > 0)
+                        if(e->func(e->id, e) && (e->m_remaining == -1 || --e->m_remaining > 0))
                         {
                             e->m_timestamp += e->m_period;
                             p->add(e); // append a new repetitive entry to the timeline
