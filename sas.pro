@@ -70,7 +70,7 @@ CONFIG(SAS_SQLCLIENT) {
     CONFIG += SAS_TCL
 }
 
-CONFIG(SAS_JSON) {
+CONFIG(SAS_HTTP) {
     SUBDIRS += \
         sasHTTP \
 
