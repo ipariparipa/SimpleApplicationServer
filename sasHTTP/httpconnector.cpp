@@ -124,8 +124,20 @@ namespace SAS {
 
 			_options = options;
 
+            if(!options.baseURL.length())
+            {
+                auto err = ec.add(-1, "base url is empty");
+                SAS_LOG_ERROR(_logger, err);
+                return false;
+            }
+
 			ne_uri uri;
-			ne_uri_parse(options.baseURL.c_str(), &uri);
+            if(ne_uri_parse(options.baseURL.c_str(), &uri) != 0)
+            {
+                auto err = ec.add(-1, "URI could not be recognised from base url");
+                SAS_LOG_ERROR(_logger, err);
+                return false;
+            }
 
 			SAS_LOG_TRACE(_logger, "ne_session_create");
 			_sess = ne_session_create(uri.scheme, uri.host, uri.port);
