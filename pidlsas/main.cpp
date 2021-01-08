@@ -341,7 +341,7 @@ int main(int argc, char **argv)
                 return 1;
             }
 
-            cr->data[a.substr(0, f-1)] = a.substr(f+1);
+            cr->data[a.substr(0, f)] = a.substr(f+1);
             stat = Stat::None;
         }
             break;
