@@ -31,7 +31,36 @@ CONFIG(SAS_ALL) {
           SAS_MQTT \
           SAS_CORBA \
           SAS_TCL \
-          SAS_PIDL
+          SAS_PIDL \
+          SAS_HTTP
+}
+
+CONFIG(SAS_PIDL) {
+    SUBDIRS += \
+        sasPIDL \
+        pidlsas \
+
+    sasPIDL.depends = sasCore
+    pidlsas.depends = sasCore sasBasics sasJSON sasPIDL
+
+    CONFIG += SAS_JSON
+}
+
+CONFIG(SAS_MQTT) {
+    SUBDIRS += \
+        sasMQTT \
+
+    sasMQTT.depends = sasCore sasJSON
+
+    CONFIG += SAS_JSON
+}
+
+CONFIG(SAS_HTTP) {
+    SUBDIRS += \
+        sasHTTP \
+
+    sasHTTP.depends = sasCore sasJSON
+    CONFIG += SAS_JSON
 }
 
 CONFIG(SAS_JSON) {
@@ -70,20 +99,6 @@ CONFIG(SAS_SQLCLIENT) {
     CONFIG += SAS_TCL
 }
 
-CONFIG(SAS_HTTP) {
-    SUBDIRS += \
-        sasHTTP \
-
-    sasHTTP.depends = sasCore sasJSON
-}
-
-CONFIG(SAS_MQTT) {
-    SUBDIRS += \
-        sasMQTT \
-
-    sasMQTT.depends = sasCore sasJSON
-}
-
 CONFIG(SAS_CORBA) {
     SUBDIRS += \
         sasCorba \
@@ -96,14 +111,5 @@ CONFIG(SAS_TCL) {
         sasTCL \
 
     sasTCL.depends = sasCore sasTCLTools
-}
-
-CONFIG(SAS_PIDL) {
-    SUBDIRS += \
-        sasPIDL \
-        pidlsas \
-
-    sasPIDL.depends = sasCore
-    pidlsas.depends = sasCore sasBasics sasJSON sasPIDL
 }
 
