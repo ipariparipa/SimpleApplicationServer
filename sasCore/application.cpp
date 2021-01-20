@@ -251,7 +251,8 @@ void Application::unlock()
     if(--priv->lock_counter < 0)
         priv->lock_counter = 0;
 
-    priv->lock_cv.notify_one();
+    if(priv->lock_counter == 0)
+        priv->lock_cv.notify_one();
 #else
     priv->lock_mut.unlock();
 #endif
