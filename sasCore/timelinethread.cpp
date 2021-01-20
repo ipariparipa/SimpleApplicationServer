@@ -33,38 +33,38 @@ namespace SAS {
 
             void callOnChanged(const Entry::Ptr & e)
             {
-                std::unique_lock<std::recursive_mutex> __locaker(mut);
+                std::unique_lock<std::recursive_mutex> __locker(mut);
                 if(onChanged)
                     onChanged(e);
             }
 
             std::chrono::system_clock::time_point timestamp() final override
             {
-                std::unique_lock<std::recursive_mutex> __locaker(mut);
+                std::unique_lock<std::recursive_mutex> __locker(mut);
                 return m_timestamp;
             }
 
             std::chrono::system_clock::duration period() final override
             {
-                std::unique_lock<std::recursive_mutex> __locaker(mut);
+                std::unique_lock<std::recursive_mutex> __locker(mut);
                 return m_period;
             }
 
             long remaining() final override
             {
-                std::unique_lock<std::recursive_mutex> __locaker(mut);
+                std::unique_lock<std::recursive_mutex> __locker(mut);
                 return m_remaining;
             }
 
             std::string handlerDescriptor() final override
             {
-                std::unique_lock<std::recursive_mutex> __locaker(mut);
+                std::unique_lock<std::recursive_mutex> __locker(mut);
                 return m_handlerDescriptor;
             }
 
             void setOnChanged(std::function<void(const TimelineThread::Entry::Ptr &)> func) final override
             {
-                std::unique_lock<std::recursive_mutex> __locaker(mut);
+                std::unique_lock<std::recursive_mutex> __locker(mut);
                 onChanged = func;
             }
 
@@ -325,7 +325,7 @@ namespace SAS {
 
     TimelineThread::Entry::Ptr TimelineThread::entry(Id id)
     {
-        std::unique_lock<std::recursive_mutex> __locaker(p->entries_mut);
+        std::unique_lock<std::recursive_mutex> __locker(p->entries_mut);
 
         for(auto & t : p->entries)
             for(auto & e : t.second)
