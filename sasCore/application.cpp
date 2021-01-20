@@ -141,6 +141,7 @@ bool Application::init(ErrorCollector & ec)
             if(has_error)
             {
                 SAS_LOG_ERROR(logger(), "loading component libraries... ..error");
+                __locker.unlock();
                 deinit();
                 return false;
             }
@@ -167,6 +168,7 @@ bool Application::init(ErrorCollector & ec)
                 if(!comp->init(this, ec))
                 {
                     SAS_LOG_ERROR(logger(), "initializing component '"+comp->name()+"'... ..error");
+                    __locker.unlock();
                     deinit();
                     return false;
                 }
@@ -202,7 +204,6 @@ void Application::deinit()
     #else
         std::unique_lock<std::recursive_mutex> __locker(priv->lock_mut);
     #endif
-
         priv->enabled = false;
         break;
     }
@@ -249,6 +250,8 @@ void Application::unlock()
     std::unique_lock<std::mutex> __locker(priv->lock_mut);
     if(--priv->lock_counter < 0)
         priv->lock_counter = 0;
+
+    priv->lock_cv.notify_one();
 #else
     priv->lock_mut.unlock();
 #endif
