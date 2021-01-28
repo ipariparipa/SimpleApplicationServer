@@ -167,10 +167,14 @@ namespace SAS {
 			SAS_LOG_NDC();
 			std::unique_lock<std::mutex> __locker(mut);
 
-			SAS_LOG_TRACE(_logger, "ne_close_connection");
-			ne_close_connection(_sess);
-			SAS_LOG_TRACE(_logger, "ne_session_destroy");
-			ne_session_destroy(_sess);
+            if(_sess)
+            {
+                SAS_LOG_TRACE(_logger, "ne_close_connection");
+                ne_close_connection(_sess);
+                SAS_LOG_TRACE(_logger, "ne_session_destroy");
+                ne_session_destroy(_sess);
+                _sess = nullptr;
+            }
 		}
 
 		bool msg_exchange(HTTPMethod method, /*in-out*/ SessionID & sid, const std::string & invoker, const std::string & mode, const std::vector<char> & input, std::vector<char> & output, Invoker::Status & status, ErrorCollector & ec)
@@ -178,7 +182,12 @@ namespace SAS {
 			SAS_LOG_NDC();
 			std::unique_lock<std::mutex> __locker(mut);
 
-			assert(_sess);
+            if(!_sess)
+            {
+                auto err = ec.add(-1, "http session is null");
+                SAS_LOG_ERROR(_logger, err);
+                return false;
+            }
 
 			ne_request * req = nullptr;
 			switch (method)
