@@ -237,7 +237,7 @@ struct MySQLStatement::Priv
 				return SQLVariant(SQLDataType::DateTime, sub_type);
 
 			return SQLVariant(SQLDateTime(data.year, data.month, data.day,
-				data.hour, data.minute, data.second, data.second_part, data.neg!=0), sub_type);
+                data.hour, data.minute, data.second, static_cast<unsigned int>(data.second_part), data.neg!=0, 6), sub_type);
 		}
 
 	private:
@@ -466,7 +466,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 				_v->data.hour = dt.hours();
 				_v->data.minute = dt.minutes();
 				_v->data.second = dt.seconds();
-				_v->data.second_part = dt.msecs();
+                _v->data.second_part = dt.microseconds();
 				_v->data.neg = dt.negative();
 
 				_v->data.time_type = MYSQL_TIMESTAMP_ERROR;
@@ -541,6 +541,7 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 bool MySQLStatement::bindParam(const std::vector<std::pair<std::string /*name*/, SQLVariant>> & params, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
+    (void)params;
 
 	auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "binding of named parameters is not supported by MySQL connector");
 	SAS_LOG_ERROR(priv->conn->logger(), err);

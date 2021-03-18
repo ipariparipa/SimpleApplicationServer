@@ -34,12 +34,12 @@ public:
 	SQLDateTime(const SQLDateTime & o);
 	SQLDateTime();
 	SQLDateTime(time_t t);
-    SQLDateTime(time_t t, int milliseconds, short ms_precision = 6);
-    SQLDateTime(std::chrono::system_clock::time_point tp, short ms_precision = 6);
+    SQLDateTime(time_t t, unsigned int fraction, int precision = 6);
+    SQLDateTime(std::chrono::system_clock::time_point tp, int precision = 9);
     SQLDateTime(const tm * t);
-	SQLDateTime(const tm * t, unsigned int milliseconds, short ms_precision = 6);
-	SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs = -1, bool negative = false, short ms_precision = 6);
-	SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, int msecs, int tzHours, int TzMinutes, bool negative = false, short ms_precision = 6);
+    SQLDateTime(const tm * t, unsigned int fraction, int precision = 6);
+    SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, unsigned int fraction = 0, bool negative = false, int precision = 0);
+    SQLDateTime(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds, unsigned int fraction, int tzHours, int TzMinutes, bool negative = false, int precision = 3);
 	SQLDateTime(const std::string & str);
 	virtual ~SQLDateTime();
 
@@ -53,7 +53,11 @@ public:
 	bool operator != (const SQLDateTime & o) const;
 
 	bool isNull() const;
+
+    //! @deprecated -> has_fraction
 	bool has_msecs() const;
+
+    bool has_fraction() const;
 
 	unsigned int years() const;
 	unsigned int months() const;
@@ -61,9 +65,17 @@ public:
 	unsigned int hours() const;
 	unsigned int minutes() const;
 	unsigned int seconds() const;
-	int msecs() const;
-	short ms_precision() const;
-	bool daylightSaveTime() const;
+
+    unsigned int fraction() const;
+
+
+    int precision() const;
+
+    unsigned int milliseconds() const;
+    unsigned int microseconds() const;
+    unsigned int nanoseconds() const;
+
+    bool daylightSaveTime() const;
 	bool negative() const;
 
     std::chrono::system_clock::time_point toTimePoint() const;
@@ -72,6 +84,12 @@ public:
 
 	tm to_tm() const;
 	time_t to_time_t() const;
+
+private:
+    //! @deprecated -> fraction
+    int msecs() const;
+    //! @deprecated -> precision
+    short ms_precision() const;
 
 };
 
