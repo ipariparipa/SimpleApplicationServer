@@ -66,8 +66,8 @@ struct OraStatement::Priv
 				return false;
 			}
 		case SQLDataType::String:
-			d.value.asBytes.encoding = NULL;
-			d.value.asBytes.length = v.asString().length();
+            d.value.asBytes.encoding = nullptr;
+            d.value.asBytes.length = static_cast<uint32_t>(v.asString().length());
 			d.value.asBytes.ptr = (char*)v.asString().c_str();
 			t = DPI_NATIVE_TYPE_BYTES;
 			return true;
@@ -80,14 +80,14 @@ struct OraStatement::Priv
 			t = DPI_NATIVE_TYPE_DOUBLE;
 			return true;
 		case SQLDataType::DateTime:
-			d.value.asTimestamp.year = v.asDateTime().years();
-			d.value.asTimestamp.month = v.asDateTime().months();
-			d.value.asTimestamp.day = v.asDateTime().days();
-			d.value.asTimestamp.hour = v.asDateTime().hours();
-			d.value.asTimestamp.minute = v.asDateTime().minutes();
-			d.value.asTimestamp.second = v.asDateTime().seconds();
-			if (v.asDateTime().has_msecs())
-				d.value.asTimestamp.fsecond = v.asDateTime().msecs();
+            d.value.asTimestamp.year = static_cast<uint8_t>(v.asDateTime().years());
+            d.value.asTimestamp.month = static_cast<uint8_t>(v.asDateTime().months());
+            d.value.asTimestamp.day = static_cast<uint8_t>(v.asDateTime().days());
+            d.value.asTimestamp.hour = static_cast<uint8_t>(v.asDateTime().hours());
+            d.value.asTimestamp.minute = static_cast<uint8_t>(v.asDateTime().minutes());
+            d.value.asTimestamp.second = static_cast<uint8_t>(v.asDateTime().seconds());
+            if (v.asDateTime().has_fraction())
+                d.value.asTimestamp.fsecond = v.asDateTime().nanoseconds();
 			t = DPI_NATIVE_TYPE_TIMESTAMP;
 			return true;
 		case SQLDataType::Blob:
@@ -169,10 +169,9 @@ struct OraStatement::Priv
 			SAS_LOG_ERROR(logger, err);
 			return false;
 		}
-		break;
 		}
 
-		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "unknown data type: '" + std::to_string((int)t) + "'");
+        auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "unknown data type: '" + std::to_string(static_cast<int>(t)) + "'");
 		SAS_LOG_ERROR(logger, err);
 		return false;
 	}
@@ -193,16 +192,16 @@ struct OraStatement::Priv
 		switch (t)
 		{
 		case DPI_NATIVE_TYPE_INT64:
-			v = SQLVariant((long long)d->value.asInt64);
+            v = SQLVariant(static_cast<long long>(d->value.asInt64));
 			return true;
 		case DPI_NATIVE_TYPE_UINT64:
-			v = SQLVariant((long long)d->value.asUint64);
+            v = SQLVariant(static_cast<long long>(d->value.asUint64));
 			return true;
 		case DPI_NATIVE_TYPE_FLOAT:
-			v = SQLVariant((double)d->value.asFloat);
+            v = SQLVariant(static_cast<double>(d->value.asFloat));
 			return true;
 		case DPI_NATIVE_TYPE_DOUBLE:
-			v = SQLVariant((double)d->value.asDouble);
+            v = SQLVariant(static_cast<double>(d->value.asDouble));
 			return true;
 		case DPI_NATIVE_TYPE_BYTES:
 			{
@@ -213,15 +212,16 @@ struct OraStatement::Priv
 			return true;
 		case DPI_NATIVE_TYPE_TIMESTAMP:
 			v = SQLVariant(SQLDateTime(
-				d->value.asTimestamp.year,
-				d->value.asTimestamp.month,
-				d->value.asTimestamp.day,
-				d->value.asTimestamp.hour,
-				d->value.asTimestamp.minute,
-				d->value.asTimestamp.second,
-				d->value.asTimestamp.fsecond,
+                static_cast<unsigned int>(d->value.asTimestamp.year),
+                static_cast<unsigned int>(d->value.asTimestamp.month),
+                static_cast<unsigned int>(d->value.asTimestamp.day),
+                static_cast<unsigned int>(d->value.asTimestamp.hour),
+                static_cast<unsigned int>(d->value.asTimestamp.minute),
+                static_cast<unsigned int>(d->value.asTimestamp.second),
+                static_cast<unsigned int>(d->value.asTimestamp.fsecond),
 				d->value.asTimestamp.tzHourOffset,
-				d->value.asTimestamp.tzMinuteOffset), SQLVariant::DateTimeSubType::TimeStamp);
+                d->value.asTimestamp.tzMinuteOffset,
+                false, 9), SQLVariant::DateTimeSubType::TimeStamp);
 			return true;
 		case DPI_NATIVE_TYPE_INTERVAL_DS:
 		{
@@ -246,7 +246,7 @@ struct OraStatement::Priv
 					return false;
 				}
 
-				std::vector<unsigned char> buff((size_t)size);
+                std::vector<unsigned char> buff(static_cast<size_t>(size));
 				if(size)
 				{
 					uint64_t r_size = size;
@@ -314,7 +314,7 @@ OraStatement::~OraStatement()
 	if (priv->stmt)
 	{
 		SAS_LOG_TRACE(priv->logger, "dpiStmt_close");
-		if (dpiStmt_close(priv->stmt, NULL, 0) != DPI_SUCCESS)
+        if (dpiStmt_close(priv->stmt, nullptr, 0) != DPI_SUCCESS)
 		{
 			SAS_LOG_ERROR(priv->logger, ErrorCollector::toString(SAS_SQL__ERROR__UNEXPECTED, priv->getErrorText()));
 		}
@@ -335,7 +335,7 @@ bool OraStatement::prepare(const std::string & statement, ErrorCollector & ec)
 	if (priv->stmt)
 	{
 		SAS_LOG_TRACE(priv->logger, "dpiStmt_close");
-		if (dpiStmt_close(priv->stmt, NULL, 0) != DPI_SUCCESS)
+        if (dpiStmt_close(priv->stmt, nullptr, 0) != DPI_SUCCESS)
 		{
 			auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, priv->getErrorText());
 			SAS_LOG_ERROR(priv->logger, err);
@@ -349,7 +349,7 @@ bool OraStatement::prepare(const std::string & statement, ErrorCollector & ec)
 		return false;
 
 	SAS_LOG_TRACE(priv->logger, "dpiConn_prepareStmt");
-	if (dpiConn_prepareStmt(conn, 0, statement.c_str(), statement.length(), NULL, 0, &priv->stmt) != DPI_SUCCESS)
+    if (dpiConn_prepareStmt(conn, 0, statement.c_str(), static_cast<uint32_t>(statement.length()), nullptr, 0, &priv->stmt) != DPI_SUCCESS)
 	{
 		auto err = ec.add(SAS_SQL__ERROR__CANNOT_PREPARE_STATEMENT, priv->getErrorText());
 		SAS_LOG_ERROR(priv->logger, err);
@@ -408,7 +408,7 @@ bool OraStatement::bindParam(const std::vector<SQLVariant> & params, ErrorCollec
 
 	if (stmt_params_size > params_size)
 	{
-		SAS_LOG_VAR(priv->logger, stmt_params_size);
+        SAS_LOG_VAR(priv->logger, stmt_params_size);
 		SAS_LOG_VAR(priv->logger, params_size);
 		auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, "insufficient number of parameters");
 		SAS_LOG_ERROR(priv->conn->logger(), err);
@@ -425,7 +425,7 @@ bool OraStatement::bindParam(const std::vector<SQLVariant> & params, ErrorCollec
 		else
 		{
 			SAS_LOG_TRACE(priv->conn->logger(), "dpiStmt_bindValueByPos");
-			if (dpiStmt_bindValueByPos(priv->stmt, i + 1, t, &d) != DPI_SUCCESS)
+            if (dpiStmt_bindValueByPos(priv->stmt, static_cast<uint32_t>(i + 1), t, &d) != DPI_SUCCESS)
 			{
 				SAS_LOG_ERROR(priv->logger, priv->getErrorText());
 				has_error = true;
@@ -461,7 +461,7 @@ bool OraStatement::bindParam(const std::vector<std::pair<std::string /*name*/, S
 		else
 		{
 			SAS_LOG_TRACE(priv->conn->logger(), "dpiStmt_bindValueByPos");
-			if (dpiStmt_bindValueByName(priv->stmt, p.first.c_str(), p.first.length(), t, &d) != DPI_SUCCESS)
+            if (dpiStmt_bindValueByName(priv->stmt, p.first.c_str(), static_cast<uint32_t>(p.first.length()), t, &d) != DPI_SUCCESS)
 			{
 				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, priv->getErrorText());
 				SAS_LOG_ERROR(priv->logger, err);

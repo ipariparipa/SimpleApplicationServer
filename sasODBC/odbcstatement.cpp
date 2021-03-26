@@ -38,7 +38,7 @@ namespace SAS {
 		{ }
 
 		ODBCConnector * conn;
-		SQLHSTMT stmt = NULL;
+        SQLHSTMT stmt = nullptr;
 		Logging::LoggerPtr logger;
 		
 		std::vector<std::vector<char>> bind_buffer;
@@ -64,17 +64,17 @@ namespace SAS {
 					memcpy(buff.data(), &val, sizeof(SQLBIGINT));
 				}
 
-				if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, idx + 1, SQL_PARAM_INPUT, SQL_C_SBIGINT, SQL_BIGINT, 0, 0, buff.data(), 0, isNull ? &null_data_ind : NULL))))
+                if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, static_cast<SQLUSMALLINT>(idx + 1), SQL_PARAM_INPUT, SQL_C_SBIGINT, SQL_BIGINT, 0, 0, buff.data(), 0, isNull ? &null_data_ind : NULL))))
 				{
 					auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
 					SAS_LOG_ERROR(logger, err);
 					return false;
 				}
 			}
-            else if (abs(val) > LONG_MAX)
+            else if (labs(val) > LONG_MAX)
 				return bindParam(idx, std::to_string(val), isNull, ec);
 
-			return bindParam(idx, (long)val, isNull, ec);
+            return bindParam(idx, static_cast<long>(val), isNull, ec);
 		}
 
 		bool bindParam(size_t idx, long val, bool isNull, ErrorCollector & ec)
@@ -92,7 +92,7 @@ namespace SAS {
 				memcpy(buff.data(), &val, sizeof(SQLINTEGER));
 			}
 
-			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, idx + 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, buff.data(), 0, isNull ? &null_data_ind : NULL))))
+            if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, static_cast<SQLUSMALLINT>(idx + 1), SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, buff.data(), 0, isNull ? &null_data_ind : NULL))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
 				SAS_LOG_ERROR(logger, err);
@@ -117,7 +117,7 @@ namespace SAS {
 				memcpy(buff.data(), &val, sizeof(SQLDOUBLE));
 			}
 
-			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, idx + 1, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0, buff.data(), 0, isNull ? &null_data_ind : NULL))))
+            if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, static_cast<SQLUSMALLINT>(idx + 1), SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0, buff.data(), 0, isNull ? &null_data_ind : NULL))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
 				SAS_LOG_ERROR(logger, err);
@@ -177,7 +177,7 @@ namespace SAS {
 				memcpy(buff.data(), buffer, size);
 			}
 
-			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, idx + 1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_VARBINARY, buff.size() + 1, 0, buff.data(), buff.size() + 1, &null_data_ind))))
+            if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, static_cast<SQLUSMALLINT>(idx + 1), SQL_PARAM_INPUT, SQL_C_BINARY, SQL_VARBINARY, buff.size() + 1, 0, buff.data(), buff.size() + 1, &null_data_ind))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
 				SAS_LOG_ERROR(logger, err);
@@ -187,7 +187,7 @@ namespace SAS {
 			return true;
 		}
 
-		bool bindParam(size_t idx, const tm & val, long msecs, bool isNull, ErrorCollector & ec)
+        bool bindParam(size_t idx, const tm & val, unsigned int nanosec, bool isNull, ErrorCollector & ec)
 		{
 			SQLRETURN rc;
 			SAS_ODBC__PCB_VALUE_TYPE null_data_ind = SQL_NULL_DATA;
@@ -201,18 +201,18 @@ namespace SAS {
 			{
 				TIMESTAMP_STRUCT * dt = (TIMESTAMP_STRUCT *)buff.data();
 
-				dt->year = val.tm_year + 1900;
-				dt->month = val.tm_mon + 1;
-				dt->day = val.tm_mday;
-				dt->hour = val.tm_hour;
-				dt->minute = val.tm_min;
-				dt->second = val.tm_sec;
+                dt->year = static_cast<SQLSMALLINT>(val.tm_year + 1900);
+                dt->month = static_cast<SQLUSMALLINT>(val.tm_mon + 1);
+                dt->day = static_cast<SQLUSMALLINT>(val.tm_mday);
+                dt->hour = static_cast<SQLUSMALLINT>(val.tm_hour);
+                dt->minute = static_cast<SQLUSMALLINT>(val.tm_min);
+                dt->second = static_cast<SQLUSMALLINT>(val.tm_sec);
 				int precision = conn->settings().info.dtprec - 20; // (20 includes a separating period)
 				if (precision <= 0)
 					dt->fraction = 0;
 				else
 				{
-					dt->fraction = msecs * 1000000;
+                    dt->fraction = static_cast<SQLUSMALLINT>(nanosec);
 
 					//// (How many leading digits do we want to keep?  With SQL Server 2005, this should be 3: 123000000)
 					//int keep = (int)qPow(10.0, 9 - qMin(9, precision));
@@ -220,7 +220,7 @@ namespace SAS {
 				}
 			}
 
-			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, idx + 1, SQL_PARAM_INPUT, SQL_C_TIMESTAMP, SQL_TIMESTAMP, conn->settings().info.dtprec, 0, buff.data(), 0, isNull ? &null_data_ind : NULL))))
+            if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, static_cast<SQLUSMALLINT>(idx + 1), SQL_PARAM_INPUT, SQL_C_TIMESTAMP, SQL_TIMESTAMP, static_cast<SQLULEN>(conn->settings().info.dtprec), 0, buff.data(), 0, isNull ? &null_data_ind : NULL))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
 				SAS_LOG_ERROR(logger, err);
@@ -248,7 +248,7 @@ namespace SAS {
 				return false;
 			}
 
-			ret = res_col_num;
+            ret = static_cast<size_t>(res_col_num);
 
 			return true;
 		}
@@ -280,7 +280,7 @@ namespace SAS {
 				auto & r = ret[i];
 
 				SAS_LOG_TRACE(logger, "SQLDescribeCol");
-				if (!SQL_SUCCEEDED(rc = SQLDescribeCol(stmt, i + 1, col_name, sizeof(col_name), &col_name_length, &type, &size, &dec_digits, &nullable)))
+                if (!SQL_SUCCEEDED(rc = SQLDescribeCol(stmt, static_cast<SQLUSMALLINT>(i + 1), col_name, sizeof(col_name), &col_name_length, &type, &size, &dec_digits, &nullable)))
 				{
 					auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get number of parameter fo binding: " + conn->getErrorText(SQL_NULL_HANDLE, rc, ec));
 					SAS_LOG_ERROR(logger, err);
@@ -313,7 +313,6 @@ namespace SAS {
 						break;
 					case SQL_BIT:
 						std::get<1>(r) = SQLDataType::Number;
-						break;
 						break;
 					case SQL_BINARY:
 					case SQL_VARBINARY:
@@ -354,7 +353,7 @@ namespace SAS {
 					}
 
 					std::get<0>(r) = (const char *)col_name;
-					std::get<2>(r) = (size_t)size;
+                    std::get<2>(r) = static_cast<size_t>(size);
 				}
 			}
 
@@ -406,7 +405,7 @@ namespace SAS {
 		SQLRETURN rc;
 
 		SAS_LOG_TRACE(priv->logger, "SQLPrepare");
-		if (!SQL_SUCCEEDED(rc = SQLPrepare(priv->stmt, (SQLCHAR*)statement.c_str(), statement.length())))
+        if (!SQL_SUCCEEDED(rc = SQLPrepare(priv->stmt, (SQLCHAR*)statement.c_str(), static_cast<SQLINTEGER>(statement.length()))))
 		{
 			auto err = ec.add(SAS_SQL__ERROR__CANNOT_PREPARE_STATEMENT, priv->conn->getErrorText(SQL_NULL_HANDLE, rc, ec));
 			SAS_LOG_ERROR(priv->logger, err);
@@ -422,7 +421,7 @@ namespace SAS {
 			return false;
 		}
 
-		priv->bind_buffer.resize(numParams);
+        priv->bind_buffer.resize(static_cast<size_t>(numParams));
 
 		return true;
 	}
@@ -464,13 +463,13 @@ namespace SAS {
 			case SQLDataType::DateTime:
 				{
 					auto & _dt = p.asDateTime();
-					if (!priv->bindParam(idx, _dt.to_tm(), _dt.msecs(), p.isNull(), ec))
+                    if (!priv->bindParam(idx, _dt.to_tm(), _dt.nanoseconds(), p.isNull(), ec))
 						has_error = true;
 					break;
 				}
 			case SQLDataType::Blob:
 				{
-					size_t s;
+                    size_t s = 0;
 					if (!priv->bindParam(idx, s, p.asBlob(s), p.isNull(), ec))
 						has_error = true;
 					break;
@@ -486,8 +485,9 @@ namespace SAS {
 	bool ODBCStatement::bindParam(const std::vector<std::pair<std::string /*name*/, SQLVariant>> & params, ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
-
 		assert(priv->conn);
+
+        (void)params;
 
 		auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "functionality is not supported by ODBC library");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -539,6 +539,7 @@ namespace SAS {
 		SAS_LOG_NDC();
 
 		assert(priv->conn);
+        (void)schema; (void)table; (void)field; (void)ret;
 
 		auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "functionality is not supported by ODBC connector");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -584,7 +585,7 @@ namespace SAS {
 
 	unsigned long long ODBCStatement::rowNum()
 	{
-		return priv->row_num;
+        return static_cast<unsigned long long>(priv->row_num);
 	}
 	
 	bool ODBCStatement::fetch(std::vector<SQLVariant> & ret, ErrorCollector & ec)
@@ -638,7 +639,7 @@ namespace SAS {
 					std::vector<SQLCHAR> buff(std::get<2>(f));
 					SAS_ODBC__LENGTH_TYPE len;
 					SAS_LOG_TRACE(priv->logger, "SQLGetData");
-					switch (rc = SQLGetData(priv->stmt, i + 1, SQL_C_CHAR, buff.data(), buff.size(), &len))
+                    switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_CHAR, buff.data(), static_cast<SQLLEN>(buff.size()), &len))
 					{
 					case SQL_NO_DATA:
 						ret[i] = SQLVariant(SQLDataType::String);
@@ -649,7 +650,6 @@ namespace SAS {
 							std::string str;
 							str.append((const char*)buff.data(), s < (size_t)len ? s : (size_t)len);
 							ret[i] = str;
-							break;
 						}
 						break;
 					case SQL_STILL_EXECUTING:
@@ -668,14 +668,13 @@ namespace SAS {
 				{
 					SQLBIGINT  buff;
 					SAS_ODBC__LENGTH_TYPE len;
-					switch (rc = SQLGetData(priv->stmt, i + 1, SQL_C_SBIGINT, &buff, sizeof(buff), &len))
+                    switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_SBIGINT, &buff, sizeof(buff), &len))
 					{
-					break;
 					case SQL_NO_DATA:
 						ret[i] = SQLVariant(SQLDataType::Number);
 						break;
 					case SQL_SUCCESS:
-						ret[i] = (long long)buff;
+                        ret[i] = static_cast<long long>(buff);
 						break;
 					case SQL_STILL_EXECUTING:
 					case SQL_ERROR:
@@ -693,13 +692,13 @@ namespace SAS {
 				{
 					SQLDOUBLE buff;
 					SAS_ODBC__LENGTH_TYPE len;
-					switch (rc = SQLGetData(priv->stmt, i + 1, SQL_C_DOUBLE, &buff, sizeof(buff), &len))
+                    switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_DOUBLE, &buff, sizeof(buff), &len))
 					{
 					case SQL_NO_DATA:
 						ret[i] = SQLVariant(SQLDataType::Number);
 						break;
 					case SQL_SUCCESS:
-						ret[i] = (double)buff;
+                        ret[i] = static_cast<double>(buff);
 						break;
 					case SQL_STILL_EXECUTING:
 					case SQL_ERROR:
@@ -717,17 +716,17 @@ namespace SAS {
 				{
 					TIMESTAMP_STRUCT buff;
 					SAS_ODBC__LENGTH_TYPE len;
-					switch (rc = SQLGetData(priv->stmt, i + 1, SQL_C_TIMESTAMP, &buff, 0, &len))
+                    switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_TIMESTAMP, &buff, 0, &len))
 					{
 					case SQL_NO_DATA:
 						ret[i] = SQLVariant(SQLDataType::DateTime);
 						break;
 					case SQL_SUCCESS:
 						ret[i] = SQLVariant(SQLDateTime(
-							(unsigned int)buff.year, (unsigned int)buff.month, (unsigned int)buff.day, 
-							(unsigned int)buff.hour, (unsigned int)buff.minute, (unsigned int)buff.second, 
-							(int)buff.fraction, 
-							false, (short)priv->conn->settings().info.dtprec), SQLVariant::DateTimeSubType::DateTime);
+                            static_cast<unsigned int>(buff.year), static_cast<unsigned int>(buff.month), static_cast<unsigned int>(buff.day),
+                            static_cast<unsigned int>(buff.hour), static_cast<unsigned int>(buff.minute), static_cast<unsigned int>(buff.second),
+                            static_cast<unsigned int>(buff.fraction),
+                            false, priv->conn->settings().info.dtprec), SQLVariant::DateTimeSubType::DateTime);
 						break;
 					case SQL_STILL_EXECUTING:
 					case SQL_ERROR:
@@ -751,12 +750,12 @@ namespace SAS {
 					SAS_ODBC__LENGTH_TYPE len;
 					size_t read = 0;
 
-					while ((rc = SQLGetData(priv->stmt, i + 1, SQL_C_BINARY, buffer.data() + read, buffer_size, &len)) == SQL_SUCCESS_WITH_INFO || rc == SQL_SUCCESS)
+                    while ((rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_BINARY, buffer.data() + read, static_cast<SQLLEN>(buffer_size), &len)) == SQL_SUCCESS_WITH_INFO || rc == SQL_SUCCESS)
 					{
 						if (len == SQL_NO_TOTAL || len > SQLLEN(buffer_size))
 							read += buffer_size;
 						else
-							read += len;
+                            read += static_cast<size_t>(len);
 						if (rc == SQL_SUCCESS)
 						{
 							buffer.resize(read);
@@ -796,6 +795,7 @@ namespace SAS {
 		SAS_LOG_NDC();
 
 		assert(priv->conn);
+        (void)ret;
 
 		auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "functionality is not supported by ODBC connector");
 		SAS_LOG_ERROR(priv->logger, err);
