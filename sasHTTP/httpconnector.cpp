@@ -132,7 +132,7 @@ namespace SAS {
             }
 
 			ne_uri uri;
-            if(ne_uri_parse(options.baseURL.c_str(), &uri) != 0 || uri.scheme == NULL || uri.host == NULL)
+            if(ne_uri_parse(options.baseURL.c_str(), &uri) != 0 || !uri.scheme || !uri.host)
             {
                 auto err = ec.add(-1, "URI could not be recognised from base url");
                 SAS_LOG_ERROR(_logger, err);
