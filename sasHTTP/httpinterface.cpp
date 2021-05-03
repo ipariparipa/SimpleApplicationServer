@@ -361,7 +361,6 @@ namespace SAS {
 				break;
 			case Out_Error:
 				out_doc.AddMember("errors", ec.errors(), out_doc.GetAllocator());
-				//no break
                 // fall through
 			case Out_JSon:
 				{

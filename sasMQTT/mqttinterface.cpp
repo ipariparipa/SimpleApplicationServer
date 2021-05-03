@@ -269,7 +269,7 @@ namespace SAS {
 					case Out_Error:
 						out_doc.AddMember("errors", ec.errors(), out_doc.GetAllocator());
 						//no break
-                    [[clang::fallthrough]];
+                        // fall through
                     case Out_JSon:
 						{
 							rapidjson::StringBuffer sb;
