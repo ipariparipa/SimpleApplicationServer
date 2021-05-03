@@ -178,7 +178,7 @@ namespace SAS {
 			    		splittedUrl.push_back(item);
 
 
-				auto get_session_id = [&](SessionID & sid) -> bool
+                auto get_session_id = [&](SessionID & sid) -> bool
 				{
 					SAS_LOG_TRACE(logger, "MHD_lookup_connection_value");
 					auto sid_str = MHD_lookup_connection_value(connection, MHD_HEADER_KIND, "SID");
@@ -362,6 +362,7 @@ namespace SAS {
 			case Out_Error:
 				out_doc.AddMember("errors", ec.errors(), out_doc.GetAllocator());
 				//no break
+                // fall through
 			case Out_JSon:
 				{
 					rapidjson::StringBuffer sb;
@@ -380,6 +381,12 @@ namespace SAS {
 		static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char *key, const char *filename, const char *content_type,
 					  const char *transfer_encoding, const char *data, uint64_t off, size_t size)
 		{
+            (void)kind;
+            (void)filename;
+            (void)content_type;
+            (void)transfer_encoding;
+            (void)off;
+
 			if (std::string(key) == "invoke")
 			{
 				connection_info_struct *con_info = (connection_info_struct *)coninfo_cls;
@@ -393,6 +400,7 @@ namespace SAS {
 		static int answer_to_connection (void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version,
 					  const char *upload_data, size_t *upload_data_size, void **con_cls)
 		{
+            (void)version;
 			SAS_LOG_NDC();
 
 			assert(cls);
@@ -461,7 +469,9 @@ namespace SAS {
 
 		static void request_completed (void *cls, struct MHD_Connection *connection, void **con_cls, enum MHD_RequestTerminationCode toe)
 		{
-			SAS_LOG_NDC();
+            (void)connection;
+            (void)toe;
+            SAS_LOG_NDC();
 
 			assert(cls);
 			auto priv = (Priv*)cls;
@@ -525,7 +535,8 @@ namespace SAS {
 	//virtual
 	HTTPInterface::Status HTTPInterface::shutdown(ErrorCollector & ec) //final
 	{
-		SAS_LOG_NDC();
+        (void)ec;
+        SAS_LOG_NDC();
 
 		SAS_LOG_TRACE(priv->logger, "MHD_stop_daemon");
 		MHD_stop_daemon(priv->daemon);

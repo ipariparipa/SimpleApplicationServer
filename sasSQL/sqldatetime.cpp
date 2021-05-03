@@ -231,7 +231,7 @@ struct SQLDateTime::Priv
 
     unsigned int systemDurationPart()
     {
-        return fraction < 0 ? 0 : static_cast<unsigned int>(toDuration<std::chrono::system_clock::duration>(static_cast<unsigned>(fraction), precision).count());
+        return static_cast<unsigned int>(toDuration<std::chrono::system_clock::duration>(static_cast<unsigned>(fraction), precision).count());
     }
 
 };
@@ -336,7 +336,7 @@ SQLDateTime::SQLDateTime(unsigned int years, unsigned int months, unsigned int d
     if(precision > 0)
         tp += toDuration<std::chrono::system_clock::duration>(fraction, precision);
 
-	auto t = std::chrono::system_clock::to_time_t(tp);
+    auto t = std::chrono::system_clock::to_time_t(tp);
 	Priv::to_tm(t, tm);
 	priv->from_tm(&tm);
 	
@@ -449,7 +449,7 @@ int SQLDateTime::msecs() const
 
 unsigned int SQLDateTime::fraction() const
 {
-    return static_cast<unsigned int>(priv->fraction < 0 ? 0 : priv->fraction);
+    return priv->fraction;
 }
 
 short SQLDateTime::ms_precision() const

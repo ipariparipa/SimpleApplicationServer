@@ -242,17 +242,17 @@ struct ODBCConnector::Priv
 						has_error = true;
 						continue;
 					}
-					rc= SQLSetConnectAttr(conn, SQL_ATTR_ACCESS_MODE, (SQLPOINTER)v, 0);
+                    rc= SQLSetConnectAttr(conn, SQL_ATTR_ACCESS_MODE, reinterpret_cast<SQLPOINTER>(v), 0);
 				}
 				else if (o.first == "CONNECTION_TIMEOUT")
 				{
 					auto v = (SQLUINTEGER)std::stoul(o.second);
-					rc = SQLSetConnectAttr(conn, SQL_ATTR_CONNECTION_TIMEOUT, (SQLPOINTER)v, 0);
+                    rc = SQLSetConnectAttr(conn, SQL_ATTR_CONNECTION_TIMEOUT, reinterpret_cast<SQLPOINTER>(v), 0);
 				}
 				else if (o.first == "LOGIN_TIMEOUT")
 				{
 					auto v = (SQLUINTEGER)std::stoul(o.second);
-					rc = SQLSetConnectAttr(conn, SQL_ATTR_LOGIN_TIMEOUT, (SQLPOINTER)v, 0);
+                    rc = SQLSetConnectAttr(conn, SQL_ATTR_LOGIN_TIMEOUT, reinterpret_cast<SQLPOINTER>(v), 0);
 				}
 				else if (o.first == "CURRENT_CATALOG")
 				{
@@ -273,7 +273,7 @@ struct ODBCConnector::Priv
 						has_error = true;
 						continue;
 					}
-					rc = SQLSetConnectAttr(conn, SQL_ATTR_METADATA_ID, (SQLPOINTER)v, 0);
+                    rc = SQLSetConnectAttr(conn, SQL_ATTR_METADATA_ID, reinterpret_cast<SQLPOINTER>(v), 0);
 				}
 				else if (o.first == "PACKET_SIZE")
 				{
@@ -299,7 +299,7 @@ struct ODBCConnector::Priv
 						has_error = true;
 						continue;
 					}
-					rc = SQLSetConnectAttr(conn, SQL_ATTR_TRACE, (SQLPOINTER)v, 0);
+                    rc = SQLSetConnectAttr(conn, SQL_ATTR_TRACE, reinterpret_cast<SQLPOINTER>(v), 0);
 				}
 				else if (o.first == "CONNECTION_POOLING")
 				{
@@ -319,7 +319,7 @@ struct ODBCConnector::Priv
 						has_error = true;
 						continue;
 					}
-					rc = SQLSetConnectAttr(conn, SQL_ATTR_CONNECTION_POOLING, (SQLPOINTER)v, 0);
+                    rc = SQLSetConnectAttr(conn, SQL_ATTR_CONNECTION_POOLING, reinterpret_cast<SQLPOINTER>(v), 0);
 				}
 				else if (o.first == "CP_MATCH")
 				{
@@ -337,7 +337,7 @@ struct ODBCConnector::Priv
 						has_error = true;
 						continue;
 					}
-					rc = SQLSetConnectAttr(conn, SQL_ATTR_CP_MATCH, (SQLPOINTER)v, 0);
+                    rc = SQLSetConnectAttr(conn, SQL_ATTR_CP_MATCH, reinterpret_cast<SQLPOINTER>(v), 0);
 				}
 				else
 				{

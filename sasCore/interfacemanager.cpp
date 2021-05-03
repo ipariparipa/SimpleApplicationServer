@@ -34,8 +34,8 @@ namespace SAS {
 struct InterfaceManager_priv
 {
     InterfaceManager_priv(Application * app) :
-        logger(Logging::getLogger("SAS.InterfaceManager")),
-        app(app)
+        app(app),
+        logger(Logging::getLogger("SAS.InterfaceManager"))
 	{ }
 
 	class InterfaceThread : public Thread
