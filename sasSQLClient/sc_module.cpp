@@ -304,7 +304,8 @@ bool SC_Module::init(ErrorCollector & ec)
 
 Session * SC_Module::createSession(SessionID id, ErrorCollector & ec)
 {
-	return new SC_Session_Invoker(priv->conn, priv->name, id, &priv->exec_pool);
+    (void)ec;
+    return new SC_Session_Invoker(priv->conn, priv->name, id, &priv->exec_pool);
 }
 
 }}
