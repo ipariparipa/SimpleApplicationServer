@@ -81,9 +81,12 @@ namespace SAS
 
         priv->th = priv->pool->allocate();
         priv->th->run(std::bind(Thread_priv::runner, this), [this](){
-            if(priv && priv->pool && priv->th) {
-                priv->pool->release(priv->th);
-                priv->th = nullptr;
+            if(priv->status_mutex.try_lock()) {
+                if(priv && priv->pool && priv->th) {
+                    priv->pool->release(priv->th);
+                    priv->th = nullptr;
+                }
+                priv->status_mutex.unlock();
             }
         });
 
