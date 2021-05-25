@@ -53,17 +53,14 @@ struct MySQLConnector::Priv
 
 	struct ConnectionData
 	{
-		ConnectionData()
-		{ }
-
 		std::string host;
 		std::string user;
 		std::string passwd;
 		std::string db;
 		unsigned int port = 0; // optional
 		std::string unix_socket; // optional
-
-	} connection_data;
+        std::string charset;
+    } connection_data;
 	std::mutex connection_data_mut;
 
 	struct ConnectionManager //: public TimerThread
@@ -158,6 +155,7 @@ struct MySQLConnector::Priv
 			SAS_LOG_VAR(logger, connection_data.db);
 			SAS_LOG_VAR(logger, connection_data.port);
 			SAS_LOG_VAR(logger, connection_data.unix_socket);
+            SAS_LOG_VAR(logger, connection_data.charset);
 
 			{
 				std::unique_lock<std::mutex> __locker(conn->mut);
@@ -177,6 +175,16 @@ struct MySQLConnector::Priv
 					detach();
 					return nullptr;
 				}
+
+                if(connection_data.charset.length() && mysql_set_character_set(conn->my, connection_data.charset.c_str()) != 0)
+                {
+                    auto err = ec.add(SAS_SQL__ERROR__CANNOT_CONNECT_TO_DB_SEVICE, std::string("could not set character set: ") + mysql_error(conn->my));
+                    SAS_LOG_ERROR(logger, err);
+                    __locker.unlock();
+                    detach();
+                    return nullptr;
+                }
+
 				conn->connected = true;
 				SAS_LOG_DEBUG(logger, "mysql connection has been successfully built");
 			}
@@ -348,7 +356,9 @@ bool MySQLConnector::init(const std::string & configPath, ErrorCollector & ec)
 
 	if(cfg->getNumberEntry(configPath + "/PORT", ll_tmp, 0, ec))
 		priv->connection_data.port = (size_t)ll_tmp;
-	cfg->getStringEntry(configPath + "/UNIX_SOCKET", priv->connection_data.unix_socket, priv->connection_data.unix_socket, ec);
+
+    cfg->getStringEntry(configPath + "/UNIX_SOCKET", priv->connection_data.unix_socket, priv->connection_data.unix_socket, ec);
+    cfg->getStringEntry(configPath + "/CHARACTER_SET", priv->connection_data.charset, priv->connection_data.charset, ec);
 
 	if(has_error)
 	{

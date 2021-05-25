@@ -7,3 +7,4 @@ SAS/MYSQL/<connector>/DB: string, mandatory
 SAS/MYSQL/<connector>/MAX_BUFFER_SIZE: number, optional (33554432), bytes
 SAS/MYSQL/<connector>/PORT: number, optional (default)
 SAS/MYSQL/<connector>/UNIX_SOCKET: string, optional (empty)
+SAS/MYSQL/<connector>/CHARACTER_SET: string, optional (empty) [https://dev.mysql.com/doc/connectors/en/connector-j-reference-charsets.html]
