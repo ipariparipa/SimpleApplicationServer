@@ -231,7 +231,7 @@ extern SAS_CORE__FUNCTION void setLogging(AbstractLogging * logging);
 #define SAS_LOG_ASSERT(logger, condition, msg) SAS_LOG_SOFT_ASSERT(logger, condition, msg); assert(condition)
 #define SAS_ROOT_LOG_ASSERT(condition, msg) SAS_ROOT_LOG_ASSERT(SAS::Logging::getRootLogger(), condition, msg)
 
-#define SAS_LOG_VAR_NAME(logger, var_name, val) SAS_LOG_DEBUG(logger, (std::string)var_name + " = " + SAS::Logging::toString(val))
+#define SAS_LOG_VAR_NAME(logger, var_name, val) SAS_LOG_DEBUG(logger, std::string(var_name) + " = " + SAS::Logging::toString(val))
 #define SAS_ROOT_LOG_VAR_NAME(var_name, val) SAS_LOG_VAR_NAME(SAS::Logging::getRootLogger(), var_name, val)
 
 #define SAS_LOG_VAR(logger, var) SAS_LOG_VAR_NAME(logger, #var, var)
