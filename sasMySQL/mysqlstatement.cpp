@@ -586,7 +586,9 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 	unsigned long fields_num = mysql_num_fields(*meta_res);
 	SAS_LOG_VAR(priv->conn->logger(), fields_num);
 
-	priv->res_helpers.resize(fields_num);
+    priv->res_helpers.clear();
+    priv->res_binders.clear();
+    priv->res_helpers.resize(fields_num);
 	priv->res_binders.resize(fields_num);
 
 	bool has_error(false);
@@ -599,7 +601,8 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 		switch(f->type)
 		{
 		case MYSQL_TYPE_NULL:
-			break;
+            b.is_null_value = 1;
+            break;
 
 		case MYSQL_TYPE_TINY:
 			h.reset(Priv::N_ResultHelper<char>::init(b.buffer));
@@ -664,9 +667,12 @@ bool MySQLStatement::exec(ErrorCollector & ec)
 				break;
 			}
 		}
-		b.length = &h->out_size;
-		b.error = &h->is_error;
-		b.is_null = &h->is_null;
+        if(h)
+        {
+            b.length = &h->out_size;
+            b.error = &h->is_error;
+            b.is_null = &h->is_null;
+        }
 	}
 	if(has_error)
 		return false;
