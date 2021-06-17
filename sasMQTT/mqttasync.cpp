@@ -149,14 +149,17 @@ struct MQTTAsync::Priv
 		_topic.append((const char *) topicName, topicLen);
 		std::vector<char> _payload(message->payloadlen);
 		memcpy(_payload.data(), message->payload, message->payloadlen);
-		bool ret = priv->that->messageArrived(_topic, _payload, message->qos);
+        auto _qos = message->qos;
+
+        if(!priv->that->messageArrived(_topic, _payload, _qos))
+            return 0; //_messageArrived will be reinvoked, do not destroy here!
 
 		SAS_LOG_TRACE(priv->logger, "MQTTAsync_freeMessage");
 		MQTTAsync_freeMessage(&message);
 		SAS_LOG_TRACE(priv->logger, "MQTTAsync_free");
 		MQTTAsync_free(topicName);
 
-		return (int)ret;
+        return 1;
 	}
 
 	static void _deliveryComplete(void* context, MQTTAsync_token token)
