@@ -40,8 +40,11 @@ public:
 	bool connect(ErrorCollector & ec);
 	bool disconnect(ErrorCollector & ec);
 
-	bool subscribe(const std::vector<std::string> & topics, int qos, ErrorCollector & ec);
-	bool unsubscribe(ErrorCollector & ec);
+    bool subscribe(const std::string & topic, int qos, ErrorCollector & ec);
+    bool unsubscribe(const std::string & topic, ErrorCollector & ec);
+
+    bool subscribe(const std::vector<std::string> & topics, int qos, ErrorCollector & ec);
+    bool unsubscribe(ErrorCollector & ec);
 
 	bool send(const std::string & topic, const std::vector<char> & payload, int qos, ErrorCollector & ec);
 

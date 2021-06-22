@@ -28,6 +28,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 
 #include <mutex>
 #include <condition_variable>
+#include <set>
 
 namespace SAS {
 
@@ -45,12 +46,11 @@ struct MQTTAsync::Priv
 
 	std::string client_id;
 	MQTTAsync * that;
-	::MQTTAsync mqtt_handle = NULL;
+    ::MQTTAsync mqtt_handle = nullptr;
 	Logging::LoggerPtr logger;
 	MQTTConnectionOptions options;
-	std::vector<std::string> topics;
-	int t_qos = 0;
-	
+    std::map<std::string, int /*qos*/> topics;
+
 	std::mutex mut;
 	ErrorCollector * ec = nullptr;
 
@@ -58,7 +58,7 @@ struct MQTTAsync::Priv
 	Notifier conn_not;
 	Notifier disconn_not;
 
-	bool subscribe(ErrorCollector & ec)
+    bool resubscribe(ErrorCollector & ec)
 	{
 		SAS_LOG_NDC();
 		if(!topics.size())
@@ -66,25 +66,28 @@ struct MQTTAsync::Priv
 			SAS_LOG_DEBUG(logger, "nothing to do.");
 			return true;
 		}
-		int _count = topics.size();
+        auto _count = topics.size();
 		std::vector<char*> _topic(_count);
 		std::vector<int> _qos(_count);
-		for(int i = 0; i < _count; ++i)
+        size_t i = 0;
+        for(auto & t : topics)
 		{
-			_topic[i] = (char *)topics[i].c_str();
-			_qos[i] = t_qos;
+            this->topics[t.first] = t.second;
+            _topic[i] = (char *)t.first.c_str();
+            _qos[i] = t.second;
+            ++i;
 		}
 
 		int rc;
 		SAS_LOG_TRACE(logger, "MQTTAsync_subscribeMany");
-		if((rc = MQTTAsync_subscribeMany(mqtt_handle, _count, &_topic[0], _qos.data(), NULL) != MQTTASYNC_SUCCESS))
+        if((rc = MQTTAsync_subscribeMany(mqtt_handle, static_cast<int>(_count), &_topic[0], _qos.data(), nullptr) != MQTTASYNC_SUCCESS))
 		{
 			auto err = ec.add(-1, "could not subscribe for MQTT topics ("+std::to_string(rc)+")");
 			SAS_LOG_ERROR(logger, err);
 			return false;
 		}
 		return true;
-	}
+    }
 
 	bool connect(ErrorCollector & ec)
 	{
@@ -146,14 +149,17 @@ struct MQTTAsync::Priv
 		_topic.append((const char *) topicName, topicLen);
 		std::vector<char> _payload(message->payloadlen);
 		memcpy(_payload.data(), message->payload, message->payloadlen);
-		bool ret = priv->that->messageArrived(_topic, _payload, message->qos);
+        auto _qos = message->qos;
+
+        if(!priv->that->messageArrived(_topic, _payload, _qos))
+            return 0; //_messageArrived will be reinvoked, do not destroy here!
 
 		SAS_LOG_TRACE(priv->logger, "MQTTAsync_freeMessage");
 		MQTTAsync_freeMessage(&message);
 		SAS_LOG_TRACE(priv->logger, "MQTTAsync_free");
 		MQTTAsync_free(topicName);
 
-		return (int)ret;
+        return 1;
 	}
 
 	static void _deliveryComplete(void* context, MQTTAsync_token token)
@@ -170,7 +176,7 @@ struct MQTTAsync::Priv
 		NullEC ec;
 		auto priv = (Priv*)context;
 		SAS_LOG_DEBUG(priv->logger, "MQTT connected");
-		priv->subscribe(priv->ec ? *priv->ec : ec);
+        priv->resubscribe(priv->ec ? *priv->ec : ec);
 		priv->conn_not.notify();
 	}
 
@@ -328,6 +334,61 @@ bool MQTTAsync::disconnect(ErrorCollector & ec)
 	return true;
 }
 
+bool MQTTAsync::subscribe(const std::string & topic, int qos, ErrorCollector & ec)
+{
+    SAS_LOG_NDC();
+
+    SAS_LOG_TRACE(priv->logger, "MQTTAsync_isConnected");
+    if(!MQTTAsync_isConnected(priv->mqtt_handle) && !connect(ec))
+        return false;
+
+    if(priv->topics.count(topic) && priv->topics[topic] == qos)
+    {
+        SAS_LOG_DEBUG(priv->logger, "nothing to do.");
+        return true;
+    }
+
+    int rc;
+    SAS_LOG_TRACE(priv->logger, "MQTTAsync_subscribe");
+    if((rc = MQTTAsync_subscribe(priv->mqtt_handle, topic.c_str(), qos, nullptr) != MQTTASYNC_SUCCESS))
+    {
+        auto err = ec.add(-1, "could not subscribe for MQTT topic ("+std::to_string(rc)+")");
+        SAS_LOG_ERROR(priv->logger, err);
+        return false;
+    }
+
+    priv->topics[topic] = qos;
+    return true;
+}
+
+bool MQTTAsync::unsubscribe(const std::string &topic, ErrorCollector &ec)
+{
+    SAS_LOG_NDC();
+
+    SAS_LOG_TRACE(priv->logger, "MQTTAsync_isConnected");
+    if(!MQTTAsync_isConnected(priv->mqtt_handle) && !connect(ec))
+        return false;
+
+    if(!priv->topics.count(topic))
+    {
+        SAS_LOG_DEBUG(priv->logger, "nothing to do.");
+        return true;
+    }
+
+    int rc;
+    SAS_LOG_TRACE(priv->logger, "MQTTAsync_unsubscribe");
+    if((rc = MQTTAsync_unsubscribe(priv->mqtt_handle, topic.c_str(), nullptr) != MQTTASYNC_SUCCESS))
+    {
+        auto err = ec.add(-1, "could not cancel subscribtion for MQTT topic ("+std::to_string(rc)+")");
+        SAS_LOG_ERROR(priv->logger, err);
+        return false;
+    }
+
+    priv->topics.erase(topic);
+
+    return true;
+}
+
 bool MQTTAsync::subscribe(const std::vector<std::string> & topics, int qos, ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
@@ -336,23 +397,50 @@ bool MQTTAsync::subscribe(const std::vector<std::string> & topics, int qos, Erro
 	if(!MQTTAsync_isConnected(priv->mqtt_handle) && !connect(ec))
 		return false;
 
-	priv->topics = topics;
-	priv->t_qos = qos;
+    if(!topics.size())
+    {
+        SAS_LOG_DEBUG(priv->logger, "nothing to do.");
+        return true;
+    }
+    auto _count = topics.size();
+    std::vector<char*> _topic(_count);
+    std::vector<int> _qos(_count);
+    size_t i = 0;
+    for(auto & t : topics)
+    {
+        _topic[i] = (char *)t.c_str();
+        _qos[i] = qos;
+        ++i;
+    }
 
-	return priv->subscribe(ec);
+    int rc;
+    SAS_LOG_TRACE(priv->logger, "MQTTAsync_subscribeMany");
+    if((rc = MQTTAsync_subscribeMany(priv->mqtt_handle, static_cast<int>(_count), &_topic[0], _qos.data(), nullptr) != MQTTASYNC_SUCCESS))
+    {
+        auto err = ec.add(-1, "could not subscribe for MQTT topics ("+std::to_string(rc)+")");
+        SAS_LOG_ERROR(priv->logger, err);
+        return false;
+    }
+
+    for(auto & t : topics)
+        priv->topics[t] = qos;
+
+    return true;
 }
 
 bool MQTTAsync::unsubscribe(ErrorCollector & ec)
 {
 	SAS_LOG_NDC();
-    auto _count = priv->topics.size();
-	std::vector<char*> _topic(_count);
-    for(size_t i = 0; i < _count; ++i)
-		_topic[i] = (char *)priv->topics[i].c_str();
+    std::vector<char*> _topic(priv->topics.size());
+    size_t i = 0;
+    for(auto & t : priv->topics)
+    {
+        _topic[i++] = (char *)t.first.c_str();
+    }
 
 	int rc;
 	SAS_LOG_TRACE(priv->logger, "MQTTAsync_unsubscribeMany");
-    if((rc = MQTTAsync_unsubscribeMany(priv->mqtt_handle, static_cast<int>(_count), &_topic[0], nullptr) != MQTTASYNC_SUCCESS))
+    if((rc = MQTTAsync_unsubscribeMany(priv->mqtt_handle, static_cast<int>(_topic.size()), &_topic[0], nullptr) != MQTTASYNC_SUCCESS))
 	{
 		auto err = ec.add(-1, "could not cancel subscribtion for MQTT topics ("+std::to_string(rc)+")");
 		SAS_LOG_ERROR(priv->logger, err);
@@ -360,7 +448,6 @@ bool MQTTAsync::unsubscribe(ErrorCollector & ec)
 	}
 
 	priv->topics.clear();
-	priv->t_qos = 0;
 
 	return true;
 }
