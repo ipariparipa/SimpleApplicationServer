@@ -149,14 +149,14 @@ public:
 	inline StreamLogger(Stream_T & stream_, const std::string & name, Priority min_prio) :
 		SimpleLogger(name, min_prio),
 		stream(stream_)
-	{ };
+    { }
 
 protected:
 	virtual void add(const std::string & text) override
 	{
 		std::stringstream ss;
 		ss << text << std::endl;
-		stream << ss.str();
+        stream << ss.str() << std::flush;
 	}
 
 private:
