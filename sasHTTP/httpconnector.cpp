@@ -143,6 +143,7 @@ namespace SAS {
 			_sess = ne_session_create(uri.scheme, uri.host, uri.port);
 			SAS_LOG_TRACE(_logger, "ne_set_useragent");
 			ne_set_useragent(_sess, "SAS/1.0");
+            ne_uri_free(&uri);
 
 			return true;
 		}
@@ -300,8 +301,8 @@ namespace SAS {
 				break;
 			}
 
-			SAS_LOG_TRACE(_logger, "ne_end_request");
-			ne_end_request(req);
+            SAS_LOG_TRACE(_logger, "ne_request_destroy");
+            ne_request_destroy(req);
 
 			if (_output_buffer.size())
 			{
