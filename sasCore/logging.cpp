@@ -21,6 +21,7 @@
 #include <iostream>
 #include <mutex>
 #include <sstream>
+#include <iomanip>
 
 namespace SAS { namespace Logging {
 
@@ -69,7 +70,12 @@ namespace SAS { namespace Logging {
 			return;
 		std::stringstream ss;
 
-		ss << Thread::getThreadId() << " [";
+        auto now = std::chrono::system_clock::now();
+        std::time_t tt = std::chrono::system_clock::to_time_t(now);
+        std::tm tm = *std::localtime(&tt); //UTC: gmtime
+        auto part = now.time_since_epoch().count() - (std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count() * std::chrono::system_clock::duration::period::den);
+
+        ss << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S") << "." << part << " " << Thread::getThreadId() << " [";
 		switch(prio)
 		{
 		case Priority::Trace: ss << "TRACE"; break;
