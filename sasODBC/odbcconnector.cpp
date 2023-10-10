@@ -364,9 +364,9 @@ struct ODBCConnector::Priv
 			}
 
 			if (!SQL_SUCCEEDED(rc = SQLConnect(conn,
-				(SQLCHAR*)connection_data.dsn.c_str(), connection_data.dsn.length(),
-				(SQLCHAR*)connection_data.user.c_str(), connection_data.user.length(),
-				(SQLCHAR*)connection_data.passwd.c_str(), connection_data.passwd.length())))
+				(SQLCHAR*)connection_data.dsn.c_str(), static_cast<SQLSMALLINT>(connection_data.dsn.length()),
+				(SQLCHAR*)connection_data.user.c_str(), static_cast<SQLSMALLINT>(connection_data.user.length()),
+				(SQLCHAR*)connection_data.passwd.c_str(), static_cast<SQLSMALLINT>(connection_data.passwd.length()))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "could not connect: " + ODBCTools::getError(env, conn, SQL_NULL_HANDLE, rc, ec));
 				SAS_LOG_ERROR(logger, err);

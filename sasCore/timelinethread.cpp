@@ -1,14 +1,12 @@
 
 #include "include/sasCore/timelinethread.h"
+#include "include/sasCore/notifier.h"
 
 #include <mutex>
 #include <map>
 #include <list>
 #include <atomic>
 #include <assert.h>
-
-#include <include/sasCore/notifier.h>
-
 #include <iostream>
 
 namespace SAS {

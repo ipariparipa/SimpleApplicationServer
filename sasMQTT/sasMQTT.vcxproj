@@ -15,16 +15,17 @@
     <RootNamespace>sasMQTT</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="..\default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -40,22 +41,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>$(ProjectName)d</TargetName>
-    <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir>obj\$(Configuration)\</IntDir>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;SAS_MQTT__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\sasCore\include\;..\windeps\rapidjson\include\;..\sasJSON\include\;..\windeps\paho-mqtt\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Include_sasCore);$(Include_sasJSON);$(Include_rapidjson);$(Include_paho);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OutDir);..\windeps\paho-mqtt\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir);$(Lib_paho);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sasCored.lib;sasJSond.lib;paho-mqtt3c.lib;paho-mqtt3a.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -67,21 +65,21 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;SAS_MQTT__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\sasCore\include\;..\windeps\rapidjson\include\;..\sasJSON\include\;..\windeps\paho-mqtt\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Include_sasCore);$(Include_sasJSON);$(Include_rapidjson);$(Include_paho);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(OutDir);..\windeps\paho-mqtt\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir);$(Lib_paho);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sasCore.lib;sasJSon.lib;paho-mqtt3c.lib;paho-mqtt3a.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="config.h" />
-    <ClInclude Include="mqttasync.h" />
-    <ClInclude Include="mqttclient.h" />
-    <ClInclude Include="mqttconnectionoptions.h" />
+    <ClInclude Include="include\sasMQTT\config.h" />
+    <ClInclude Include="include\sasMQTT\mqttasync.h" />
+    <ClInclude Include="include\sasMQTT\mqttclient.h" />
+    <ClInclude Include="include\sasMQTT\mqttconnectionoptions.h" />
     <ClInclude Include="mqttconnector.h" />
     <ClInclude Include="mqttinterface.h" />
     <ClInclude Include="threading.h" />
@@ -90,8 +88,9 @@
     <ClCompile Include="mqttasync.cpp" />
     <ClCompile Include="mqttclient.cpp" />
     <ClCompile Include="mqttcomponent.cpp" />
-    <ClCompile Include="mqttconnectionoption.cpp" />
+    <ClCompile Include="mqttconnectionoptions.cpp" />
     <ClCompile Include="mqttconnector.cpp" />
+    <ClCompile Include="mqttconnectorfactory.cpp" />
     <ClCompile Include="mqttinterface.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mqttinterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -27,13 +24,16 @@
     <ClInclude Include="threading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mqttclient.h">
+    <ClInclude Include="include\sasMQTT\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mqttconnectionoptions.h">
+    <ClInclude Include="include\sasMQTT\mqttasync.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mqttasync.h">
+    <ClInclude Include="include\sasMQTT\mqttclient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sasMQTT\mqttconnectionoptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,10 +50,13 @@
     <ClCompile Include="mqttasync.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mqttconnectionoption.cpp">
+    <ClCompile Include="mqttclient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mqttclient.cpp">
+    <ClCompile Include="mqttconnectionoptions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mqttconnectorfactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

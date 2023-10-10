@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <thread>
+#include <string>
 
 namespace SAS {
 

@@ -17,18 +17,21 @@ unix {
     TEMPLATE_FILE = $$_PRO_FILE_PWD_/include/sasCore/_platform_linux.h_
 }
 
-win32 {
-    TEMPLATE_FILE = $_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
-}
-
-win64 {
-    TEMPLATE_FILE = $_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
+win32 || win64 {
+    TEMPLATE_FILE = $$_PRO_FILE_PWD_/include/sasCore/_platform_win.h_
 }
 
 platform.input = TEMPLATE_FILE
 platform.output = $$TARGET_FILE
 platform.variable_out = HEADERS
-platform.commands = cp $$TEMPLATE_FILE $$TARGET_FILE
+unix {
+	platform.commands = cp "$$TEMPLATE_FILE" "$$TARGET_FILE"
+}
+
+win32 || win64 {
+	platform.commands = copy /y $$shell_path($$TEMPLATE_FILE) $$shell_path($$TARGET_FILE)
+}
+
 QMAKE_EXTRA_COMPILERS += platform
 
 SOURCES += \

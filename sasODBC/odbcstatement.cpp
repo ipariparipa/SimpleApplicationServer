@@ -71,7 +71,7 @@ namespace SAS {
 					return false;
 				}
 			}
-            else if (labs(val) > LONG_MAX)
+            else if (llabs(val) > LONG_MAX)
 				return bindParam(idx, std::to_string(val), isNull, ec);
 
             return bindParam(idx, static_cast<long>(val), isNull, ec);
@@ -142,7 +142,10 @@ namespace SAS {
 			if (!isNull)
 				memcpy(buff.data(), val.c_str(), val.length());
 
-			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, idx + 1, SQL_PARAM_INPUT, SQL_C_CHAR, val.length() > 254 ? SQL_WLONGVARCHAR : SQL_WVARCHAR, val.length(), 0, buff.data(), buff.size(), isNull ? &null_data_ind : NULL))))
+			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt, static_cast<SQLUSMALLINT>(idx + 1), SQL_PARAM_INPUT,
+			                                          SQL_C_CHAR, val.length() > 254 ? SQL_WLONGVARCHAR : SQL_WVARCHAR, 
+			                                          static_cast<SQLUINTEGER>(val.length()), 0, buff.data(), static_cast<SQLINTEGER>(buff.size()),
+			                                          isNull ? &null_data_ind : NULL))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
 				SAS_LOG_ERROR(logger, err);
@@ -750,7 +753,7 @@ namespace SAS {
 					SAS_ODBC__LENGTH_TYPE len;
 					size_t read = 0;
 
-                    while ((rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_BINARY, buffer.data() + read, static_cast<SQLLEN>(buffer_size), &len)) == SQL_SUCCESS_WITH_INFO || rc == SQL_SUCCESS)
+                    while ((rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_BINARY, buffer.data() + read, static_cast<SQLINTEGER>(buffer_size), &len)) == SQL_SUCCESS_WITH_INFO || rc == SQL_SUCCESS)
 					{
 						if (len == SQL_NO_TOTAL || len > SQLLEN(buffer_size))
 							read += buffer_size;
