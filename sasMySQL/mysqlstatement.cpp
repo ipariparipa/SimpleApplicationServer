@@ -338,17 +338,24 @@ bool MySQLStatement::bindParam(const std::vector<SQLVariant> & params, ErrorColl
 	SAS_LOG_NDC();
 	std::unique_lock<std::mutex> __locker(priv->mut);
 	std::unique_lock<std::mutex> __locker_conn(priv->conn_mut);
-	size_t params_size = params.size();
 
+	auto params_size = params.size();
 	SAS_LOG_TRACE(priv->conn->logger(), "mysql_stmt_param_count");
-	unsigned long stmt_params_size;
-	if((stmt_params_size = mysql_stmt_param_count(priv->stmt)) > params_size)
+	auto stmt_params_size = mysql_stmt_param_count(priv->stmt);
+
+	if (stmt_params_size > params_size)
 	{
 		SAS_LOG_VAR(priv->conn->logger(), stmt_params_size);
 		SAS_LOG_VAR(priv->conn->logger(), params_size);
 		auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, "insufficient number of parameters");
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
+	}
+	else if (stmt_params_size != params_size)
+	{
+		SAS_LOG_VAR(priv->conn->logger(), stmt_params_size);
+		SAS_LOG_VAR(priv->conn->logger(), params_size);
+		SAS_LOG_WARN(priv->conn->logger(), "incorrect number of parameters to be bound");
 	}
 
 	priv->param_helpers.resize(stmt_params_size);

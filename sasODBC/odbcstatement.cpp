@@ -441,7 +441,23 @@ namespace SAS {
 		assert(priv->conn);
 		SAS_LOG_ASSERT(priv->logger, priv->stmt, "statement cannot be NULL");
 
-		SAS_LOG_ASSERT(priv->logger, params.size() == priv->bind_buffer.size(), "invalid parameter size");
+		auto params_size = params.size();
+		auto stmt_params_size = priv->bind_buffer.size();
+
+		if (stmt_params_size > params_size)
+		{
+			SAS_LOG_VAR(priv->conn->logger(), stmt_params_size);
+			SAS_LOG_VAR(priv->conn->logger(), params_size);
+			auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, "insufficient number of parameters");
+			SAS_LOG_ERROR(priv->conn->logger(), err);
+			return false;
+		}
+		else if (stmt_params_size != params_size)
+		{
+			SAS_LOG_VAR(priv->conn->logger(), stmt_params_size);
+			SAS_LOG_VAR(priv->conn->logger(), params_size);
+			SAS_LOG_WARN(priv->conn->logger(), "incorrect number of parameters to be bound");
+		}
 
 		bool has_error = false;
 		size_t idx(0);
