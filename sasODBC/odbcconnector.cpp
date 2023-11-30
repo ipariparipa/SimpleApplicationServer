@@ -477,8 +477,20 @@ bool ODBCConnector::hasFeature(Feature f, std::string & explanation)
 		explanation = "this feature is not natively supported by ODBC library, but implemented as using SQLStatement.";
 		return true;
 	case SQLConnector::Feature::GetLastGeneratedId:
+		if (priv->settings.statementInjections.find(ODBC_Settings::StatementInjection::GetLastGeneratedId) != priv->settings.statementInjections.end())
+		{
+			explanation = "supported by statement injection";
+			return true;
+		}
+		explanation = "not supported by ODBC, use DB specific solution instead";
+		return false;
 	case SQLConnector::Feature::GetSysDate:
-		explanation = "use DB specific solution instead";
+		if (priv->settings.statementInjections.find(ODBC_Settings::StatementInjection::GetSysdate) != priv->settings.statementInjections.end())
+		{
+			explanation = "supported by statement injection";
+			return true;
+		}
+		explanation = "not supported by ODBC, use DB specific solution instead";
 		return false;
 	default:
 		explanation = "unknown feature: '" + std::to_string((int)f) + "'.";
@@ -550,7 +562,35 @@ bool ODBCConnector::init(const std::string & configPath, ErrorCollector & ec)
 	if (cfg->getEntryAsString(configPath + "/CP_MATCH", tmp, ec))
 		priv->connection_data.options.push_back(std::make_pair("CP_MATCH", tmp));
 
-	cfg->getBoolEntry(configPath + "/LONG_LONG_BIND_SUPPORTED", priv->settings.long_long_bind_supported, true, ec);
+	{
+		std::string str;
+		if(!cfg->getStringEntry(configPath + "/INT64_BIND_RULE", str, "normal", ec))
+			has_error = true;
+		else
+		{
+			if (str == "not_supported")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::NotSupported;
+			else if (str == "normal")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::Normal;
+			else if (str == "as_int32")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::AsInt32;
+			else if (str == "as_string")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::AsString;
+			else if (str == "as_int32_or_as_string")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::AsInt32_or_AsString;
+			else
+			{
+				auto err = ec.add(SAS_SQL__ERROR__INVALID_CONFIG_VALUE, "invalid config value: " + str);
+				SAS_LOG_ERROR(priv->logger, err);
+				has_error = true;
+			}
+		}
+	}
+
+	if (cfg->getEntryAsString(configPath + "/STATEMENT/GET_LAST_GENERATED_ID", tmp, ec))
+		priv->settings.statementInjections[ODBC_Settings::StatementInjection::GetLastGeneratedId] = tmp;
+	if (cfg->getEntryAsString(configPath + "/STATEMENT/GET_SYSDATE", tmp, ec))
+		priv->settings.statementInjections[ODBC_Settings::StatementInjection::GetSysdate] = tmp;
 
 	if(has_error)
 	{

@@ -33,7 +33,21 @@ struct ODBC_Settings
 {
 	size_t max_buffer_size = 0;
 	size_t max_connections = 0;
+	enum class Int64BindRule
+	{
+		Normal,
+		NotSupported,
+		AsString,
+		AsInt32,
+		AsInt32_or_AsString,
+	} int64BindRule = Int64BindRule::Normal;
 	bool long_long_bind_supported = true;
+	enum class StatementInjection
+	{
+		GetLastGeneratedId,
+		GetSysdate
+	};
+	std::map<StatementInjection, std::string> statementInjections;
 
 	struct Info
 	{

@@ -715,7 +715,7 @@ bool MySQLStatement::getLastGeneratedId(const std::string & schema, const std::s
 {
 	SAS_LOG_NDC();
 
-	if (schema.length() ||table.length() || field.length())
+	if (schema.length() || table.length() || field.length())
 		SAS_LOG_TRACE(priv->conn->logger(), "usage of schema, table and field is not supported by this version of MySQL connector. arguments are skipped, but keep it to use because of the compatibility to another SQL connector");
 
 	if (!prepare("select last_insert_id()", ec) || !exec(ec))
