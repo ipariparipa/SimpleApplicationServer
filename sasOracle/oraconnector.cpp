@@ -113,7 +113,7 @@ struct OraConnector::Priv
 			dpiConn * conn;
 			std::mutex mut;
 			std::mutex external_mut;
-			size_t connected = 0;
+			bool connected = false;
 		};
 
 
@@ -171,6 +171,7 @@ struct OraConnector::Priv
 				}
 
 				connection_repo[conn = new Connection(ctx, _conn)] = 1;
+				conn->connected = true;
 			}
 			connection_registry[Thread::getThreadId()] = conn;
 

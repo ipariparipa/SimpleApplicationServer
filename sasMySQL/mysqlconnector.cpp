@@ -90,7 +90,7 @@ struct MySQLConnector::Priv
 			MYSQL * my;
 			std::mutex mut;
 			std::mutex external_mut;
-			size_t connected = 0;
+			bool connected = false;
 		};
 
 

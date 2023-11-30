@@ -246,7 +246,7 @@ namespace SAS {
 			SAS_LOG_TRACE(logger, "SQLNumResultCols");
 			if (!SQL_SUCCEEDED(rc = SQLNumResultCols(stmt, &res_col_num)))
 			{
-				auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get number of fields: " + conn->getErrorText(SQL_NULL_HANDLE, rc, ec));
+				auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get number of fields: " + conn->getErrorText(stmt, rc, ec));
 				SAS_LOG_ERROR(logger, err);
 				return false;
 			}
@@ -285,7 +285,7 @@ namespace SAS {
 				SAS_LOG_TRACE(logger, "SQLDescribeCol");
                 if (!SQL_SUCCEEDED(rc = SQLDescribeCol(stmt, static_cast<SQLUSMALLINT>(i + 1), col_name, sizeof(col_name), &col_name_length, &type, &size, &dec_digits, &nullable)))
 				{
-					auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get number of parameter fo binding: " + conn->getErrorText(SQL_NULL_HANDLE, rc, ec));
+					auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get number of parameter fo binding: " + conn->getErrorText(stmt, rc, ec));
 					SAS_LOG_ERROR(logger, err);
 					has_error = true;
 				}
@@ -410,7 +410,7 @@ namespace SAS {
 		SAS_LOG_TRACE(priv->logger, "SQLPrepare");
         if (!SQL_SUCCEEDED(rc = SQLPrepare(priv->stmt, (SQLCHAR*)statement.c_str(), static_cast<SQLINTEGER>(statement.length()))))
 		{
-			auto err = ec.add(SAS_SQL__ERROR__CANNOT_PREPARE_STATEMENT, priv->conn->getErrorText(SQL_NULL_HANDLE, rc, ec));
+			auto err = ec.add(SAS_SQL__ERROR__CANNOT_PREPARE_STATEMENT, priv->conn->getErrorText(priv->stmt, rc, ec));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -419,7 +419,7 @@ namespace SAS {
 		SAS_LOG_TRACE(priv->logger, "SQLNumParams");
 		if (!SQL_SUCCEEDED(rc = SQLNumParams(priv->stmt, &numParams)))
 		{
-			auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get number of parameter fo binding: " + priv->conn->getErrorText(SQL_NULL_HANDLE, rc, ec));
+			auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get number of parameter fo binding: " + priv->conn->getErrorText(priv->stmt, rc, ec));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
 		}
@@ -478,6 +478,7 @@ namespace SAS {
 					break;
 				}
 			}
+			++idx;
 		}
 		if (has_error)
 			return false;

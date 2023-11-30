@@ -105,7 +105,7 @@ struct ODBCConnector::Priv
 			SQLHDBC conn;
 			std::mutex mut;
 			std::mutex external_mut;
-			size_t connected = 0;
+			bool connected = false;
 		};
 
 
@@ -146,7 +146,7 @@ struct ODBCConnector::Priv
 				if (dpiConn_ping(conn->conn) == DPI_SUCCESS)
 					return conn;
 
-				SAS_LOG_INFO(logger, "oracle connection has already gone. try to acquire a new one");
+				SAS_LOG_INFO(logger, "ODBC connection has already gone. try to acquire a new one");
 				delete conn;
 				connection_registry.erase(Thread::getThreadId());
 				*/
@@ -161,6 +161,7 @@ struct ODBCConnector::Priv
 					return nullptr;
 
 				connection_repo[conn = new Connection(env, _conn)] = 1;
+				conn->connected = true;
 			}
 			connection_registry[Thread::getThreadId()] = conn;
 
@@ -187,7 +188,7 @@ struct ODBCConnector::Priv
 		{
 			SAS_LOG_NDC();
 
-			SAS_LOG_TRACE(logger, "detach oracle connection");
+			SAS_LOG_TRACE(logger, "detach odbc connection");
 
 			std::unique_lock<std::mutex> __locker(connection_repo_mut);
 			auto th_id = Thread::getThreadId();
@@ -416,8 +417,6 @@ bool ODBCConnector::getServerInfo(std::string & generation, std::string & versio
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
-//	if (std::string(tmp) == "Oracle") //https://docs.oracle.com/cd/B19306_01/server.102/b15658/app_odbc.htm#UNXAR413
-//		long_long_bind_is_supported = false;
 
 	version = tmp;
 
@@ -747,8 +746,25 @@ void ODBCConnector::unlock()
 
 bool ODBCConnector::startTransaction(ErrorCollector & ec)
 {
-    (void)ec;
-    SAS_LOG_NDC();
+	SAS_LOG_NDC();
+	auto conn = priv->connectionManager.connection();
+	if (!conn)
+	{
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "connection is not specified for the thread");
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+
+	SQLRETURN rc;
+
+	SAS_LOG_TRACE(priv->logger, "SQLSetConnectAttr");
+	if (!SQL_SUCCEEDED(rc = SQLSetConnectAttr(conn->conn, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)FALSE, 0)))
+	{
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could start transaction: " + ODBCTools::getError(priv->env, conn->conn, SQL_NULL_HANDLE, rc, ec));
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+
 	return true;
 }
 
@@ -766,9 +782,9 @@ bool ODBCConnector::commit(ErrorCollector & ec)
 	SQLRETURN rc;
 
 	SAS_LOG_TRACE(priv->logger, "SQLEndTran");
-	if (!SQL_SUCCEEDED(rc = SQLEndTran(SQL_HANDLE_DBC, conn, SQL_COMMIT)))
+	if (!SQL_SUCCEEDED(rc = SQLEndTran(SQL_HANDLE_DBC, conn->conn, SQL_COMMIT)))
 	{
-		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not commit transaction: " + ODBCTools::getError(priv->env, conn, SQL_NULL_HANDLE, rc, ec));
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not commit transaction: " + ODBCTools::getError(priv->env, conn->conn, SQL_NULL_HANDLE, rc, ec));
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
@@ -789,9 +805,9 @@ bool ODBCConnector::rollback(ErrorCollector & ec)
 	SQLRETURN rc;
 
 	SAS_LOG_TRACE(priv->logger, "SQLEndTran");
-	if (!SQL_SUCCEEDED(rc = SQLEndTran(SQL_HANDLE_DBC, conn, SQL_ROLLBACK)))
+	if (!SQL_SUCCEEDED(rc = SQLEndTran(SQL_HANDLE_DBC, conn->conn, SQL_ROLLBACK)))
 	{
-		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not rollback transaction: " + ODBCTools::getError(priv->env, conn, SQL_NULL_HANDLE, rc, ec));
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not rollback transaction: " + ODBCTools::getError(priv->env, conn->conn, SQL_NULL_HANDLE, rc, ec));
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
