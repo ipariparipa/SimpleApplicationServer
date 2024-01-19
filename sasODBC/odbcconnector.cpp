@@ -142,27 +142,26 @@ struct ODBCConnector::Priv
 			if (conn)
 			{
 				SAS_LOG_TRACE(logger, "test ODBC connection");
-				/* // CHECKME
-				if (dpiConn_ping(conn->conn) == DPI_SUCCESS)
+
+				SQLRETURN rc;
+				SQLINTEGER tmp;
+				if (SQL_SUCCEEDED(rc = SQLGetConnectAttr(conn->conn, SQL_ATTR_CONNECTION_DEAD, &tmp, 0, NULL)) && !tmp)
 					return conn;
 
 				SAS_LOG_INFO(logger, "ODBC connection has already gone. try to acquire a new one");
 				delete conn;
 				connection_registry.erase(Thread::getThreadId());
-				*/
-				return conn;
 			}
-			else
-			{
-				SAS_LOG_INFO(logger, "create new ODBC connection (#"+std::to_string(connection_repo.size()+1)+")");
 
-				SQLHDBC _conn;
-				if (!createODBCConnection(env, _conn, ec))
-					return nullptr;
+			SAS_LOG_INFO(logger, "create new ODBC connection (#"+std::to_string(connection_repo.size()+1)+")");
 
-				connection_repo[conn = new Connection(env, _conn)] = 1;
-				conn->connected = true;
-			}
+			SQLHDBC _conn;
+			if (!createODBCConnection(env, _conn, ec))
+				return nullptr;
+
+			connection_repo[conn = new Connection(env, _conn)] = 1;
+			conn->connected = true;
+
 			connection_registry[Thread::getThreadId()] = conn;
 
 			return conn;
