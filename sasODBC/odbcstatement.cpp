@@ -884,7 +884,7 @@ namespace SAS {
 						ret[i] = SQLVariant(SQLDataType::Real);
 						break;
 					case SQL_SUCCESS:
-                        ret[i] = len == SQL_NULL_DATA ? SQLVariant(SQLDataType::Real) : SQLVariant(static_cast<double>(buff));
+						ret[i] = len == SQL_NULL_DATA ? SQLVariant(SQLDataType::Real) : SQLVariant(static_cast<double>(buff));
 						break;
 					case SQL_STILL_EXECUTING:
 					case SQL_ERROR:
