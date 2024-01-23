@@ -828,6 +828,9 @@ namespace SAS {
 						ret[i] = SQLVariant(SQLDataType::String);
 						break;
 					case SQL_SUCCESS:
+						if(len == SQL_NULL_DATA)
+							ret[i] = SQLVariant(SQLDataType::String);
+						else
 						{
 							auto s = strlen((const char *)buff.data());
 							std::string str;
@@ -857,7 +860,7 @@ namespace SAS {
 						ret[i] = SQLVariant(SQLDataType::Number);
 						break;
 					case SQL_SUCCESS:
-                        ret[i] = static_cast<long long>(buff);
+                        ret[i] = len == SQL_NULL_DATA ? SQLVariant(SQLDataType::Number) : SQLVariant(static_cast<long long>(buff));
 						break;
 					case SQL_STILL_EXECUTING:
 					case SQL_ERROR:
@@ -878,10 +881,10 @@ namespace SAS {
                     switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_DOUBLE, &buff, sizeof(buff), &len))
 					{
 					case SQL_NO_DATA:
-						ret[i] = SQLVariant(SQLDataType::Number);
+						ret[i] = SQLVariant(SQLDataType::Real);
 						break;
 					case SQL_SUCCESS:
-                        ret[i] = static_cast<double>(buff);
+                        ret[i] = len == SQL_NULL_DATA ? SQLVariant(SQLDataType::Real) : SQLVariant(static_cast<double>(buff));
 						break;
 					case SQL_STILL_EXECUTING:
 					case SQL_ERROR:
@@ -905,7 +908,7 @@ namespace SAS {
 						ret[i] = SQLVariant(SQLDataType::DateTime);
 						break;
 					case SQL_SUCCESS:
-						ret[i] = SQLVariant(SQLDateTime(
+						ret[i] = len == SQL_NULL_DATA ? SQLVariant(SQLDataType::DateTime) : SQLVariant(SQLDateTime(
                             static_cast<unsigned int>(buff.year), static_cast<unsigned int>(buff.month), static_cast<unsigned int>(buff.day),
                             static_cast<unsigned int>(buff.hour), static_cast<unsigned int>(buff.minute), static_cast<unsigned int>(buff.second),
                             static_cast<unsigned int>(buff.fraction),
@@ -935,6 +938,12 @@ namespace SAS {
 
                     while ((rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_BINARY, buffer.data() + read, static_cast<SQLINTEGER>(buffer_size), &len)) == SQL_SUCCESS_WITH_INFO || rc == SQL_SUCCESS)
 					{
+						if (len == SQL_NULL_DATA)
+						{
+							rc = SQL_NO_DATA;
+							break;
+						}
+
 						if (len == SQL_NO_TOTAL || len > SQLLEN(buffer_size))
 							read += buffer_size;
 						else
