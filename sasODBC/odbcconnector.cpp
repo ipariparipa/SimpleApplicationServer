@@ -394,7 +394,7 @@ std::string ODBCConnector::name() const
 
 const char * ODBCConnector::getServerType() const
 {
-	return priv->settings.info.db_type.length() ? str_tolower(priv->settings.info.db_type).c_str() : "(odbc)";
+	return priv->settings.info.db_type.length() ? priv->settings.info.db_type.c_str() : "(odbc)";
 }
 
 bool ODBCConnector::getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec)
