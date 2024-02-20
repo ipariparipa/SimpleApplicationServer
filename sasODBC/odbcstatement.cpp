@@ -365,6 +365,11 @@ namespace SAS {
 			return true;
 		}
 
+		bool bindNullParam(size_t idx, ErrorCollector& ec)
+		{
+			return bindParam<SQLINTEGER>(idx, 0, true, ec);
+		}
+
 		bool getFieldNum(size_t & ret, ErrorCollector & ec)
 		{
 			SAS_LOG_NDC();
@@ -614,6 +619,16 @@ namespace SAS {
 			switch (p.type())
 			{
 			case SQLDataType::None:
+				if (p.isNull())
+				{
+					if (!priv->bindNullParam(idx, ec))
+						has_error = true;
+				}
+				else
+				{
+					SAS_LOG_ERROR(priv->conn->logger(), "unsupported type data for binding");
+					has_error = true;
+				}
 				break;
 			case SQLDataType::String:
 				if (!priv->bindParam(idx, p.asString(), p.isNull(), ec))
