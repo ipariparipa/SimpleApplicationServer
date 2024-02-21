@@ -236,10 +236,11 @@ namespace SAS {
 			if (isNull)
 				buff.setNull<char>();
 			else
-				buff.setData<char>(val.c_str(), val.length());
+				buff.setData<char>(val.c_str(), val.length() + 1); // strings must be null-terminated
 
 			SQLRETURN rc;
 			SAS_LOG_TRACE(logger, "SQLBindParameter");
+
 			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt,
 			                                          static_cast<SQLUSMALLINT>(idx + 1),
 				                                      SQL_PARAM_INPUT,
@@ -269,6 +270,50 @@ namespace SAS {
 		bool bindParam<std::vector<unsigned char>>(size_t idx, const std::vector<unsigned char> & val, bool isNull, ErrorCollector & ec)
 		{
 			return bindParam(idx, val.size(), val.data(), isNull, ec);
+		}
+
+		template<>
+		bool bindParam<SQLDateTime>(size_t idx, const SQLDateTime& val, bool isNull, ErrorCollector& ec)
+		{
+			SQLRETURN rc;
+
+			assert(idx < bind_buffer.size());
+
+			auto& buff = bind_buffer[idx];
+			if (isNull)
+				buff.setNull<TIMESTAMP_STRUCT>();
+			else
+			{
+				buff.alloc<TIMESTAMP_STRUCT>();
+				TIMESTAMP_STRUCT* dt = static_cast<TIMESTAMP_STRUCT*>(buff.data());
+
+				dt->year = static_cast<SQLSMALLINT>(val.years());
+				dt->month = static_cast<SQLUSMALLINT>(val.months());
+				dt->day = static_cast<SQLUSMALLINT>(val.days());
+				dt->hour = static_cast<SQLUSMALLINT>(val.hours());
+				dt->minute = static_cast<SQLUSMALLINT>(val.minutes());
+				dt->second = static_cast<SQLUSMALLINT>(val.seconds());
+				dt->fraction = static_cast<SQLUSMALLINT>(val.fraction());
+			}
+
+			SAS_LOG_TRACE(logger, "SQLBindParameter");
+			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt,
+				static_cast<SQLUSMALLINT>(idx + 1),
+				SQL_PARAM_INPUT,
+				SQL_C_TIMESTAMP,
+				SQL_TIMESTAMP,
+				0,
+				val.precision(),
+				buff.data(),
+				0,
+				buff.ind()))))
+			{
+				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
+				SAS_LOG_ERROR(logger, err);
+				return false;
+			}
+
+			return true;
 		}
 
 		template<typename T>
@@ -367,6 +412,8 @@ namespace SAS {
 
 		bool bindNullParam(size_t idx, ErrorCollector& ec)
 		{
+			if (idx >= bind_buffer.size())
+				return true;
 			return bindParam<SQLINTEGER>(idx, 0, true, ec);
 		}
 
@@ -644,8 +691,7 @@ namespace SAS {
 				break;
 			case SQLDataType::DateTime:
 				{
-					auto & _dt = p.asDateTime();
-                    if (!priv->bindParam(idx, _dt.to_tm(), _dt.nanoseconds(), p.isNull(), ec))
+                    if (!priv->bindParam(idx, p.asDateTime(), p.isNull(), ec))
 						has_error = true;
 					break;
 				}
