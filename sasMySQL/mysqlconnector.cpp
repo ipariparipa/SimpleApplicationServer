@@ -513,4 +513,31 @@ bool MySQLConnector::rollback(ErrorCollector & ec)
 	return exec("rollback", ec);
 }
 
+bool MySQLConnector::appendCompletionValue(const std::string & command, const std::vector<std::string> & args, std::string & ret, ErrorCollector & ec) const //final override
+{
+	if (command == "sysdate")
+		ret += "sysdate()";
+	else if (command == "for_update")
+	{
+		if (args.size() == 1)
+			ret += args[0] + " " + "for update";
+		else if (args.size() > 1)
+			ret += args[0] + " " + args[1] + "for update";
+		else
+		{
+			auto err = ec.add(-1, "invalid length of arguments for 'for_update' macro");
+			SAS_LOG_ERROR(priv->logger, err);
+			return false;
+		}
+	}
+	else
+	{
+		auto err = ec.add(-1, "unsupported macro: '" + command + "'");
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+
+	return true;
+}
+
 }

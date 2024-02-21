@@ -37,6 +37,7 @@ along with sasODBC.  If not, see <http://www.gnu.org/licenses/>
 #include <memory>
 #include <assert.h>
 #include <string.h>
+#include <regex>
 
 #include <list>
 
@@ -591,6 +592,17 @@ bool ODBCConnector::init(const std::string & configPath, ErrorCollector & ec)
 	if (cfg->getEntryAsString(configPath + "/STATEMENT/GET_SYSDATE", tmp, ec))
 		priv->settings.statementInjections[ODBC_Settings::StatementInjection::GetSysdate] = tmp;
 
+	std::vector<std::string> mascros;
+	if (cfg->getEntryAsStringList(configPath + "/MACROS", mascros, ec))
+		for (auto& name : mascros)
+		{
+			std::vector<std::string> args;
+			cfg->getEntryAsStringList(configPath + "/MACRO/" + name + "/ARGS", args, ec);
+
+			if (cfg->getEntryAsString(configPath + "/MACRO/" + name + "/TMPL", tmp, ec))
+				priv->settings.macros[name] = std::make_tuple(tmp, args);
+		}
+
 	if(has_error)
 	{
 		SAS_LOG_DEBUG(priv->logger, "connection data are not complete");
@@ -880,6 +892,26 @@ std::string ODBCConnector::getErrorText()
 {
 	NullEC ec;
 	return getErrorText(SQL_NULL_HANDLE, -1, ec);
+}
+
+bool ODBCConnector::appendCompletionValue(const std::string& command, const std::vector<std::string>& args, std::string& ret, ErrorCollector& ec) const //final override
+{
+	auto it = priv->settings.macros.find(command);
+	if (it == priv->settings.macros.end())
+	{
+		auto err = ec.add(-1, "unsupported macro: '" + command + "'");
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+
+	auto tmpl = std::get<0>(it->second);
+	size_t i = 0;
+	for(auto & a : std::get<1>(it->second))
+		tmpl = std::regex_replace(tmpl, std::regex("\\$\\(" + a + "\\)|\\$\\{" + a + "\\}"), i < args.size() ? args[i++] : std::string());
+
+	ret += tmpl;
+
+	return true;
 }
 
 }

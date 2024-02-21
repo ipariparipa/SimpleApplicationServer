@@ -20,19 +20,132 @@
 
 #include <sasCore/errorcollector.h>
 #include <sasCore/logging.h>
+#include <sasCore/tools.h>
 
 #include <memory>
 
 namespace SAS {
 
-	bool SQLConnector::getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec)
+bool SQLConnector::completeStatement(std::string & sql, ErrorCollector & ec) const
+{
+	SAS_LOG_NDC();
+
+	struct Local
 	{
-		SAS_LOG_NDC();
-		std::unique_ptr<SQLStatement> stmt(createStatement(ec));
-		if (!stmt)
-			return false;
-		return stmt->getSysDate(ret, ec);
-	}
+		const SQLConnector* that;
+
+		bool replace(std::string & sql, ErrorCollector & ec)
+		{
+			short br_cnt = 0;
+			bool qm = false;
+			bool ap = false;
+			bool esc = false;
+			bool cmd = false;
+
+			std::string ret;
+
+			std::string command;
+			std::vector<std::string> args;
+			std::string* _arg = nullptr;
+			for (auto c : sql)
+			{
+				if (esc)
+				{
+					esc = false;
+					goto add;
+				}
+				else if (c == '$' && !cmd && !qm && !ap && br_cnt == 0)
+					cmd = true;
+				else switch (c)
+				{
+				case '\\':
+					if (br_cnt == 0)
+					{
+						esc = true;
+						break;
+					}
+					goto add;
+				case '"':
+					if (!ap)
+						qm = !qm;
+					goto add;
+				case '\'':
+					if (!qm)
+						ap = !ap;
+					goto add;
+				case '{':
+					switch (++br_cnt)
+					{
+					case 1:
+						if (cmd)
+							_arg = &command;
+						break;
+					case 2:
+						args.push_back(std::string());
+						_arg = &args.back();
+						break;
+					default:
+						goto add;
+					}
+					break;
+				case '}':
+					switch (--br_cnt)
+					{
+					case 0:
+						for (auto& a : args)
+							if (!replace(a, ec))
+								return false;
+
+
+						if (!that->appendCompletionValue(command, args, ret, ec))
+							return false;
+
+						cmd = false;
+						args.clear();
+						command.clear();
+						_arg = nullptr;
+
+						break;
+					case 1:
+						_arg = nullptr; break;
+					case -1:
+						goto end;
+					default:
+						goto add;
+					}
+					break;
+				default:
+				add:
+					if (_arg)
+						*_arg += c;
+					else if (!cmd)
+						ret += c;
+				}
+			}
+
+		end:
+			sql = ret;
+			if (br_cnt != 0 || ap || qm || esc)
+			{
+				ec.add(-1, "synax error in input statement");
+				return false;
+			}
+
+			return true;
+		}
+	} local { this };
+
+	return local.replace(sql, ec);
+}
+ 
+bool SQLConnector::getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec)
+{
+	SAS_LOG_NDC();
+	std::unique_ptr<SQLStatement> stmt(createStatement(ec));
+	if (!stmt)
+		return false;
+	return stmt->getSysDate(ret, ec);
+}
 
 
 struct SQLTransactionProtector::Priv

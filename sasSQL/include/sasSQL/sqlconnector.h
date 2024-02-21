@@ -20,6 +20,7 @@
 
 #include "config.h"
 #include <sasCore/object.h>
+#include <sasCore/logging.h>
 
 #include <string>
 
@@ -88,7 +89,12 @@ public:
 	virtual bool commit(ErrorCollector & ec) = 0;
 	virtual bool rollback(ErrorCollector & ec) = 0;
 
-	virtual bool getSysDate(SAS::SQLDateTime & ret, ErrorCollector & ec);
+	virtual bool completeStatement(std::string & sql, ErrorCollector& ec) const;
+
+	virtual bool getSysDate(SAS::SQLDateTime & ret, ErrorCollector& ec);
+
+protected:
+	virtual bool appendCompletionValue(const std::string & command, const std::vector<std::string> & args, std::string & ret, ErrorCollector & ec) const = 0;
 };
 
 

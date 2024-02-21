@@ -43,27 +43,27 @@ class OraConnector : public SQLConnector
 	Priv * priv;
 public:
 	OraConnector(dpiContext * ctx, const std::string & name, Application * app);
-	virtual ~OraConnector();
+	virtual ~OraConnector() override;
 
-	virtual const char * getServerType() const final
+	inline const char * getServerType() const final override
 	{ return "oracle"; }
 
-	virtual bool getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec) final;
+	bool getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec) final override;
 
-	virtual bool hasFeature(Feature f, std::string & explanation) final;
+	bool hasFeature(Feature f, std::string & explanation) final override;
 
 	bool init(const std::string & configPath, ErrorCollector & ec);
 
-	virtual bool connect(ErrorCollector & ec) final;
+	bool connect(ErrorCollector & ec) final override;
 
-	virtual SQLStatement * createStatement(ErrorCollector & ec) final;
+	SQLStatement * createStatement(ErrorCollector & ec) final override;
 
-	virtual std::string name() const final;
+	std::string name() const final override;
 
-	virtual bool exec(const std::string & statement, SQLResult *& res, ErrorCollector & ec) final;
-	virtual bool exec(const std::string & statement, ErrorCollector & ec) final;
+	bool exec(const std::string & statement, SQLResult *& res, ErrorCollector & ec) final override;
+	bool exec(const std::string & statement, ErrorCollector & ec) final override;
 
-	virtual void detach() final;
+	void detach() final override;
 
 	Logging::LoggerPtr logger() const;
 
@@ -71,14 +71,14 @@ public:
 
 	std::mutex & mutex();
 
-	virtual bool activate(ErrorCollector & ec) final;
+	bool activate(ErrorCollector & ec) final override;
 
-	virtual void lock() final;
-	virtual void unlock() final;
+	void lock() final override;
+	void unlock() final override;
 
-	virtual bool startTransaction(ErrorCollector & ec) final;
-	virtual bool commit(ErrorCollector & ec) final;
-	virtual bool rollback(ErrorCollector & ec) final;
+	bool startTransaction(ErrorCollector & ec) final override;
+	bool commit(ErrorCollector & ec) final override;
+	bool rollback(ErrorCollector & ec) final override;
 
 	dpiConn * conn();
 	dpiConn * conn(ErrorCollector & ec);
@@ -86,6 +86,8 @@ public:
 
 	std::string getErrorText();
 
+protected:
+	bool appendCompletionValue(const std::string& command, const std::vector<std::string>& args, std::string& ret, ErrorCollector& ec) const final override;
 };
 
 }

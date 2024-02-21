@@ -47,7 +47,9 @@ struct ODBC_Settings
 		GetLastGeneratedId,
 		GetSysdate
 	};
-	std::map<StatementInjection, std::string> statementInjections;
+	std::map<StatementInjection, std::string /*template*/> statementInjections;
+
+	std::map<std::string /*name*/, std::tuple<std::string /*template*/, std::vector<std::string> /*args*/>> macros;
 
 	struct Info
 	{
@@ -109,6 +111,8 @@ public:
 
 	std::string getErrorText();
 
+protected:
+	bool appendCompletionValue(const std::string& command, const std::vector<std::string>& args, std::string& ret, ErrorCollector& ec) const final override;
 };
 
 }
