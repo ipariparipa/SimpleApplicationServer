@@ -36,6 +36,9 @@
     <ClCompile Include="generated\corbasasSK.cc">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="corbaconnectorfactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="corbaconnector.h">
@@ -52,6 +55,9 @@
     </ClInclude>
     <ClInclude Include="generated\corbasas.hh">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="corbaconnectorfactory.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

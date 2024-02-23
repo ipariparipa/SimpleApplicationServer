@@ -23,6 +23,7 @@
 #include <sasCore/defines.h>
 
 #include <vector>
+#include <string>
 
 namespace SAS {
 

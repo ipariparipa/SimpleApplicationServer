@@ -128,7 +128,7 @@ namespace SAS {
 		SAS_LOG_NDC();
 		std::unique_lock<Depot> __mutex_locker(priv->depot);
 		Object * o = nullptr;
-		auto now = std::chrono::system_clock::now();
+		auto now = std::chrono::steady_clock::now();
 		if (id)
 		{
 			SAS_LOG_TRACE(priv->logger, "unique ID is already known");
@@ -152,7 +152,7 @@ namespace SAS {
 			while (priv->depot.data().count(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count()))
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
-				now = std::chrono::system_clock::now();
+				now = std::chrono::steady_clock::now();
 			}
 			id = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
 			SAS_LOG_VAR(priv->logger, id);

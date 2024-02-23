@@ -1,0 +1,3 @@
+[submodule "PortableIDL"]
+	path = PortableIDL
+	url = https://github.com/ipariparipa/PortableIDL.git

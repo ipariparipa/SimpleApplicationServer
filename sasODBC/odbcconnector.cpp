@@ -37,6 +37,7 @@ along with sasODBC.  If not, see <http://www.gnu.org/licenses/>
 #include <memory>
 #include <assert.h>
 #include <string.h>
+#include <regex>
 
 #include <list>
 
@@ -105,7 +106,7 @@ struct ODBCConnector::Priv
 			SQLHDBC conn;
 			std::mutex mut;
 			std::mutex external_mut;
-			size_t connected = 0;
+			bool connected = false;
 		};
 
 
@@ -142,26 +143,26 @@ struct ODBCConnector::Priv
 			if (conn)
 			{
 				SAS_LOG_TRACE(logger, "test ODBC connection");
-				/* // CHECKME
-				if (dpiConn_ping(conn->conn) == DPI_SUCCESS)
+
+				SQLRETURN rc;
+				SQLINTEGER tmp;
+				if (SQL_SUCCEEDED(rc = SQLGetConnectAttr(conn->conn, SQL_ATTR_CONNECTION_DEAD, &tmp, 0, NULL)) && !tmp)
 					return conn;
 
-				SAS_LOG_INFO(logger, "oracle connection has already gone. try to acquire a new one");
+				SAS_LOG_INFO(logger, "ODBC connection has already gone. try to acquire a new one");
 				delete conn;
 				connection_registry.erase(Thread::getThreadId());
-				*/
-				return conn;
 			}
-			else
-			{
-				SAS_LOG_INFO(logger, "create new ODBC connection (#"+std::to_string(connection_repo.size()+1)+")");
 
-				SQLHDBC _conn;
-				if (!createODBCConnection(env, _conn, ec))
-					return nullptr;
+			SAS_LOG_INFO(logger, "create new ODBC connection (#"+std::to_string(connection_repo.size()+1)+")");
 
-				connection_repo[conn = new Connection(env, _conn)] = 1;
-			}
+			SQLHDBC _conn;
+			if (!createODBCConnection(env, _conn, ec))
+				return nullptr;
+
+			connection_repo[conn = new Connection(env, _conn)] = 1;
+			conn->connected = true;
+
 			connection_registry[Thread::getThreadId()] = conn;
 
 			return conn;
@@ -187,7 +188,7 @@ struct ODBCConnector::Priv
 		{
 			SAS_LOG_NDC();
 
-			SAS_LOG_TRACE(logger, "detach oracle connection");
+			SAS_LOG_TRACE(logger, "detach odbc connection");
 
 			std::unique_lock<std::mutex> __locker(connection_repo_mut);
 			auto th_id = Thread::getThreadId();
@@ -364,9 +365,9 @@ struct ODBCConnector::Priv
 			}
 
 			if (!SQL_SUCCEEDED(rc = SQLConnect(conn,
-				(SQLCHAR*)connection_data.dsn.c_str(), connection_data.dsn.length(),
-				(SQLCHAR*)connection_data.user.c_str(), connection_data.user.length(),
-				(SQLCHAR*)connection_data.passwd.c_str(), connection_data.passwd.length())))
+				(SQLCHAR*)connection_data.dsn.c_str(), static_cast<SQLSMALLINT>(connection_data.dsn.length()),
+				(SQLCHAR*)connection_data.user.c_str(), static_cast<SQLSMALLINT>(connection_data.user.length()),
+				(SQLCHAR*)connection_data.passwd.c_str(), static_cast<SQLSMALLINT>(connection_data.passwd.length()))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__NOT_SUPPORTED, "could not connect: " + ODBCTools::getError(env, conn, SQL_NULL_HANDLE, rc, ec));
 				SAS_LOG_ERROR(logger, err);
@@ -394,7 +395,7 @@ std::string ODBCConnector::name() const
 
 const char * ODBCConnector::getServerType() const
 {
-	return priv->settings.info.db_type.length() ? str_tolower(priv->settings.info.db_type).c_str() : "(odbc)";
+	return priv->settings.info.db_type.length() ? priv->settings.info.db_type.c_str() : "(odbc)";
 }
 
 bool ODBCConnector::getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec)
@@ -416,8 +417,6 @@ bool ODBCConnector::getServerInfo(std::string & generation, std::string & versio
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
-//	if (std::string(tmp) == "Oracle") //https://docs.oracle.com/cd/B19306_01/server.102/b15658/app_odbc.htm#UNXAR413
-//		long_long_bind_is_supported = false;
 
 	version = tmp;
 
@@ -478,8 +477,20 @@ bool ODBCConnector::hasFeature(Feature f, std::string & explanation)
 		explanation = "this feature is not natively supported by ODBC library, but implemented as using SQLStatement.";
 		return true;
 	case SQLConnector::Feature::GetLastGeneratedId:
+		if (priv->settings.statementInjections.find(ODBC_Settings::StatementInjection::GetLastGeneratedId) != priv->settings.statementInjections.end())
+		{
+			explanation = "supported by statement injection";
+			return true;
+		}
+		explanation = "not supported by ODBC, use DB specific solution instead";
+		return false;
 	case SQLConnector::Feature::GetSysDate:
-		explanation = "use DB specific solution instead";
+		if (priv->settings.statementInjections.find(ODBC_Settings::StatementInjection::GetSysdate) != priv->settings.statementInjections.end())
+		{
+			explanation = "supported by statement injection";
+			return true;
+		}
+		explanation = "not supported by ODBC, use DB specific solution instead";
 		return false;
 	default:
 		explanation = "unknown feature: '" + std::to_string((int)f) + "'.";
@@ -551,7 +562,46 @@ bool ODBCConnector::init(const std::string & configPath, ErrorCollector & ec)
 	if (cfg->getEntryAsString(configPath + "/CP_MATCH", tmp, ec))
 		priv->connection_data.options.push_back(std::make_pair("CP_MATCH", tmp));
 
-	cfg->getBoolEntry(configPath + "/LONG_LONG_BIND_SUPPORTED", priv->settings.long_long_bind_supported, true, ec);
+	{
+		std::string str;
+		if(!cfg->getStringEntry(configPath + "/INT64_BIND_RULE", str, "normal", ec))
+			has_error = true;
+		else
+		{
+			if (str == "not_supported")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::NotSupported;
+			else if (str == "normal")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::Normal;
+			else if (str == "as_int32")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::AsInt32;
+			else if (str == "as_string")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::AsString;
+			else if (str == "as_int32_or_as_string")
+				priv->settings.int64BindRule = ODBC_Settings::Int64BindRule::AsInt32_or_AsString;
+			else
+			{
+				auto err = ec.add(SAS_SQL__ERROR__INVALID_CONFIG_VALUE, "invalid config value: " + str);
+				SAS_LOG_ERROR(priv->logger, err);
+				has_error = true;
+			}
+		}
+	}
+
+	if (cfg->getEntryAsString(configPath + "/STATEMENT/GET_LAST_GENERATED_ID", tmp, ec))
+		priv->settings.statementInjections[ODBC_Settings::StatementInjection::GetLastGeneratedId] = tmp;
+	if (cfg->getEntryAsString(configPath + "/STATEMENT/GET_SYSDATE", tmp, ec))
+		priv->settings.statementInjections[ODBC_Settings::StatementInjection::GetSysdate] = tmp;
+
+	std::vector<std::string> mascros;
+	if (cfg->getEntryAsStringList(configPath + "/MACROS", mascros, ec))
+		for (auto& name : mascros)
+		{
+			std::vector<std::string> args;
+			cfg->getEntryAsStringList(configPath + "/MACRO/" + name + "/ARGS", args, ec);
+
+			if (cfg->getEntryAsString(configPath + "/MACRO/" + name + "/TMPL", tmp, ec))
+				priv->settings.macros[name] = std::make_tuple(tmp, args);
+		}
 
 	if(has_error)
 	{
@@ -747,8 +797,25 @@ void ODBCConnector::unlock()
 
 bool ODBCConnector::startTransaction(ErrorCollector & ec)
 {
-    (void)ec;
-    SAS_LOG_NDC();
+	SAS_LOG_NDC();
+	auto conn = priv->connectionManager.connection();
+	if (!conn)
+	{
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "connection is not specified for the thread");
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+
+	SQLRETURN rc;
+
+	SAS_LOG_TRACE(priv->logger, "SQLSetConnectAttr");
+	if (!SQL_SUCCEEDED(rc = SQLSetConnectAttr(conn->conn, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)FALSE, 0)))
+	{
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could start transaction: " + ODBCTools::getError(priv->env, conn->conn, SQL_NULL_HANDLE, rc, ec));
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+
 	return true;
 }
 
@@ -766,9 +833,9 @@ bool ODBCConnector::commit(ErrorCollector & ec)
 	SQLRETURN rc;
 
 	SAS_LOG_TRACE(priv->logger, "SQLEndTran");
-	if (!SQL_SUCCEEDED(rc = SQLEndTran(SQL_HANDLE_DBC, conn, SQL_COMMIT)))
+	if (!SQL_SUCCEEDED(rc = SQLEndTran(SQL_HANDLE_DBC, conn->conn, SQL_COMMIT)))
 	{
-		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not commit transaction: " + ODBCTools::getError(priv->env, conn, SQL_NULL_HANDLE, rc, ec));
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not commit transaction: " + ODBCTools::getError(priv->env, conn->conn, SQL_NULL_HANDLE, rc, ec));
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
@@ -789,9 +856,9 @@ bool ODBCConnector::rollback(ErrorCollector & ec)
 	SQLRETURN rc;
 
 	SAS_LOG_TRACE(priv->logger, "SQLEndTran");
-	if (!SQL_SUCCEEDED(rc = SQLEndTran(SQL_HANDLE_DBC, conn, SQL_ROLLBACK)))
+	if (!SQL_SUCCEEDED(rc = SQLEndTran(SQL_HANDLE_DBC, conn->conn, SQL_ROLLBACK)))
 	{
-		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not rollback transaction: " + ODBCTools::getError(priv->env, conn, SQL_NULL_HANDLE, rc, ec));
+		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not rollback transaction: " + ODBCTools::getError(priv->env, conn->conn, SQL_NULL_HANDLE, rc, ec));
 		SAS_LOG_ERROR(priv->logger, err);
 		return false;
 	}
@@ -825,6 +892,26 @@ std::string ODBCConnector::getErrorText()
 {
 	NullEC ec;
 	return getErrorText(SQL_NULL_HANDLE, -1, ec);
+}
+
+bool ODBCConnector::appendCompletionValue(const std::string& command, const std::vector<std::string>& args, std::string& ret, ErrorCollector& ec) const //final override
+{
+	auto it = priv->settings.macros.find(command);
+	if (it == priv->settings.macros.end())
+	{
+		auto err = ec.add(-1, "unsupported macro: '" + command + "'");
+		SAS_LOG_ERROR(priv->logger, err);
+		return false;
+	}
+
+	auto tmpl = std::get<0>(it->second);
+	size_t i = 0;
+	for(auto & a : std::get<1>(it->second))
+		tmpl = std::regex_replace(tmpl, std::regex("\\$\\(" + a + "\\)|\\$\\{" + a + "\\}"), i < args.size() ? args[i++] : std::string());
+
+	ret += tmpl;
+
+	return true;
 }
 
 }

@@ -44,42 +44,45 @@ class MySQLConnector : public SQLConnector
 	Priv * priv;
 public:
 	MySQLConnector(const std::string & name, Application * app);
-	virtual ~MySQLConnector();
+	virtual ~MySQLConnector() override;
 
-	virtual bool getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec) final;
+	bool getServerInfo(std::string & generation, std::string & version, ErrorCollector & ec) final override;
 
-	virtual inline const char * getServerType() const final
+	virtual inline const char * getServerType() const final override
 	{ return "mysql"; }
 
-	virtual bool hasFeature(Feature f, std::string & explanation) final;
+	bool hasFeature(Feature f, std::string & explanation) final override;
 
-	virtual bool connect(ErrorCollector & ec) final;
+	bool connect(ErrorCollector & ec) final override;
 
-	virtual SQLStatement * createStatement(ErrorCollector & ec) final;
+	SQLStatement * createStatement(ErrorCollector & ec) final override;
 
-	virtual std::string name() const final;
+	std::string name() const final override;
 
-	virtual bool exec(const std::string & statement, SQLResult *& res, ErrorCollector & ec) final;
-	virtual bool exec(const std::string & statement, ErrorCollector & ec) final;
+	bool exec(const std::string & statement, SQLResult *& res, ErrorCollector & ec) final override;
+	bool exec(const std::string & statement, ErrorCollector & ec) final override;
 
-	virtual void detach() final;
+	void detach() final override;
 
 	Logging::LoggerPtr logger() const;
 
-	bool init(const std::string & configPath, ErrorCollector & ec);
+	bool init(const std::string & configPath, ErrorCollector & ec) ;
 
 	const MySQL_Settings & settings() const;
 
 	std::mutex & mutex();
 
-	virtual bool activate(ErrorCollector & ec) final;
+	bool activate(ErrorCollector & ec) final override;
 
-	virtual void lock() final;
-	virtual void unlock() final;
+	void lock() final override;
+	void unlock() final override;
 
-	virtual bool startTransaction(ErrorCollector & ec) final;
-	virtual bool commit(ErrorCollector & ec) final;
-	virtual bool rollback(ErrorCollector & ec) final;
+	bool startTransaction(ErrorCollector & ec) final override;
+	bool commit(ErrorCollector & ec) final override;
+	bool rollback(ErrorCollector & ec) final override;
+
+protected:
+	bool appendCompletionValue(const std::string& command, const std::vector<std::string>& args, std::string& ret, ErrorCollector& ec) const final override;
 };
 
 }

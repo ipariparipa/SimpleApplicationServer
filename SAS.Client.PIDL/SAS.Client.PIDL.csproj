@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\sln\sas\Debug\</OutputPath>
+    <OutputPath>..\..\sln\out\Debug-x86\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\sln\sas\Release\</OutputPath>
+    <OutputPath>..\..\sln\out\Release-x86\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -46,7 +46,7 @@
     <Compile Include="SAS_PIDLErrorCollector.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PIDL.Core\PIDL.Core.csproj">
+    <ProjectReference Include="..\..\PortableIDL\PIDL.Core\PIDL.Core.csproj">
       <Project>{364a4fd0-6ff5-45a0-9d2b-65360a9bf1e6}</Project>
       <Name>PIDL.Core</Name>
     </ProjectReference>

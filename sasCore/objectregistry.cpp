@@ -114,30 +114,7 @@ ObjectRegistry::~ObjectRegistry()
 
 bool ObjectRegistry::registerObject(Object * obj, ErrorCollector & ec)
 {
-	SAS_LOG_NDC();
-	assert(obj);
-	ObjectRegistry_priv::TypeReg * tr = priv->setTypeReg(obj->type());
-	assert(tr);
-	std::unique_lock<std::mutex> __locker(tr->mut);
-	if(tr->reg.count(obj->name()))
-	{
-		SAS_LOG_VAR(priv->logger, obj->type());
-		SAS_LOG_VAR(priv->logger, obj->name());
-		if(tr->reg[obj->name()] != obj)
-		{
-			auto err = ec.add(SAS_CORE__ERROR__OBJECT_REGISTRY__ALREADY_REGISTERED, "another object is already registered with the same identifier: '" + obj->type() + "/" + obj->name() + "'");
-			SAS_LOG_ERROR(priv->logger, err);
-			return false;
-		}
-		else
-			SAS_LOG_INFO(priv->logger, "object is already registered: '"+obj->type()+"/"+obj->name()+"'");
-	}
-	else
-	{
-		tr->reg[obj->name()] = obj;
-		SAS_LOG_DEBUG(priv->logger, "object '"+obj->type()+"/"+obj->name()+"' has been registered");
-	}
-	return true;
+	return registerObjects({ obj }, ec);
 }
 
 bool ObjectRegistry::registerObjects(std::vector<Object *> obj, ErrorCollector & ec)
