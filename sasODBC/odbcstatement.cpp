@@ -59,16 +59,16 @@ namespace SAS {
 			}
 
 			template<typename T>
-			void alloc(size_t size = 1)
+			void alloc(size_t size = 1, SQLLEN ind = 0)
 			{
-				_ind = 0;
+				_ind = ind;
 				_data.resize(size * sizeof(T));
 			}
 
 			template<typename T>
-			void setData(const T* src, size_t size = 1)
+			void setData(const T* src, size_t size = 1, SQLLEN ind = 0)
 			{
-				alloc<T>(size);
+				alloc<T>(size, ind);
 				memcpy(_data.data(), src, size * sizeof(T));
 			}
 
@@ -334,7 +334,7 @@ namespace SAS {
 			if (isNull)
 				buff.setNull<unsigned char>();
 			else
-				buff.setData<unsigned char>(buffer, size);
+				buff.setData<unsigned char>(buffer, size, size);
 
 			SAS_LOG_TRACE(logger, "SQLBindParameter");
 			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt,
@@ -342,10 +342,10 @@ namespace SAS {
 			                                          SQL_PARAM_INPUT,
 			                                          SQL_C_BINARY,
 			                                          SQL_VARBINARY,
-			                                          static_cast<SQLUINTEGER>(size + 1),
+			                                          0,
 			                                          0,
 			                                          buff.data(),
-			                                          static_cast<SQLUINTEGER>(size + 1),
+			                                          static_cast<SQLUINTEGER>(size),
 			                                          buff.ind()))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
