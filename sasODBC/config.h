@@ -33,4 +33,6 @@
 #  endif
 #endif
 
+#define SAS_ODBC__MAX_STRING_BUFFER_SIZE 1024
+
 #endif // sasODBC__config_h

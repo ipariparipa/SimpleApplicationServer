@@ -880,35 +880,47 @@ namespace SAS {
 				break;
 			case SQLDataType::String:
 				{
-					std::vector<SQLCHAR> buff(std::get<2>(f));
-					SQLINTEGER len;
+					auto buff_size = std::get<2>(f);
+					if (buff_size == 0 || buff_size > SAS_ODBC__MAX_STRING_BUFFER_SIZE)
+						buff_size = SAS_ODBC__MAX_STRING_BUFFER_SIZE;
+
+					std::vector<SQLCHAR> buff(buff_size);
+					SQLINTEGER len = 0;
 					SAS_LOG_TRACE(priv->logger, "SQLGetData");
-                    switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_CHAR, buff.data(), static_cast<SQLLEN>(buff.size()), &len))
+					std::string str; bool has_value = false;
+					do
 					{
-					case SQL_NO_DATA:
-						ret[i] = SQLVariant(SQLDataType::String);
-						break;
-					case SQL_SUCCESS:
-						if(len == SQL_NULL_DATA)
-							ret[i] = SQLVariant(SQLDataType::String);
-						else
+						switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_CHAR, buff.data(), static_cast<SQLLEN>(buff.size()), &len))
 						{
-							auto s = strlen((const char *)buff.data());
-							std::string str;
-							str.append((const char*)buff.data(), s < (size_t)len ? s : (size_t)len);
-							ret[i] = str;
-						}
-						break;
-					case SQL_STILL_EXECUTING:
-					case SQL_ERROR:
-					case SQL_INVALID_HANDLE:
-					default:
+						case SQL_NO_DATA:
+							ret[i] = SQLVariant(SQLDataType::String);
+							break;
+						case SQL_SUCCESS_WITH_INFO:
+						case SQL_SUCCESS:
+							if (len == SQL_NULL_DATA)
+								ret[i] = SQLVariant(SQLDataType::String);
+							else
+							{
+								auto s = strlen((const char*)buff.data());
+								str.append((const char*)buff.data(), s < (size_t)len ? s : (size_t)len);
+								has_value = true;
+							}
+							break;
+						case SQL_STILL_EXECUTING:
+						case SQL_ERROR:
+						case SQL_INVALID_HANDLE:
+						default:
 						{
 							auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get data: " + priv->conn->getErrorText(priv->stmt, rc, ec));
 							SAS_LOG_ERROR(priv->logger, err);
 							has_error = true;
 						}
+						}
 					}
+					while (rc == SQL_SUCCESS_WITH_INFO);
+
+					if(!has_error && has_value)
+						ret[i] = str;
 				}
 				break;
 			case SQLDataType::Number:
