@@ -738,6 +738,14 @@ namespace SAS {
 		SAS_LOG_TRACE(priv->logger, "SQLExecute");
 		if (!SQL_SUCCEEDED(rc = SQLExecute(priv->stmt)))
 		{
+#ifdef SQL_NO_DATA
+			if (rc == SQL_NO_DATA)
+			{
+				SAS_LOG_TRACE(priv->logger, "no affected rows");
+				priv->row_num = 0;
+				return true;
+			}
+#endif
 			auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not execute statement: " + priv->conn->getErrorText(priv->stmt, rc, ec));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
