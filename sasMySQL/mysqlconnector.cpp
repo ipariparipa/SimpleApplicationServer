@@ -520,9 +520,9 @@ bool MySQLConnector::appendCompletionValue(const std::string & command, const st
 	else if (command == "for_update")
 	{
 		if (args.size() == 1)
-			ret += args[0] + " " + "for update";
+			ret += args[0] + " for update";
 		else if (args.size() > 1)
-			ret += args[0] + " " + args[1] + "for update";
+			ret += args[0] + " " + args[1] + " for update";
 		else
 		{
 			auto err = ec.add(-1, "invalid length of arguments for 'for_update' macro");

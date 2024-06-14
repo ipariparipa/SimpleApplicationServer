@@ -59,16 +59,16 @@ namespace SAS {
 			}
 
 			template<typename T>
-			void alloc(size_t size = 1)
+			void alloc(size_t size = 1, SQLLEN ind = 0)
 			{
-				_ind = 0;
+				_ind = ind;
 				_data.resize(size * sizeof(T));
 			}
 
 			template<typename T>
-			void setData(const T* src, size_t size = 1)
+			void setData(const T* src, size_t size = 1, SQLLEN ind = 0)
 			{
-				alloc<T>(size);
+				alloc<T>(size, ind);
 				memcpy(_data.data(), src, size * sizeof(T));
 			}
 
@@ -236,10 +236,11 @@ namespace SAS {
 			if (isNull)
 				buff.setNull<char>();
 			else
-				buff.setData<char>(val.c_str(), val.length());
+				buff.setData<char>(val.c_str(), val.length() + 1); // strings must be null-terminated
 
 			SQLRETURN rc;
 			SAS_LOG_TRACE(logger, "SQLBindParameter");
+
 			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt,
 			                                          static_cast<SQLUSMALLINT>(idx + 1),
 				                                      SQL_PARAM_INPUT,
@@ -271,6 +272,50 @@ namespace SAS {
 			return bindParam(idx, val.size(), val.data(), isNull, ec);
 		}
 
+		template<>
+		bool bindParam<SQLDateTime>(size_t idx, const SQLDateTime& val, bool isNull, ErrorCollector& ec)
+		{
+			SQLRETURN rc;
+
+			assert(idx < bind_buffer.size());
+
+			auto& buff = bind_buffer[idx];
+			if (isNull)
+				buff.setNull<TIMESTAMP_STRUCT>();
+			else
+			{
+				buff.alloc<TIMESTAMP_STRUCT>();
+				TIMESTAMP_STRUCT* dt = static_cast<TIMESTAMP_STRUCT*>(buff.data());
+
+				dt->year = static_cast<SQLSMALLINT>(val.years());
+				dt->month = static_cast<SQLUSMALLINT>(val.months());
+				dt->day = static_cast<SQLUSMALLINT>(val.days());
+				dt->hour = static_cast<SQLUSMALLINT>(val.hours());
+				dt->minute = static_cast<SQLUSMALLINT>(val.minutes());
+				dt->second = static_cast<SQLUSMALLINT>(val.seconds());
+				dt->fraction = static_cast<SQLUSMALLINT>(val.fraction());
+			}
+
+			SAS_LOG_TRACE(logger, "SQLBindParameter");
+			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt,
+				static_cast<SQLUSMALLINT>(idx + 1),
+				SQL_PARAM_INPUT,
+				SQL_C_TIMESTAMP,
+				SQL_TIMESTAMP,
+				0,
+				val.precision(),
+				buff.data(),
+				0,
+				buff.ind()))))
+			{
+				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
+				SAS_LOG_ERROR(logger, err);
+				return false;
+			}
+
+			return true;
+		}
+
 		template<typename T>
 		bool bindParam(size_t idx, size_t size, const T* buffer, bool isNull, ErrorCollector& ec)
 		{
@@ -289,7 +334,7 @@ namespace SAS {
 			if (isNull)
 				buff.setNull<unsigned char>();
 			else
-				buff.setData<unsigned char>(buffer, size);
+				buff.setData<unsigned char>(buffer, size, size);
 
 			SAS_LOG_TRACE(logger, "SQLBindParameter");
 			if (!(SQL_SUCCEEDED(rc = SQLBindParameter(stmt,
@@ -297,10 +342,10 @@ namespace SAS {
 			                                          SQL_PARAM_INPUT,
 			                                          SQL_C_BINARY,
 			                                          SQL_VARBINARY,
-			                                          static_cast<SQLUINTEGER>(size + 1),
+			                                          0,
 			                                          0,
 			                                          buff.data(),
-			                                          static_cast<SQLUINTEGER>(size + 1),
+			                                          static_cast<SQLUINTEGER>(size),
 			                                          buff.ind()))))
 			{
 				auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, conn->getErrorText(stmt, rc, ec));
@@ -367,6 +412,8 @@ namespace SAS {
 
 		bool bindNullParam(size_t idx, ErrorCollector& ec)
 		{
+			if (idx >= bind_buffer.size())
+				return true;
 			return bindParam<SQLINTEGER>(idx, 0, true, ec);
 		}
 
@@ -644,8 +691,7 @@ namespace SAS {
 				break;
 			case SQLDataType::DateTime:
 				{
-					auto & _dt = p.asDateTime();
-                    if (!priv->bindParam(idx, _dt.to_tm(), _dt.nanoseconds(), p.isNull(), ec))
+                    if (!priv->bindParam(idx, p.asDateTime(), p.isNull(), ec))
 						has_error = true;
 					break;
 				}
@@ -692,6 +738,14 @@ namespace SAS {
 		SAS_LOG_TRACE(priv->logger, "SQLExecute");
 		if (!SQL_SUCCEEDED(rc = SQLExecute(priv->stmt)))
 		{
+#ifdef SQL_NO_DATA
+			if (rc == SQL_NO_DATA)
+			{
+				SAS_LOG_TRACE(priv->logger, "no affected rows");
+				priv->row_num = 0;
+				return true;
+			}
+#endif
 			auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not execute statement: " + priv->conn->getErrorText(priv->stmt, rc, ec));
 			SAS_LOG_ERROR(priv->logger, err);
 			return false;
@@ -834,35 +888,47 @@ namespace SAS {
 				break;
 			case SQLDataType::String:
 				{
-					std::vector<SQLCHAR> buff(std::get<2>(f));
-					SQLINTEGER len;
+					auto buff_size = std::get<2>(f);
+					if (buff_size == 0 || buff_size > SAS_ODBC__MAX_STRING_BUFFER_SIZE)
+						buff_size = SAS_ODBC__MAX_STRING_BUFFER_SIZE;
+
+					std::vector<SQLCHAR> buff(buff_size);
+					SQLINTEGER len = 0;
 					SAS_LOG_TRACE(priv->logger, "SQLGetData");
-                    switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_CHAR, buff.data(), static_cast<SQLLEN>(buff.size()), &len))
+					std::string str; bool has_value = false;
+					do
 					{
-					case SQL_NO_DATA:
-						ret[i] = SQLVariant(SQLDataType::String);
-						break;
-					case SQL_SUCCESS:
-						if(len == SQL_NULL_DATA)
-							ret[i] = SQLVariant(SQLDataType::String);
-						else
+						switch (rc = SQLGetData(priv->stmt, static_cast<SQLUSMALLINT>(i + 1), SQL_C_CHAR, buff.data(), static_cast<SQLLEN>(buff.size()), &len))
 						{
-							auto s = strlen((const char *)buff.data());
-							std::string str;
-							str.append((const char*)buff.data(), s < (size_t)len ? s : (size_t)len);
-							ret[i] = str;
-						}
-						break;
-					case SQL_STILL_EXECUTING:
-					case SQL_ERROR:
-					case SQL_INVALID_HANDLE:
-					default:
+						case SQL_NO_DATA:
+							ret[i] = SQLVariant(SQLDataType::String);
+							break;
+						case SQL_SUCCESS_WITH_INFO:
+						case SQL_SUCCESS:
+							if (len == SQL_NULL_DATA)
+								ret[i] = SQLVariant(SQLDataType::String);
+							else
+							{
+								auto s = strlen((const char*)buff.data());
+								str.append((const char*)buff.data(), s < (size_t)len ? s : (size_t)len);
+								has_value = true;
+							}
+							break;
+						case SQL_STILL_EXECUTING:
+						case SQL_ERROR:
+						case SQL_INVALID_HANDLE:
+						default:
 						{
 							auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could not get data: " + priv->conn->getErrorText(priv->stmt, rc, ec));
 							SAS_LOG_ERROR(priv->logger, err);
 							has_error = true;
 						}
+						}
 					}
+					while (rc == SQL_SUCCESS_WITH_INFO);
+
+					if(!has_error && has_value)
+						ret[i] = str;
 				}
 				break;
 			case SQLDataType::Number:
