@@ -30,7 +30,7 @@ along with sasODBC.  If not, see <http://www.gnu.org/licenses/>
 
 #elif SAS_OS == SAS_OS_WINDOWS 
 #  include <Windows.h>
-#  include <sqlext.h> 
+#  include <sqlext.h>
 
 #endif
 

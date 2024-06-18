@@ -809,7 +809,7 @@ bool ODBCConnector::startTransaction(ErrorCollector & ec)
 	SQLRETURN rc;
 
 	SAS_LOG_TRACE(priv->logger, "SQLSetConnectAttr");
-	if (!SQL_SUCCEEDED(rc = SQLSetConnectAttr(conn->conn, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)FALSE, 0)))
+	if (!SQL_SUCCEEDED(rc = SQLSetConnectAttr(conn->conn, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER)nullptr, 0)))
 	{
 		auto err = ec.add(SAS_SQL__ERROR__UNEXPECTED, "could start transaction: " + ODBCTools::getError(priv->env, conn->conn, SQL_NULL_HANDLE, rc, ec));
 		SAS_LOG_ERROR(priv->logger, err);

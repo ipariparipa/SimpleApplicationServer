@@ -26,7 +26,7 @@ namespace SAS {
 
 	struct UniqueObjectManager::Object::Priv
 	{
-		std::chrono::time_point<std::chrono::high_resolution_clock> lastTouched;
+		std::chrono::steady_clock::time_point lastTouched;
 		std::chrono::seconds max_idletime;
 	};
 
@@ -38,12 +38,12 @@ namespace SAS {
 		delete priv;
 	}
 
-	void UniqueObjectManager::Object::setLastTouched(const std::chrono::time_point<std::chrono::high_resolution_clock> & v)
+	void UniqueObjectManager::Object::setLastTouched(const std::chrono::steady_clock::time_point &v)
 	{
 		priv->lastTouched = v;
 	}
 
-	std::chrono::time_point<std::chrono::high_resolution_clock> UniqueObjectManager::Object::lastTouched() const
+	std::chrono::steady_clock::time_point UniqueObjectManager::Object::lastTouched() const
 	{
 		return priv->lastTouched;
 	}

@@ -81,7 +81,7 @@ namespace SAS {
 			MHD_PostProcessor *postprocessor = nullptr;
 		};
 
-		int send_data (struct MHD_Connection *connection, const char * data, size_t size, const char * sid, const char * content_type, int status_code)
+		MHD_Result send_data (struct MHD_Connection *connection, const char * data, size_t size, const char * sid, const char * content_type, int status_code)
 		{
 			SAS_LOG_NDC();
 
@@ -108,12 +108,12 @@ namespace SAS {
 			return ret;
 		}
 
-		int send_data (struct MHD_Connection *connection, const std::vector<char> & data, const char * sid, const char * content_type, int status_code)
+		MHD_Result send_data (struct MHD_Connection *connection, const std::vector<char> & data, const char * sid, const char * content_type, int status_code)
 		{
 			return send_data(connection, data.data(), data.size(), sid, content_type, status_code);
 		}
 
-		int send_data(struct MHD_Connection *connection, const std::list<std::vector<char>> & buffer, const char * sid, const char * content_type, int status_code)
+		MHD_Result send_data(struct MHD_Connection *connection, const std::list<std::vector<char>> & buffer, const char * sid, const char * content_type, int status_code)
 		{
 			size_t size = 0;
 			for(auto & p : buffer)
@@ -136,7 +136,7 @@ namespace SAS {
 			con_info->in_buffer.push_back(buff);
 		}
 
-		int complete(connection_info_struct *con_info, MHD_Connection *connection, const char * url)
+		MHD_Result complete(connection_info_struct *con_info, MHD_Connection *connection, const char * url)
 		{
 			SAS_LOG_NDC();
 
@@ -377,7 +377,7 @@ namespace SAS {
 			return send_data(connection, output, sid ? std::to_string(sid).c_str() : nullptr, content_type, answercode);
 		}
 
-		static int iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char *key, const char *filename, const char *content_type,
+		static MHD_Result iterate_post (void *coninfo_cls, enum MHD_ValueKind kind, const char *key, const char *filename, const char *content_type,
 					  const char *transfer_encoding, const char *data, uint64_t off, size_t size)
 		{
             (void)kind;
@@ -396,7 +396,7 @@ namespace SAS {
 			return MHD_YES;
 		}
 
-		static int answer_to_connection (void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version,
+		static MHD_Result answer_to_connection (void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version,
 					  const char *upload_data, size_t *upload_data_size, void **con_cls)
 		{
             (void)version;
@@ -433,7 +433,7 @@ namespace SAS {
 			switch(con_info->connectiontype)
 			{
 			case HTTPMethod::None:
-				return MHD_HTTP_INTERNAL_SERVER_ERROR;
+				return (MHD_Result)MHD_HTTP_INTERNAL_SERVER_ERROR; //CHECKME
 			case HTTPMethod::POST:
 				if (*upload_data_size)
 				{
@@ -441,7 +441,7 @@ namespace SAS {
 					{
 						SAS_LOG_TRACE(priv->logger, "MHD_post_process");
 						if (MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size) != MHD_YES)
-							return MHD_HTTP_BAD_REQUEST;
+							return (MHD_Result)MHD_HTTP_BAD_REQUEST;  //CHECKME
 					}
 					else
 						priv->handle_input_data(con_info, *upload_data_size, upload_data);

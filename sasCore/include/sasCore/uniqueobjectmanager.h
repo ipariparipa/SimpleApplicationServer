@@ -47,8 +47,8 @@ namespace SAS {
 		public:
 			Object();
 			virtual ~Object();
-			void setLastTouched(const std::chrono::time_point<std::chrono::high_resolution_clock> & v);
-			std::chrono::time_point<std::chrono::high_resolution_clock> lastTouched() const;
+			void setLastTouched(const std::chrono::steady_clock::time_point &v);
+			std::chrono::steady_clock::time_point lastTouched() const;
 		};
 
 		UniqueObjectManager(const std::string & name);
