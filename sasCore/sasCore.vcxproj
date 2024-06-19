@@ -15,16 +15,17 @@
     <RootNamespace>sasCore</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="..\default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -39,21 +40,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IntDir>obj\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir>obj\$(Configuration)\</IntDir>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SAS_CORE__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SAS_CORE__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -75,14 +74,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\windeps\log4cxx\log4cxx\src\main\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SAS_CORE__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SAS_CORE__IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(OutDir);..\windeps\log4cxx\bin\Win32\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -102,6 +100,7 @@
     <ClCompile Include="component.cpp" />
     <ClCompile Include="configreader.cpp" />
     <ClCompile Include="connector.cpp" />
+    <ClCompile Include="connectorfactory.cpp" />
     <ClCompile Include="controlledthread.cpp" />
     <ClCompile Include="componentloader.cpp" />
     <ClCompile Include="errorcollector.cpp" />
@@ -110,12 +109,15 @@
     <ClCompile Include="libraryloader.cpp" />
     <ClCompile Include="logging.cpp" />
     <ClCompile Include="module.cpp" />
+    <ClCompile Include="notifier.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="objectregistry.cpp" />
     <ClCompile Include="sas.cpp" />
     <ClCompile Include="session.cpp" />
     <ClCompile Include="sessionmanager.cpp" />
     <ClCompile Include="thread.cpp" />
+    <ClCompile Include="threadpool.cpp" />
+    <ClCompile Include="timelinethread.cpp" />
     <ClCompile Include="timerthread.cpp" />
     <ClCompile Include="tools.cpp" />
     <ClCompile Include="uniqueobjectmanager.cpp" />
@@ -129,6 +131,7 @@
     <ClInclude Include="include\sasCore\config.h" />
     <ClInclude Include="include\sasCore\configreader.h" />
     <ClInclude Include="include\sasCore\connector.h" />
+    <ClInclude Include="include\sasCore\connectorfactory.h" />
     <ClInclude Include="include\sasCore\controlledthread.h" />
     <ClInclude Include="include\sasCore\defines.h" />
     <ClInclude Include="include\sasCore\errorcodes.h" />
@@ -140,12 +143,15 @@
     <ClInclude Include="include\sasCore\libraryloader.h" />
     <ClInclude Include="include\sasCore\logging.h" />
     <ClInclude Include="include\sasCore\module.h" />
+    <ClInclude Include="include\sasCore\notifier.h" />
     <ClInclude Include="include\sasCore\object.h" />
     <ClInclude Include="include\sasCore\objectregistry.h" />
     <ClInclude Include="include\sasCore\platform.h" />
     <ClInclude Include="include\sasCore\session.h" />
     <ClInclude Include="include\sasCore\sessionmanager.h" />
     <ClInclude Include="include\sasCore\thread.h" />
+    <ClInclude Include="include\sasCore\threadpool.h" />
+    <ClInclude Include="include\sasCore\timelinethread.h" />
     <ClInclude Include="include\sasCore\timerthread.h" />
     <ClInclude Include="include\sasCore\tools.h" />
     <ClInclude Include="include\sasCore\uniqueobjectmanager.h" />
@@ -161,6 +167,9 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Copying platform h</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">include\sasCore\platform.h</Outputs>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="lgpl-3.0.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

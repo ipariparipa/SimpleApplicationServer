@@ -24,6 +24,9 @@
     <ClCompile Include="bypassmodule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="loopbackconnectorfactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h">
@@ -33,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bypassmodule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="loopbackconnectorfactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

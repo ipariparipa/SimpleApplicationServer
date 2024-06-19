@@ -408,11 +408,17 @@ bool OraStatement::bindParam(const std::vector<SQLVariant> & params, ErrorCollec
 
 	if (stmt_params_size > params_size)
 	{
-        SAS_LOG_VAR(priv->logger, stmt_params_size);
+		SAS_LOG_VAR(priv->logger, stmt_params_size);
 		SAS_LOG_VAR(priv->logger, params_size);
 		auto err = ec.add(SAS_SQL__ERROR__CANNOT_BIND_PARAMETERS, "insufficient number of parameters");
 		SAS_LOG_ERROR(priv->conn->logger(), err);
 		return false;
+	}
+	else if(stmt_params_size != params_size)
+	{
+		SAS_LOG_VAR(priv->logger, stmt_params_size);
+		SAS_LOG_VAR(priv->logger, params_size);
+		SAS_LOG_WARN(priv->logger, "incorrect number of parameters to be bound");
 	}
 
 	bool has_error(false);

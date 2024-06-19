@@ -270,15 +270,27 @@ const SQLDateTime & SQLVariant::asDateTime() const
 	return priv->datetime;
 }
 
-unsigned char * SQLVariant::asBlob(size_t & size) const
+unsigned char* SQLVariant::asBlob(size_t& size) const
 {
 	if (priv->buffer)
 	{
 		priv->buffer_size = size;
 		return priv->buffer;
 	}
-	size = priv->blob.size();
-	return priv->blob.data();
+	switch (priv->type)
+	{
+	case SQLDataType::Blob:
+		size = priv->blob.size();
+		return priv->blob.data();
+	case SQLDataType::Number:
+		size = sizeof(priv->number);
+		return reinterpret_cast<unsigned char*>(&priv->number);
+	case SQLDataType::String:
+		size = priv->string.size();
+		return (unsigned char*)priv->string.c_str();
+	default:
+		return nullptr;
+	}
 }
 
 unsigned char SQLVariant::asBlobByte(size_t idx) const

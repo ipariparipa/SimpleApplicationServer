@@ -18,9 +18,11 @@
 #ifndef INCLUDE_SASCORE_THREAD_H_
 #define INCLUDE_SASCORE_THREAD_H_
 
-#include <thread>
 #include "basictypes.h"
 #include "defines.h"
+
+#include <thread>
+#include <string>
 
 namespace SAS
 {

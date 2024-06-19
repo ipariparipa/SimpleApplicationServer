@@ -35,6 +35,13 @@ CONFIG(SAS_ALL) {
           SAS_HTTP
 }
 
+CONFIG(PIDL) {
+    SUBDIRS += \
+        pidl \
+
+    pidl.file = PortableIDL/pidl.pro
+}
+
 CONFIG(SAS_PIDL) {
     SUBDIRS += \
         sasPIDL \
@@ -44,6 +51,11 @@ CONFIG(SAS_PIDL) {
     pidlsas.depends = sasCore sasBasics sasJSON sasPIDL
 
     CONFIG += SAS_JSON
+
+    CONFIG(PIDL) {
+        sasPIDL.depends += pidl
+        pidlsas.depends += pidl
+    }
 }
 
 CONFIG(SAS_MQTT) {

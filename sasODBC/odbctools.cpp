@@ -34,7 +34,7 @@ namespace SAS {
 
 			if (!SQL_SUCCEEDED(_rc = SQLError(env, conn, stmt, out_sql_state, &out_native_error, out_msg_text, sizeof(out_msg_text), &out_text_length)))
 			{
-				ss << "could not get ODBC error info" << " (" << rc << ")";
+				ss << "could not get ODBC error info" << " (" << _rc << ")";
 				ec.add(-1, ss.str());
 				return false;
 			}
@@ -50,7 +50,7 @@ namespace SAS {
 		{
 			std::string ret;
 			if (!getError(env, conn, stmt, rc, ret, ec))
-				return "(no error)";
+				return "(error: " + std::to_string(rc) + ")";
 			return ret;
 		}
 

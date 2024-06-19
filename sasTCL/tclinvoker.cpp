@@ -401,7 +401,7 @@ namespace SAS {
 						uint32_t tmp_32(sizeof(uint16_t) + blob.first.size() + blob.second->size());
 						memcpy(out_header, &tmp_32, sizeof(uint32_t));
 						out_header += sizeof(uint32_t);
-						uint16_t tmp_16(blob.first.size());
+						uint16_t tmp_16 = static_cast<uint16_t>(blob.first.size());
 						memcpy(out_header, &tmp_16, sizeof(uint16_t));
 						out_header += sizeof(uint16_t);
 						output.insert(std::end(output), header.begin(), header.end());

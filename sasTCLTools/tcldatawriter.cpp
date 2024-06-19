@@ -99,7 +99,7 @@ namespace SAS {
 			memcpy(header_data, &tmp_32, sizeof(uint32_t));
 			header_data += sizeof(uint32_t);
 
-			uint16_t tmp_16 = blob_name.size();
+			uint16_t tmp_16 = static_cast<uint16_t>(blob_name.size());
 			memcpy(header_data, &tmp_16, sizeof(uint16_t));
 			header_data += sizeof(uint16_t);
 
@@ -140,7 +140,7 @@ namespace SAS {
 			memcpy(header_data, &tmp_32, sizeof(uint32_t));
 			header_data += sizeof(uint32_t);
 
-			uint16_t tmp_16 = blob_name.size();
+			uint16_t tmp_16 = static_cast<uint16_t>(blob_name.size());
 			memcpy(header_data, &tmp_16, sizeof(uint16_t));
 			header_data += sizeof(uint16_t);
 
@@ -180,7 +180,7 @@ namespace SAS {
 			memcpy(header_data, &tmp_32, sizeof(uint32_t));
 			header_data += sizeof(uint32_t);
 
-			uint16_t tmp_16 = blob_name.size();
+			uint16_t tmp_16 = static_cast<uint16_t>(blob_name.size());
 			memcpy(header_data, &tmp_16, sizeof(uint16_t));
 			header_data += sizeof(uint16_t);
 

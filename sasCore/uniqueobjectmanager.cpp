@@ -26,7 +26,7 @@ namespace SAS {
 
 	struct UniqueObjectManager::Object::Priv
 	{
-		std::chrono::time_point<std::chrono::high_resolution_clock> lastTouched;
+		std::chrono::steady_clock::time_point lastTouched;
 		std::chrono::seconds max_idletime;
 	};
 
@@ -38,12 +38,12 @@ namespace SAS {
 		delete priv;
 	}
 
-	void UniqueObjectManager::Object::setLastTouched(const std::chrono::time_point<std::chrono::high_resolution_clock> & v)
+	void UniqueObjectManager::Object::setLastTouched(const std::chrono::steady_clock::time_point &v)
 	{
 		priv->lastTouched = v;
 	}
 
-	std::chrono::time_point<std::chrono::high_resolution_clock> UniqueObjectManager::Object::lastTouched() const
+	std::chrono::steady_clock::time_point UniqueObjectManager::Object::lastTouched() const
 	{
 		return priv->lastTouched;
 	}
@@ -128,7 +128,7 @@ namespace SAS {
 		SAS_LOG_NDC();
 		std::unique_lock<Depot> __mutex_locker(priv->depot);
 		Object * o = nullptr;
-		auto now = std::chrono::system_clock::now();
+		auto now = std::chrono::steady_clock::now();
 		if (id)
 		{
 			SAS_LOG_TRACE(priv->logger, "unique ID is already known");
@@ -152,7 +152,7 @@ namespace SAS {
 			while (priv->depot.data().count(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count()))
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
-				now = std::chrono::system_clock::now();
+				now = std::chrono::steady_clock::now();
 			}
 			id = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
 			SAS_LOG_VAR(priv->logger, id);

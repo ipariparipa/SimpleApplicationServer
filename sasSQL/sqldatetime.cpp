@@ -226,7 +226,11 @@ struct SQLDateTime::Priv
             gmtime_s(&ret, &t);
 #endif
         else
+#if SAS_OS == SAS_OS_WINDOWS
+            localtime_s(&ret, &t);
+#else
             localtime_r(&t, &ret);
+#endif
     }
 
     unsigned int systemDurationPart()

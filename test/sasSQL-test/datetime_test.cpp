@@ -49,13 +49,13 @@ void DateTime_Test::precisions()
     }
 
     {
-        SAS::SQLDateTime dt(std::chrono::system_clock::time_point(std::chrono::system_clock::duration(1123456789)), 6);
+        SAS::SQLDateTime dt(std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::nanoseconds(1123456789))), 6);
         CPPUNIT_ASSERT_EQUAL(1970u, dt.years());
 
         CPPUNIT_ASSERT_EQUAL(123456u, dt.fraction());
         CPPUNIT_ASSERT_EQUAL(6, dt.precision());
 
-        SAS::SQLDateTime dt2(std::chrono::system_clock::time_point(std::chrono::system_clock::duration(112345678901)), 8);
+        SAS::SQLDateTime dt2(std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::nanoseconds(112345678901))), 8);
         CPPUNIT_ASSERT(dt < dt2);
     }
 

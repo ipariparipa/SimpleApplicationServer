@@ -28,7 +28,7 @@ along with sasMQTT.  If not, see <http://www.gnu.org/licenses/>
 namespace SAS {
 
 	class ErrorCollector;
-	struct MQTTConnectionOptions;
+	class MQTTConnectionOptions;
 
 	struct MQTTClient_priv;
 

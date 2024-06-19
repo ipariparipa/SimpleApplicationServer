@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="BuildAll" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Condition="Exists('user.props')" Project="user.props" />
+  <Import Condition="Exists('../default.props')" Project="../default.props" />
+
+  <PropertyGroup Label="UserMacros">
+	<!--<DotNetVersion Condition="'$(DotNetVersion)'==''">4.0</DotNetVersion>-->
+  </PropertyGroup>
+
+  <PropertyGroup Label="UserMacros" Condition="'$(WorkspaceDir)'==''">
+    <WorkspaceDir>$(MSBuildThisFileDirectory)</WorkspaceDir>
+	<OutDir>$(SolutionDir)out\$(Configuration)-$(PlatformSuffix)\</OutDir>
+	<IntDir>$(SolutionDir).obj\$(ProjectName)\$(Configuration)-$(PlatformSuffix)\</IntDir>
+
+    <Include_sasCore>$(WorkspaceDir)sasCore\include\</Include_sasCore>
+    <Include_sasBasics>$(WorkspaceDir)sasBasics\include\</Include_sasBasics>
+    <Include_sasPIDL>$(WorkspaceDir)sasPIDL\include\</Include_sasPIDL>
+    <Include_sasJSON>$(WorkspaceDir)sasJSON\include\</Include_sasJSON>
+    <Include_sasTCLTools>$(WorkspaceDir)sasTCLTools\include\</Include_sasTCLTools>
+    <Include_sasTCL>$(WorkspaceDir)sasTCL\include\</Include_sasTCL>
+    <Include_sasSQL>$(WorkspaceDir)sasSQL\include\</Include_sasSQL>
+
+    <Bin_SAS>$(OutDir)</Bin_SAS>
+    <Lib_SAS>$(OutDir)</Lib_SAS>
+  </PropertyGroup>
+
+  <PropertyGroup Label="UserMacros" Condition="'$(Include_PIDL)'==''">
+    <Include_PIDLCore>$(WorkspaceDir)\PortableIDL\pidlCore</Include_PIDLCore>
+    <Include_PIDLBackend>$(WorkspaceDir)\PortableIDL\pidlBackend</Include_PIDLBackend>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" Condition="'$(Include_PIDL)'!=''">
+    <Include_PIDLCore>$(Include_PIDL)</Include_PIDLCore>
+    <Include_PIDLBackend>$(Include_PIDL)</Include_PIDLBackend>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros">
+    <Bin_PIDL Condition="'$(Bin_PIDL)'==''">$(OutDir)</Bin_PIDL>
+    <Lib_PIDL Condition="'$(Lib_PIDL)'==''">$(OutDir)</Lib_PIDL>
+  </PropertyGroup>
+
+<!--
+  <PropertyGroup Label="UserMacros" Condition="'$(DepsDir)'!=''">
+    <Include_cppunit>$(DepsDir)cppunit\include\</Include_cppunit>
+    <Lib_cppunit>$(DepsDir)cppunit\lib\</Lib_cppunit>
+    <Bin_cppunit>$(DepsDir)cppunit\bin\</Bin_cppunit>
+
+    <Include_log4cxx>$(DepsDir)log4cxx\include\</Include_log4cxx>
+    <Lib_log4cxx>$(DepsDir)log4cxx\bin\$(Platform)</Lib_log4cxx>
+    <Bin_log4cxx>$(DepsDir)log4cxx\bin\$(Platform)</Bin_log4cxx>
+
+    <Include_tcl>$(DepsDir)tcl\include\</Include_tcl>
+    <Lib_tcl>$(DepsDir)tcl\lib\</Lib_tcl>
+    <Bin_tcl>$(DepsDir)tcl\bin\</Bin_tcl>
+
+    <Include_neon>$(DepsDir)neon\include\</Include_neon>
+    <Lib_neon>$(DepsDir)neon\lib\</Lib_neon>
+    <Bin_neon>$(DepsDir)neon\bin\</Bin_neon>
+
+    <Include_omniORB>$(DepsDir)omniORB\include\</Include_omniORB>
+    <Lib_omniORB Condition="'$(Platform)'=='Win32'">$(DepsDir)omniORB\lib\x86_win32\</Lib_omniORB>
+    <Bin_omniORB Condition="'$(Platform)'=='Win32'">$(DepsDir)omniORB\bin\x86_win32\</Bin_omniORB>
+
+    <Include_paho>$(DepsDir)paho-mqtt\include\</Include_paho>
+    <Lib_paho>$(DepsDir)paho-mqtt\lib\</Lib_paho>
+    <Bin_paho>$(DepsDir)paho-mqtt\bin\</Bin_paho>
+
+    <Include_mysql>$(DepsDir)mysql-connector-c\include\</Include_mysql>
+    <Lib_mysql>$(DepsDir)mysql-connector-c\lib\</Lib_mysql>
+    <Bin_mysql>$(DepsDir)mysql-connector-c\bin\</Bin_mysql>
+
+    <Include_odpi>$(DepsDir)odpi\include\</Include_odpi>
+    <Lib_odpi>$(DepsDir)odpi\lib\</Lib_odpi>
+    <Bin_odpi>$(DepsDir)odpi\bin\</Bin_odpi>
+
+    <Include_rapidjson>$(DepsDir)rapidjson\include\</Include_rapidjson>
+  </PropertyGroup>
+-->
+</Project>

@@ -13,4 +13,6 @@ SAS/ODBC/<connector>/TRACEFILE: number, optional (not set)
 SAS/ODBC/<connector>/TRACE: string, optional (not set) {"OFF", "ON"}
 SAS/ODBC/<connector>/CONNECTION_POOLING: string, optional (not set) {"OFF", "ONE_PER_DRIVER", "ONE_PER_HENV", "DEFAULT"}
 SAS/ODBC/<connector>/CP_MATCH: string, optional (not set) {"STRICT_MATCH", "RELAXED_MATCH", "MATCH_DEFAULT"}
-SAS/ODBC/<connector>/LONG_LONG_BIND_SUPPORTED: bool, optional (true)
+SAS/ODBC/<connector>/INT64_BIND_RULE: string, optional ("normal") {"not_supported", "normal", "as_int32", "as_string", "as_int32_or_as_string"}
+SAS/ODBC/<connector>/STATEMENT/GET_LAST_GENERATED_ID string, optional (not set) {macros: "$(schema)", "$(table)", "$(field)"}
+SAS/ODBC/<connector>/STATEMENT/GET_SYSDATE string, optional (not set)

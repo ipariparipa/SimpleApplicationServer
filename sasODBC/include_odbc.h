@@ -30,11 +30,7 @@ along with sasODBC.  If not, see <http://www.gnu.org/licenses/>
 
 #elif SAS_OS == SAS_OS_WINDOWS 
 #  include <Windows.h>
-#  include <sqlext.h> 
-
-#  define SAS_ODBC__PCB_VALUE_TYPE SQLINTEGER
-#  define SAS_ODBC__SIZE_TYPE SQLUINTEGER
-#  define SAS_ODBC__LENGTH_TYPE SQLINTEGER
+#  include <sqlext.h>
 
 #endif
 

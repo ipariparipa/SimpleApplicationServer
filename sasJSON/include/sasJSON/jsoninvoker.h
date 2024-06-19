@@ -22,6 +22,8 @@
 #include <sasCore/invoker.h>
 #include <rapidjson/document.h>
 
+#include <string>
+
 namespace SAS {
 
 struct JSONFunction
