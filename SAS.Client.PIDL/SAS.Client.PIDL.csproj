@@ -46,7 +46,7 @@
     <Compile Include="SAS_PIDLErrorCollector.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\PortableIDL\PIDL.Core\PIDL.Core.csproj">
+    <ProjectReference Include="..\PortableIDL\PIDL.Core\PIDL.Core.csproj">
       <Project>{364a4fd0-6ff5-45a0-9d2b-65360a9bf1e6}</Project>
       <Name>PIDL.Core</Name>
     </ProjectReference>

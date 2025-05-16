@@ -78,12 +78,14 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="pidladmin.xml">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)pidl -file pidljob.json</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)pidl -file pidljob.json</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generate client source</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generate client source</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">generated\frames_client.h;generated\frames_client.cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">generated\frames_client.h;generated\frames_client.cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Bin_PIDL)pidl -file pidljob.json</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Bin_PIDL)pidl -file pidljob.json</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generate PIDL client code</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generate PIDL client code</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">generated\pidladmin.h;generated\pidladmin.cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">generated\pidladmin.h;generated\pidladmin.cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pidljob.json;pidladmin.xml</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pidljob.json;pidladmin.xml</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

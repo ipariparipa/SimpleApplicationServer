@@ -26,8 +26,8 @@
   </PropertyGroup>
 
   <PropertyGroup Label="UserMacros" Condition="'$(Include_PIDL)'==''">
-    <Include_PIDLCore>$(WorkspaceDir)\PortableIDL\pidlCore</Include_PIDLCore>
-    <Include_PIDLBackend>$(WorkspaceDir)\PortableIDL\pidlBackend</Include_PIDLBackend>
+    <Include_PIDLCore Condition="'$(Include_PIDLCore)'==''">$(WorkspaceDir)\PortableIDL\pidlCore</Include_PIDLCore>
+    <Include_PIDLBackend Condition="'$(Include_PIDLBackend)'==''">$(WorkspaceDir)\PortableIDL\pidlBackend</Include_PIDLBackend>
   </PropertyGroup>
   <PropertyGroup Label="UserMacros" Condition="'$(Include_PIDL)'!=''">
     <Include_PIDLCore>$(Include_PIDL)</Include_PIDLCore>
