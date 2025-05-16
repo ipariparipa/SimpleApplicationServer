@@ -20,12 +20,14 @@
 
 #include <sasCore/config.h>
 
-#if SAS_OS == SAS_OS_LINUX 
+#ifndef SAS_MYSQL__MYSQL_H
 #  define SAS_MYSQL__MYSQL_H <mysql/mysql.h>
+#endif
+
+#if SAS_OS == SAS_OS_LINUX
 #  define SAS_MYSQL__CLASS 
 #  define SAS_MYSQL__FUNCTION 
 #elif SAS_OS == SAS_OS_WINDOWS 
-#  define SAS_MYSQL__MYSQL_H <mysql.h>
 #  ifdef SAS_MYSQL__IMPL
 #    define SAS_MYSQL__CLASS __declspec(dllexport)
 #    define SAS_MYSQL__FUNCTION __declspec(dllexport)
