@@ -28,12 +28,24 @@ namespace SAS {
 
 		struct Elem
 		{
-			std::string str;
+			std::string str, sublist_str;
 			enum Type {Element, Eval} type;
 		};
 		std::list<Elem> lst;
 
 		bool isNull;
+
+		const std::string& at(size_t idx, bool sublist) const
+		{
+			static const std::string null_value;
+			if (idx >= lst.size())
+				return null_value;
+			size_t i(0);
+			for (const auto& d : lst)
+				if (i++ == idx)
+					return sublist ? d.sublist_str : d.str;
+			return null_value;
+		}
 	};
 
 	TCLList::TCLList(const std::string & str) : priv(new TCLList_priv)
@@ -68,58 +80,69 @@ namespace SAS {
 		return *this;
 	}
 
-	bool TCLList::fromString(const std::string & str)
+	bool TCLList::fromString(const std::string & in)
 	{
 		priv->lst.clear();
 		priv->isNull = true;
 
 		int cnt(0);
-		bool escape_active(false);
-		std::string str_tmp;
+		bool escape(false);
+		std::string str, sublist_str;
+		bool has_str = false;
 
-		auto add = [&](const std::string & str) -> bool
+		auto add = [&](const std::string & str, const std::string& sublist_str) -> bool
 		{
-			priv->lst.push_back({ str, TCLList_priv::Elem::Element });
+			priv->lst.push_back({ str, sublist_str, TCLList_priv::Elem::Element });
 			return true;
 		};
 
-		for(auto ch : str)
+		for(auto ch : in)
 		{
-			if (escape_active)
-				escape_active = false;
+			auto post_escape = escape;
+			if (escape)
+				escape = false;
 			else if (ch == '\\')
 			{
-				escape_active = true;
-				continue;
+				escape = true;
+				//if (cnt == 0)
+				//	continue;
+				//else
+				goto ADD;
 			}
-			else if (cnt == 0 && ch == ' ')
+
+			if (cnt == 0 && ch == ' ')
 			{
-				if (!add(str_tmp))
+				if (!add(str, sublist_str))
 					return false;
-				str_tmp.clear();
+				str.clear(); sublist_str.clear();
+				has_str = false;
 				continue;
 			}
 
-			if (ch == '{' && ++cnt == 1)
+			if (!post_escape)
 			{
-				str_tmp.clear();
-				continue;
+				if (ch == '{' && ++cnt == 1)
+				{
+					str.clear(); sublist_str.clear();
+					has_str = true;
+					continue;
+				}
+
+				if (ch == '}' && --cnt == 0)
+				{
+					continue;
+				}
 			}
 
-			if (ch == '}' && --cnt == 0)
-			{
-				if (!add(str_tmp))
-					return false;
-				str_tmp.clear();
-				escape_active = true;
-				continue;
-			}
+			str += ch;
 
-			str_tmp += ch;
+		ADD:
+			sublist_str += ch;
+			has_str = true;
 		}
-		if (str_tmp.length())
+		if (has_str)
 		{
-			if (!add(str_tmp))
+			if (!add(str, sublist_str))
 				return false;
 		}
 		if (cnt)
@@ -146,49 +169,42 @@ namespace SAS {
 
 	void TCLList::append(const TCLList & o)
 	{
-		priv->lst.push_back({ o.toString(), TCLList_priv::Elem::Element });
+		priv->lst.push_back({ o.toString(), o.toString(), TCLList_priv::Elem::Element });
 	}
 
 	void TCLList::append(const std::string & str)
 	{
-		priv->lst.push_back({ str, TCLList_priv::Elem::Element });
+		priv->lst.push_back({ str, str, TCLList_priv::Elem::Element });
 	}
 
 	void TCLList::appendEval(const TCLList & o)
 	{
-		priv->lst.push_back({ o.toString(), TCLList_priv::Elem::Eval });
+		priv->lst.push_back({ o.toString(), o.toString(), TCLList_priv::Elem::Eval });
 	}
 
 	void TCLList::appendEval(const std::string & str)
 	{
-		priv->lst.push_back({ str, TCLList_priv::Elem::Eval });
+		priv->lst.push_back({ str, str, TCLList_priv::Elem::Eval });
 	}
 
 	const std::string & TCLList::operator [] (size_t idx) const
 	{
-		return at(idx);
+		return priv->at(idx, false);
 	}
 
 	const std::string & TCLList::at(size_t idx) const
 	{
-		static const std::string null_value;
-		if (idx >= priv->lst.size())
-			return null_value;
-		size_t i(0);
-		for (const auto & d : priv->lst)
-			if (i++ == idx)
-				return d.str;
-		return null_value;
+		return priv->at(idx, false);
 	}
 
 	bool TCLList::getList(size_t idx, TCLList & ret) const
 	{
-		return ret.fromString(at(idx));
+		return ret.fromString(priv->at(idx, true));
 	}
 
 	TCLList TCLList::getList(size_t idx) const
 	{
-		return TCLList(at(idx));
+		return TCLList(priv->at(idx, true));
 	}
 
 	std::string TCLList::toString() const
@@ -201,13 +217,15 @@ namespace SAS {
 			switch (e.type)
 			{
 			case TCLList_priv::Elem::Element:
-				if (e.str.find(' ') == std::string::npos)
-					ret += e.str;
+				if (e.sublist_str.empty())
+					ret += "{}";
+				else if (e.sublist_str.find(' ') == std::string::npos)
+					ret += e.sublist_str;
 				else
-					ret += "{" + e.str + "}";
+					ret += "{" + e.sublist_str + "}";
 				break;
 			case TCLList_priv::Elem::Eval:
-				ret += "[" + e.str + "]";
+				ret += "[" + e.sublist_str + "]";
 				break;
 			}
 
